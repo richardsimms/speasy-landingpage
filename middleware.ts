@@ -10,11 +10,6 @@ export async function middleware(req: NextRequest) {
     data: { session },
   } = await supabase.auth.getSession()
 
-  // Don't redirect the auth callback route
-  if (req.nextUrl.pathname.startsWith("/auth/callback")) {
-    return res
-  }
-
   // Check if the request is for a protected route
   const isProtectedRoute =
     req.nextUrl.pathname.startsWith("/dashboard") ||
@@ -57,6 +52,5 @@ export const config = {
     "/saved/:path*",
     "/history/:path*",
     "/auth/login",
-    "/auth/callback",
   ],
 }
