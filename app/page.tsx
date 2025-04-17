@@ -3,7 +3,15 @@ import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 import LandingPage from "./landing-page"
 
-export default async function RootPage() {
+export const dynamic = "force-dynamic"
+
+export default async function RootPage({ searchParams }: { searchParams: { code?: string } }) {
+  // If there's an auth code in the URL, redirect to the auth callback route
+  if (searchParams.code) {
+    redirect(`/auth/callback?code=${searchParams.code}`)
+    return null
+  }
+
   // Check if the user is authenticated
   const supabase = createServerComponentClient({ cookies })
   const {
@@ -13,6 +21,7 @@ export default async function RootPage() {
   // If authenticated, redirect to dashboard
   if (session) {
     redirect("/dashboard")
+    return null
   }
 
   // Otherwise, show the landing page

@@ -26,7 +26,7 @@ export default function LoginPage() {
     if (!email.endsWith("@speasy.app") && !email.endsWith("@gmail.com")) {
       setMessage({
         type: "error",
-        text: "Please use a speasy.app email address to login",
+        text: "Please use a speasy.app or gmail.com email address to login",
       })
       setLoading(false)
       return
@@ -34,10 +34,14 @@ export default function LoginPage() {
 
     try {
       const supabase = createClient()
+
+      // Make sure we're using the absolute URL for the callback
+      const redirectTo = new URL("/auth/callback", window.location.origin).toString()
+
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          emailRedirectTo: redirectTo,
         },
       })
 
