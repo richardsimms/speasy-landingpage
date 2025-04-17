@@ -26,7 +26,8 @@ export async function GET(request: NextRequest) {
 
     // If we have a session, redirect to dashboard, otherwise to login
     if (session) {
-      return NextResponse.redirect(new URL("/dashboard", request.url))
+      // Use absolute URL to ensure proper redirection
+      return NextResponse.redirect(new URL("/dashboard", process.env.NEXT_PUBLIC_SITE_URL || request.url))
     }
   }
 

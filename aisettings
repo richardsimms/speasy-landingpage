@@ -1,0 +1,5 @@
+# Authentication Settings
+
+## Magic Link Configuration
+- NEXT_PUBLIC_SITE_URL=https://v0-modern-saa-s-landing-page-t5-richardsimms-projects.vercel.app
+- NEXT_PUBLIC_SUPABASE_URL=https://lmmobnqmxkcdwdhhpwwd.supabase.co 
