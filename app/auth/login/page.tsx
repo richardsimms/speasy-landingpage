@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { supabase } from "@/lib/supabase"
+import { createClient } from "@/lib/supabase"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -33,6 +33,7 @@ export default function LoginPage() {
     }
 
     try {
+      const supabase = createClient()
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
@@ -46,7 +47,7 @@ export default function LoginPage() {
 
       setMessage({
         type: "success",
-        text: "Check your email for the login link!",
+        text: "Check your email for the magic link! After clicking the link, you'll be redirected to your dashboard.",
       })
     } catch (error: any) {
       setMessage({

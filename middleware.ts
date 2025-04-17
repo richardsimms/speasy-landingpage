@@ -14,7 +14,9 @@ export async function middleware(req: NextRequest) {
   const isProtectedRoute =
     req.nextUrl.pathname.startsWith("/dashboard") ||
     req.nextUrl.pathname.startsWith("/settings") ||
-    req.nextUrl.pathname.startsWith("/player")
+    req.nextUrl.pathname.startsWith("/player") ||
+    req.nextUrl.pathname.startsWith("/saved") ||
+    req.nextUrl.pathname.startsWith("/history")
 
   // If accessing a protected route without being authenticated
   if (isProtectedRoute && !session) {
@@ -31,9 +33,24 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(redirectUrl)
   }
 
+  // If accessing the root path (/) while authenticated, redirect to dashboard
+  if (req.nextUrl.pathname === "/" && session) {
+    const redirectUrl = req.nextUrl.clone()
+    redirectUrl.pathname = "/dashboard"
+    return NextResponse.redirect(redirectUrl)
+  }
+
   return res
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/settings/:path*", "/player/:path*", "/auth/login"],
+  matcher: [
+    "/",
+    "/dashboard/:path*",
+    "/settings/:path*",
+    "/player/:path*",
+    "/saved/:path*",
+    "/history/:path*",
+    "/auth/login",
+  ],
 }
