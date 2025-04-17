@@ -28,12 +28,11 @@ CREATE POLICY "Allow anyone to read published blog posts"
 -- Only allow authenticated users to insert, update, or delete blog posts
 CREATE POLICY "Allow authenticated users to insert blog posts" 
   ON blog_posts FOR INSERT 
-  WITH CHECK (auth.role() = 'authenticated');
+  USING (auth.role() = 'authenticated');
 
 CREATE POLICY "Allow authenticated users to update blog posts" 
   ON blog_posts FOR UPDATE 
-  USING (auth.role() = 'authenticated') 
-  WITH CHECK (auth.role() = 'authenticated');
+  USING (auth.role() = 'authenticated');
 
 CREATE POLICY "Allow authenticated users to delete blog posts" 
   ON blog_posts FOR DELETE 

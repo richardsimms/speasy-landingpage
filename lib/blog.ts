@@ -38,13 +38,9 @@ export async function getBlogPostBySlug(slug: string): Promise<BlogPost> {
     .eq("is_published", true)
     .single()
 
-  if (error) {
+  if (error || !data) {
     console.error("Error fetching blog post:", error)
-    throw new Error(`Failed to fetch blog post with slug: ${slug}`)
-  }
-
-  if (!data) {
-    throw new Error(`Blog post with slug "${slug}" not found`)
+    notFound()
   }
 
   return data as BlogPost
