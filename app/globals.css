@@ -61,3 +61,16 @@
 .gradient-bg {
   background: radial-gradient(circle at top center, hsl(var(--primary) / 0.1) 0%, hsl(var(--background)) 50%);
 }
+
+@keyframes scroll {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-50%);
+  }
+}
+
+.animate-scroll-slow {
+  animation: scroll 15s linear infinite;
+}

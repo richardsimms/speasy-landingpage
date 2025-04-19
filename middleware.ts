@@ -27,7 +27,14 @@ export async function middleware(req: NextRequest) {
   }
 
   // If accessing login page while authenticated
-  if ((req.nextUrl.pathname === "/auth/login" || req.nextUrl.pathname === "/") && session) {
+  if (req.nextUrl.pathname === "/auth/login" && session) {
+    const redirectUrl = req.nextUrl.clone()
+    redirectUrl.pathname = "/dashboard"
+    return NextResponse.redirect(redirectUrl)
+  }
+
+  // If accessing the root path (/) while authenticated, redirect to dashboard
+  if (req.nextUrl.pathname === "/" && session) {
     const redirectUrl = req.nextUrl.clone()
     redirectUrl.pathname = "/dashboard"
     return NextResponse.redirect(redirectUrl)
