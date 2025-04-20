@@ -4,7 +4,7 @@ import { motion } from "framer-motion"
 
 export default function StorySection() {
   return (
-    <section className="w-full py-20 md:py-32 bg-background">
+    <section  id="testimonials" className="w-full py-20 md:py-32 bg-background">
       <div className="container px-4 md:px-6">
         <motion.div
           className="max-w-3xl mx-auto text-center space-y-8"

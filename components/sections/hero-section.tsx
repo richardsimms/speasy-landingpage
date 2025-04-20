@@ -65,11 +65,11 @@ export default function HeroSection() {
           </div>
 
           <motion.div
-            className="relative mx-auto"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-          >
+              className="space-y-4"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
             <div className="relative w-full max-w-[400px] aspect-[9/16] mx-auto bg-card rounded-3xl shadow-xl overflow-hidden border border-border">
               {/* Phone mockup with audio player */}
               <div className="absolute inset-0 flex flex-col">

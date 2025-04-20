@@ -3,8 +3,11 @@
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { EarlyAccessForm } from "@/components/early-access-form"
+import { useRouter } from "next/navigation"
+
 
 export default function CtaSection() {
+  const router = useRouter()
   return (
     <section className="w-full py-20 md:py-32 bg-gradient-to-b from-background to-primary/5">
       <div className="container px-4 md:px-6">
@@ -24,7 +27,14 @@ export default function CtaSection() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-            <Button size="lg" variant="outline">
+            <Button
+              size="lg"
+              variant="outline"
+              type="button"
+              onClick={() => {
+                window.location.href = "/auth/login"
+              }}
+            >
               Try the Demo
             </Button>
             <EarlyAccessForm />

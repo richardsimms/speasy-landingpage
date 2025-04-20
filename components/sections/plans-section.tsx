@@ -4,10 +4,13 @@ import { motion } from "framer-motion"
 import { Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { EarlyAccessForm } from "@/components/early-access-form"
+import { useRouter } from "next/navigation"
 
 export default function PlansSection() {
+  const router = useRouter()
   return (
-    <section className="w-full py-20 md:py-32 bg-background">
+    <section  id="pricing" className="w-full py-20 md:py-32 bg-background">
       <div className="container px-4 md:px-6">
         <motion.div
           className="text-center mb-12"
@@ -53,9 +56,18 @@ export default function PlansSection() {
                 </ul>
               </CardContent>
               <CardFooter>
-                <Button variant="outline" size="lg" className="w-full">
-                  Try Free
-                </Button>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+            <Button
+              size="lg"
+              variant="outline"
+              type="button"
+              onClick={() => {
+                window.location.href = "/auth/login"
+              }}
+            >
+              Try the Demo
+            </Button>
+            </div>
               </CardFooter>
             </Card>
           </motion.div>
@@ -107,9 +119,7 @@ export default function PlansSection() {
                 </ul>
               </CardContent>
               <CardFooter>
-                <Button size="lg" className="w-full">
-                  Join Waitlist
-                </Button>
+                <EarlyAccessForm />
               </CardFooter>
             </Card>
           </motion.div>

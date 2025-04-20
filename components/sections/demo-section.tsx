@@ -80,7 +80,7 @@ export default function DemoSection() {
   }, [playingId])
 
   return (
-    <section className="w-full py-20 md:py-32 bg-muted/30">
+    <section id="how-it-works" className="w-full py-20 md:py-32 bg-muted/30">
       <div className="container px-4 md:px-6">
         <motion.div
           className="text-center mb-12"

@@ -4,24 +4,7 @@ import { Headphones, Twitter, Linkedin, Github } from "lucide-react"
 export default function FooterSection() {
   return (
     <footer className="w-full bg-muted/30">
-      <div className="relative overflow-hidden">
-        <img
-          src="/placeholder.svg?height=600&width=1200&query=person with headphones relaxing"
-          alt="Person relaxing with headphones"
-          className="w-full h-64 md:h-80 object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent flex items-end">
-          <div className="container px-4 md:px-6 py-8">
-            <div className="flex items-center gap-2 mb-4">
-              <Headphones className="h-6 w-6 text-primary" />
-              <span className="text-xl font-bold">Speasy</span>
-            </div>
-            <h3 className="text-2xl md:text-3xl font-bold max-w-md mb-6">
-              Transform your reading into listening. Reclaim your time.
-            </h3>
-          </div>
-        </div>
-      </div>
+
 
       <div className="container px-4 md:px-6 py-12">
         <div className="grid gap-8 md:grid-cols-4">
@@ -93,7 +76,7 @@ export default function FooterSection() {
         </div>
 
         <div className="mt-12 border-t pt-8 text-center text-sm text-muted-foreground">
-          &copy; {new Date().getFullYear()} Speasy. All rights reserved.
+          &copy; {new Date().getFullYear()} Speasy. Built with clarity, read with ease, listened with joy.
         </div>
       </div>
     </footer>
