@@ -54,6 +54,7 @@ export function AudioPlayer({ contentItem, relatedContent }: AudioPlayerProps) {
   const [volume, setVolume] = useState(1)
   const [isMuted, setIsMuted] = useState(false)
   const [isSaved, setIsSaved] = useState(false)
+  const [audioError, setAudioError] = useState<string | null>(null)
   const audioRef = useRef<HTMLAudioElement>(null)
 
   // Get the audio file URL
@@ -69,19 +70,39 @@ export function AudioPlayer({ contentItem, relatedContent }: AudioPlayerProps) {
     // Reset player state when content changes
     setIsPlaying(false)
     setCurrentTime(0)
+    setAudioError(null)
+
+    // Debug info
+    console.log("ContentItem audio:", contentItem.audio)
+    console.log("Audio URL to play:", audioUrl)
 
     if (audioRef.current) {
       audioRef.current.currentTime = 0
       audioRef.current.load()
     }
-  }, [contentItem.id])
+  }, [contentItem.id, audioUrl])
 
   const handlePlayPause = () => {
     if (audioRef.current) {
       if (isPlaying) {
         audioRef.current.pause()
       } else {
-        audioRef.current.play()
+        const playPromise = audioRef.current.play()
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => {
+              console.log("Audio playback started successfully")
+            })
+            .catch(error => {
+              console.error("Audio playback failed:", error)
+              setAudioError(`Playback error: ${error.message}`)
+              toast({
+                variant: "destructive",
+                title: "Audio error",
+                description: "Could not play the audio file. Please try again."
+              })
+            })
+        }
       }
       setIsPlaying(!isPlaying)
     }
@@ -200,8 +221,24 @@ export function AudioPlayer({ contentItem, relatedContent }: AudioPlayerProps) {
             onTimeUpdate={handleTimeUpdate}
             onLoadedMetadata={handleLoadedMetadata}
             onEnded={() => setIsPlaying(false)}
+            onError={(e) => {
+              console.error("Audio error:", e)
+              setAudioError("Error loading audio file. Please try again later.")
+              toast({
+                variant: "destructive",
+                title: "Audio error",
+                description: "Could not load the audio file."
+              })
+            }}
             className="hidden"
           />
+
+          {/* Error message */}
+          {audioError && (
+            <div className="p-3 bg-destructive/15 text-destructive rounded-md mb-3">
+              {audioError}
+            </div>
+          )}
 
           {/* Player controls */}
           <div className="space-y-4">

@@ -65,11 +65,15 @@ export default async function PlayerPage({ searchParams }: PlayerPageProps) {
     .order("published_at", { ascending: false })
     .limit(5)
 
+  // Create a signed URL for the audio file
   if (contentItem.audio && contentItem.audio.length > 0) {
-    const audioPath = contentItem.audio[0].file_url // e.g., "private/filename.mp3"
-    const { data, error } = await supabase.storage.from('audio').createSignedUrl(audioPath, 60 * 60) // 1 hour expiry
+    const audioPath = contentItem.audio[0].file_url
+    const { data } = await supabase.storage.from('audio').createSignedUrl(audioPath, 60 * 60) // 1 hour expiry
+    
     if (data?.signedUrl) {
       contentItem.audio[0].file_url = data.signedUrl
+    } else {
+      console.error("Failed to create signed URL for audio file:", audioPath)
     }
   }
 
