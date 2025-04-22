@@ -23,7 +23,7 @@ export default async function DashboardPage() {
   const subscribedCategoryIds = subscriptions?.map((sub) => sub.category_id) || []
 
   // Get latest content items
-  const { data: latestContent } = await supabase
+  let contentQuery = supabase
     .from("content_items")
     .select(`
       *,
@@ -32,6 +32,13 @@ export default async function DashboardPage() {
     `)
     .order("published_at", { ascending: false })
     .limit(10)
+    
+  // Filter by subscribed categories if the user has any subscriptions
+  if (subscribedCategoryIds.length > 0) {
+    contentQuery = contentQuery.in('source.category_id', subscribedCategoryIds)
+  }
+  
+  const { data: latestContent } = await contentQuery
 
   // Get user's saved content
   const { data: savedContent } = await supabase
