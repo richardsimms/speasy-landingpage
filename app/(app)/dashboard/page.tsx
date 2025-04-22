@@ -22,23 +22,75 @@ export default async function DashboardPage() {
 
   const subscribedCategoryIds = subscriptions?.map((sub) => sub.category_id) || []
 
-  // Get latest content items
-  let contentQuery = supabase
-    .from("content_items")
-    .select(`
-      *,
-      source:content_sources(name, category_id),
-      audio:audio_files(file_url, duration, type)
-    `)
-    .order("published_at", { ascending: false })
-    .limit(10)
-    
-  // Filter by subscribed categories if the user has any subscriptions
+  let latestContent: any[] = []
+
   if (subscribedCategoryIds.length > 0) {
-    contentQuery = contentQuery.in('source.category_id', subscribedCategoryIds)
+    // Get content items that are tagged with categories the user is subscribed to
+    
+    // First, get tags that match the subscribed categories
+    // This is a simplified approach - we're using the tag name that matches the category name
+    const { data: categoryNames } = await supabase
+      .from("categories")
+      .select("name")
+      .in("id", subscribedCategoryIds)
+    
+    if (categoryNames && categoryNames.length > 0) {
+      const categoryNamesList = categoryNames.map(cat => cat.name)
+      
+      // Get tag IDs that match these category names
+      const { data: tagIds } = await supabase
+        .from("tags")
+        .select("id")
+        .in("name", categoryNamesList)
+      
+      if (tagIds && tagIds.length > 0) {
+        const tagIdsList = tagIds.map(tag => tag.id)
+        
+        // First, get content IDs that are tagged with these tags
+        const { data: contentTaggings } = await supabase
+          .from("content_item_tags")
+          .select("content_id")
+          .in("tag_id", tagIdsList)
+        
+        if (contentTaggings && contentTaggings.length > 0) {
+          const contentIds = contentTaggings.map(item => item.content_id)
+          
+          // Then, get the actual content items
+          const { data: contentItems } = await supabase
+            .from("content_items")
+            .select(`
+              *,
+              source:content_sources(name, category_id),
+              audio:audio_files(file_url, duration, type)
+            `)
+            .in("id", contentIds)
+            .order("published_at", { ascending: false })
+            .limit(10)
+          
+          if (contentItems) {
+            latestContent = contentItems
+          }
+        }
+      }
+    }
   }
   
-  const { data: latestContent } = await contentQuery
+  // If no content was found through tags, show all content
+  if (latestContent.length === 0) {
+    const { data: allContent } = await supabase
+      .from("content_items")
+      .select(`
+        *,
+        source:content_sources(name, category_id),
+        audio:audio_files(file_url, duration, type)
+      `)
+      .order("published_at", { ascending: false })
+      .limit(10)
+    
+    if (allContent) {
+      latestContent = allContent
+    }
+  }
 
   // Get user's saved content
   const { data: savedContent } = await supabase
