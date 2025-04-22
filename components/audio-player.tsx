@@ -82,6 +82,21 @@ export function AudioPlayer({ contentItem, relatedContent }: AudioPlayerProps) {
         
         // Make sure we handle CORS by directly using the signed URL without any modifications
         setProcessedAudioUrl(url);
+        
+        // Try to preload the audio to check if it's accessible
+        const preloadAudio = new Audio();
+        preloadAudio.crossOrigin = "anonymous";
+        preloadAudio.src = url;
+        
+        preloadAudio.addEventListener('error', (e) => {
+          console.error("Preload audio error:", e);
+          console.error("Audio might not be accessible due to CORS or other issues");
+        });
+        
+        preloadAudio.addEventListener('canplaythrough', () => {
+          console.log("Audio is playable!");
+        });
+        
       } catch (err) {
         console.error("Error parsing audio URL:", err);
         setAudioError("Error processing audio URL");
