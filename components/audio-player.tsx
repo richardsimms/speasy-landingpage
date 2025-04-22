@@ -55,13 +55,43 @@ export function AudioPlayer({ contentItem, relatedContent }: AudioPlayerProps) {
   const [isMuted, setIsMuted] = useState(false)
   const [isSaved, setIsSaved] = useState(false)
   const [audioError, setAudioError] = useState<string | null>(null)
+  const [processedAudioUrl, setProcessedAudioUrl] = useState<string | null>(null)
   const audioRef = useRef<HTMLAudioElement>(null)
 
+  // Process the audio URL
+  useEffect(() => {
+    let url = "";
+    
+    if (contentItem.audio && contentItem.audio.length > 0) {
+      url = contentItem.audio[0].file_url;
+      
+      // Quick validation
+      if (!url.startsWith('http')) {
+        console.error("Invalid audio URL format:", url);
+        setAudioError("Invalid audio URL format. Please contact support.");
+        return;
+      }
+      
+      try {
+        // Clean the URL - sometimes double encoding can cause issues
+        const parsedUrl = new URL(url);
+        console.log("Parsed audio URL:", parsedUrl.toString());
+        setProcessedAudioUrl(parsedUrl.toString());
+      } catch (err) {
+        console.error("Error parsing audio URL:", err);
+        setAudioError("Error processing audio URL");
+      }
+    } else {
+      console.warn("No audio URL available");
+      setAudioError("No audio file available for this content");
+    }
+  }, [contentItem.audio]);
+
   // Get the audio file URL
-  const audioUrl =
-    contentItem.audio && contentItem.audio.length > 0
+  const audioUrl = processedAudioUrl || 
+    (contentItem.audio && contentItem.audio.length > 0
       ? contentItem.audio[0].file_url
-      : "https://example.com/sample-audio.mp3" // Placeholder for demo
+      : "https://example.com/sample-audio.mp3"); // Placeholder for demo
 
   useEffect(() => {
     // Mark as read when the player loads
@@ -223,6 +253,7 @@ export function AudioPlayer({ contentItem, relatedContent }: AudioPlayerProps) {
             onEnded={() => setIsPlaying(false)}
             onError={(e) => {
               console.error("Audio error:", e)
+              console.error("Audio URL that failed:", audioUrl)
               setAudioError("Error loading audio file. Please try again later.")
               toast({
                 variant: "destructive",
@@ -230,6 +261,8 @@ export function AudioPlayer({ contentItem, relatedContent }: AudioPlayerProps) {
                 description: "Could not load the audio file."
               })
             }}
+            crossOrigin="anonymous"
+            preload="metadata"
             className="hidden"
           />
 

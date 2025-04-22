@@ -67,13 +67,39 @@ export default async function PlayerPage({ searchParams }: PlayerPageProps) {
 
   // Create a signed URL for the audio file
   if (contentItem.audio && contentItem.audio.length > 0) {
-    const audioPath = contentItem.audio[0].file_url
-    const { data } = await supabase.storage.from('audio').createSignedUrl(audioPath, 60 * 60) // 1 hour expiry
-    
-    if (data?.signedUrl) {
-      contentItem.audio[0].file_url = data.signedUrl
-    } else {
-      console.error("Failed to create signed URL for audio file:", audioPath)
+    try {
+      // Extract just the filename if it's a full path or URL
+      let audioPath = contentItem.audio[0].file_url;
+      
+      // If it's already a full URL with a token, don't try to re-sign it
+      if (!audioPath.includes('token=')) {
+        // Remove any URL prefix if present to get just the path/filename
+        if (audioPath.includes('://')) {
+          const url = new URL(audioPath);
+          audioPath = url.pathname.startsWith('/') ? url.pathname.substring(1) : url.pathname;
+        }
+        
+        // If it's a path like "audio/filename.mp3", make sure we just get "filename.mp3"
+        if (audioPath.startsWith('audio/')) {
+          audioPath = audioPath;
+        } else {
+          audioPath = `${audioPath}`;
+        }
+        
+        console.log("Getting signed URL for:", audioPath);
+        const { data, error } = await supabase.storage.from('audio').createSignedUrl(audioPath, 60 * 60); // 1 hour expiry
+        
+        if (error) {
+          console.error("Error creating signed URL:", error);
+        } else if (data?.signedUrl) {
+          contentItem.audio[0].file_url = data.signedUrl;
+          console.log("Successfully generated signed URL");
+        }
+      } else {
+        console.log("URL already contains a token, using as is");
+      }
+    } catch (err) {
+      console.error("Failed to process audio URL:", err);
     }
   }
 
