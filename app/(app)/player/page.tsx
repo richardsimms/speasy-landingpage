@@ -65,35 +65,28 @@ export default async function PlayerPage({ searchParams }: PlayerPageProps) {
     .order("published_at", { ascending: false })
     .limit(5)
 
-  // Process audio files for playback - using authenticated downloads instead of public URLs
+  // Process audio files for playback - using public URLs
   if (contentItem?.audio && contentItem.audio.length > 0) {
     try {
       const audioPath = contentItem.audio[0].file_url;
       
-      // Get just the filename regardless of what's stored in the database
-      let filename = audioPath;
-      
-      // If it's a full URL or path, extract just the filename
-      if (audioPath.includes('/')) {
-        const parts = audioPath.split('/');
-        filename = parts[parts.length - 1];
-      }
-      
-      // Create a signed URL with proper authorization
-      // Important: Using download endpoint with proper authentication
-      const { data, error } = await supabase
-        .storage
-        .from('audio')
-        .createSignedUrl(filename, 60 * 60, {
-          download: true, // Force download headers
-        });
-      
-      if (error) {
-        console.error("Error creating signed URL:", error);
-      } else if (data?.signedUrl) {
-        // Successfully created signed URL with auth tokens
-        contentItem.audio[0].file_url = data.signedUrl;
-        console.log("Successfully generated authenticated signed URL");
+      // If it's already a full URL, use it as is
+      if (audioPath.startsWith('http')) {
+        console.log("Using existing URL:", audioPath);
+      } else {
+        // Get just the filename regardless of what's stored in the database
+        let filename = audioPath;
+        
+        // If it's a full URL or path, extract just the filename
+        if (audioPath.includes('/')) {
+          const parts = audioPath.split('/');
+          filename = parts[parts.length - 1];
+        }
+        
+        // Create a public URL
+        const publicUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://lmmobnqmxkcdwdhhpwwd.supabase.co'}/storage/v1/object/public/audio/${filename}`;
+        contentItem.audio[0].file_url = publicUrl;
+        console.log("Using public URL:", publicUrl);
       }
       
     } catch (err) {
