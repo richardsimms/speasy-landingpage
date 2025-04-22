@@ -65,49 +65,50 @@ export default async function PlayerPage({ searchParams }: PlayerPageProps) {
     .order("published_at", { ascending: false })
     .limit(5)
 
-  // Process audio files for playback
+  // Process audio files for playback - using authenticated downloads instead of public URLs
   if (contentItem?.audio && contentItem.audio.length > 0) {
     try {
-      // Instead of trying to create signed URLs, we'll use the direct download URL
-      // This works if the bucket is public or has proper RLS policies
       const audioPath = contentItem.audio[0].file_url;
       
-      // If the URL is already a full URL, use it as is
-      if (audioPath.startsWith('http')) {
-        console.log("Using provided URL:", audioPath);
-        
-        // Add cache buster to prevent caching issues
-        if (!audioPath.includes('?')) {
-          contentItem.audio[0].file_url = `${audioPath}?t=${Date.now()}`;
-        }
-      } else {
-        // For filenames or partial paths, construct a public download URL
-        let filename = audioPath;
-        
-        // Extract filename if it's a path
-        if (audioPath.includes('/')) {
-          const parts = audioPath.split('/');
-          filename = parts[parts.length - 1];
-        }
-        
-        // Create a temporary anonymous key URL that should work without authentication
-        // Using the download endpoint rather than the public endpoint
-        const downloadUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://lmmobnqmxkcdwdhhpwwd.supabase.co'}/storage/v1/object/public/audio/${filename}`;
-        contentItem.audio[0].file_url = downloadUrl;
-        console.log("Using direct download URL:", downloadUrl);
-        
-        // Create a cache-busting URL to prevent CORS issues
-        contentItem.audio[0].file_url = `${downloadUrl}?t=${Date.now()}`;
+      // Get just the filename regardless of what's stored in the database
+      let filename = audioPath;
+      
+      // If it's a full URL or path, extract just the filename
+      if (audioPath.includes('/')) {
+        const parts = audioPath.split('/');
+        filename = parts[parts.length - 1];
       }
       
-      // Check if the public bucket is accessible (won't work server-side but useful for debugging)
-      console.log("Audio file path being used:", contentItem.audio[0].file_url);
+      // Create a signed URL with proper authorization
+      // Important: Using download endpoint with proper authentication
+      const { data, error } = await supabase
+        .storage
+        .from('audio')
+        .createSignedUrl(filename, 60 * 60, {
+          download: true, // Force download headers
+        });
+      
+      if (error) {
+        console.error("Error creating signed URL:", error);
+      } else if (data?.signedUrl) {
+        // Successfully created signed URL with auth tokens
+        contentItem.audio[0].file_url = data.signedUrl;
+        console.log("Successfully generated authenticated signed URL");
+      }
       
     } catch (err) {
       console.error("Failed to process audio URL:", err);
     }
   } else {
     console.warn("No audio files found for this content item");
+  }
+
+  // Add debug info to the content item for client-side debugging
+  if (process.env.NODE_ENV === 'development') {
+    contentItem._debug = {
+      audioUrl: contentItem?.audio?.[0]?.file_url || 'No audio URL',
+      supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
+    };
   }
 
   return (

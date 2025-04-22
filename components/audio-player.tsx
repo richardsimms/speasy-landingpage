@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useCallback } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import {
@@ -39,6 +39,10 @@ interface ContentItem {
     duration: number
     type: string
   }[]
+  _debug?: {
+    audioUrl: string
+    supabaseUrl: string
+  }
 }
 
 interface AudioPlayerProps {
@@ -56,6 +60,7 @@ export function AudioPlayer({ contentItem, relatedContent }: AudioPlayerProps) {
   const [isSaved, setIsSaved] = useState(false)
   const [audioError, setAudioError] = useState<string | null>(null)
   const [processedAudioUrl, setProcessedAudioUrl] = useState<string | null>(null)
+  const [retryCount, setRetryCount] = useState(0)
   const audioRef = useRef<HTMLAudioElement>(null)
 
   // Process the audio URL
@@ -76,12 +81,17 @@ export function AudioPlayer({ contentItem, relatedContent }: AudioPlayerProps) {
         // Clean the URL - sometimes double encoding can cause issues
         const parsedUrl = new URL(url);
         
-        // Make sure we're using the right format for the audio URL
-        // The error logs show we're having issues with the URL format
-        console.log("Parsed audio URL:", parsedUrl.toString());
+        // Log the URL for debugging
+        console.log("Authenticated audio URL:", parsedUrl.toString());
         
-        // Make sure we handle CORS by directly using the signed URL without any modifications
+        // Use the authenticated URL directly
         setProcessedAudioUrl(url);
+        
+        if (url.includes('token=')) {
+          console.log("URL contains authentication token - good!");
+        } else {
+          console.warn("URL does not contain authentication token - may not work!");
+        }
         
         // Try to preload the audio to check if it's accessible
         const preloadAudio = new Audio();
@@ -90,11 +100,18 @@ export function AudioPlayer({ contentItem, relatedContent }: AudioPlayerProps) {
         
         preloadAudio.addEventListener('error', (e) => {
           console.error("Preload audio error:", e);
-          console.error("Audio might not be accessible due to CORS or other issues");
+          console.error("Audio might not be accessible due to CORS or authentication issues");
+          
+          // Show more detailed error info
+          if (contentItem._debug) {
+            console.group("Audio Debug Info");
+            console.log("Debug info:", contentItem._debug);
+            console.groupEnd();
+          }
         });
         
         preloadAudio.addEventListener('canplaythrough', () => {
-          console.log("Audio is playable!");
+          console.log("Audio is playable! Authentication successful.");
         });
         
       } catch (err) {
@@ -105,7 +122,7 @@ export function AudioPlayer({ contentItem, relatedContent }: AudioPlayerProps) {
       console.warn("No audio URL available");
       setAudioError("No audio file available for this content");
     }
-  }, [contentItem.audio]);
+  }, [contentItem.audio, contentItem._debug]);
 
   // Get the audio file URL
   const audioUrl = processedAudioUrl || 
@@ -253,6 +270,43 @@ export function AudioPlayer({ contentItem, relatedContent }: AudioPlayerProps) {
     router.push(`/player?id=${id}`)
   }
 
+  // Add a retry function
+  const retryAudio = useCallback(() => {
+    if (retryCount < 3) {
+      setRetryCount(prev => prev + 1);
+      setAudioError(null);
+      
+      if (audioRef.current) {
+        // Add a cache-busting parameter to force a fresh request
+        const currentSrc = audioRef.current.src;
+        const newSrc = currentSrc.includes('?') 
+          ? `${currentSrc}&retry=${Date.now()}` 
+          : `${currentSrc}?retry=${Date.now()}`;
+        
+        audioRef.current.src = newSrc;
+        audioRef.current.load();
+        console.log("Retrying audio playback with new URL:", newSrc);
+        
+        // Try to play after a short delay
+        setTimeout(() => {
+          if (audioRef.current) {
+            audioRef.current.play()
+              .then(() => {
+                console.log("Retry successful!");
+                setIsPlaying(true);
+              })
+              .catch(err => {
+                console.error("Retry failed:", err);
+                setAudioError(`Retry failed: ${err.message}`);
+              });
+          }
+        }, 1000);
+      }
+    } else {
+      setAudioError("Maximum retry attempts reached. Please try again later.");
+    }
+  }, [retryCount]);
+
   return (
     <div className="flex flex-col gap-6">
       <Card className="w-full">
@@ -288,16 +342,38 @@ export function AudioPlayer({ contentItem, relatedContent }: AudioPlayerProps) {
 
           {/* Debug information in development */}
           {process.env.NODE_ENV === 'development' && (
-            <div className="text-xs text-muted-foreground mb-2 p-2 bg-muted/20 rounded overflow-auto max-h-24">
-              <p>Audio URL: {audioUrl}</p>
-              {audioError && <p className="text-destructive">Error: {audioError}</p>}
+            <div className="text-xs text-muted-foreground mb-2 p-2 bg-muted/20 rounded overflow-auto max-h-36">
+              <details>
+                <summary>Debug Info</summary>
+                <p>Audio URL: {audioUrl}</p>
+                <p>Has Auth Token: {audioUrl?.includes('token=') ? 'Yes' : 'No'}</p>
+                {contentItem._debug && (
+                  <>
+                    <p>Original URL: {contentItem._debug.audioUrl}</p>
+                    <p>Supabase URL: {contentItem._debug.supabaseUrl}</p>
+                  </>
+                )}
+                {audioError && <p className="text-destructive">Error: {audioError}</p>}
+              </details>
             </div>
           )}
 
-          {/* Error message */}
+          {/* Error message with retry button */}
           {audioError && (
             <div className="p-3 bg-destructive/15 text-destructive rounded-md mb-3">
-              {audioError}
+              <div className="flex items-center justify-between">
+                <p>{audioError}</p>
+                {retryCount < 3 && (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={retryAudio}
+                    className="ml-2"
+                  >
+                    Retry
+                  </Button>
+                )}
+              </div>
             </div>
           )}
 
