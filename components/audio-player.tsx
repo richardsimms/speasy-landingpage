@@ -75,8 +75,13 @@ export function AudioPlayer({ contentItem, relatedContent }: AudioPlayerProps) {
       try {
         // Clean the URL - sometimes double encoding can cause issues
         const parsedUrl = new URL(url);
+        
+        // Make sure we're using the right format for the audio URL
+        // The error logs show we're having issues with the URL format
         console.log("Parsed audio URL:", parsedUrl.toString());
-        setProcessedAudioUrl(parsedUrl.toString());
+        
+        // Make sure we handle CORS by directly using the signed URL without any modifications
+        setProcessedAudioUrl(url);
       } catch (err) {
         console.error("Error parsing audio URL:", err);
         setAudioError("Error processing audio URL");
@@ -252,19 +257,27 @@ export function AudioPlayer({ contentItem, relatedContent }: AudioPlayerProps) {
             onLoadedMetadata={handleLoadedMetadata}
             onEnded={() => setIsPlaying(false)}
             onError={(e) => {
-              console.error("Audio error:", e)
-              console.error("Audio URL that failed:", audioUrl)
-              setAudioError("Error loading audio file. Please try again later.")
+              console.error("Audio error:", e);
+              console.error("Audio URL that failed:", audioUrl);
+              setAudioError("Error loading audio file. Please try again later.");
               toast({
                 variant: "destructive",
                 title: "Audio error",
                 description: "Could not load the audio file."
-              })
+              });
             }}
             crossOrigin="anonymous"
             preload="metadata"
             className="hidden"
           />
+
+          {/* Debug information in development */}
+          {process.env.NODE_ENV === 'development' && (
+            <div className="text-xs text-muted-foreground mb-2 p-2 bg-muted/20 rounded overflow-auto max-h-24">
+              <p>Audio URL: {audioUrl}</p>
+              {audioError && <p className="text-destructive">Error: {audioError}</p>}
+            </div>
+          )}
 
           {/* Error message */}
           {audioError && (

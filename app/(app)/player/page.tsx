@@ -68,22 +68,25 @@ export default async function PlayerPage({ searchParams }: PlayerPageProps) {
   // Create a signed URL for the audio file
   if (contentItem.audio && contentItem.audio.length > 0) {
     try {
-      // Extract just the filename if it's a full path or URL
+      // Extract just the filename from the path
       let audioPath = contentItem.audio[0].file_url;
       
       // If it's already a full URL with a token, don't try to re-sign it
       if (!audioPath.includes('token=')) {
-        // Remove any URL prefix if present to get just the path/filename
-        if (audioPath.includes('://')) {
-          const url = new URL(audioPath);
-          audioPath = url.pathname.startsWith('/') ? url.pathname.substring(1) : url.pathname;
-        }
+        // The logs show we're trying to sign a full path instead of just the filename
+        // Extract just the UUID filename from the path
         
-        // If it's a path like "audio/filename.mp3", make sure we just get "filename.mp3"
-        if (audioPath.startsWith('audio/')) {
-          audioPath = audioPath;
-        } else {
-          audioPath = `${audioPath}`;
+        // First, check if it's a full URL or just a path
+        if (audioPath.includes('/object/public/audio/')) {
+          // Extract the filename from paths like "storage/v1/object/public/audio/6dcd43a5-81e9-4f73-9225-ff8ae7a009d1.mp3"
+          const matches = audioPath.match(/\/audio\/([^\/]+\.mp3)$/);
+          if (matches && matches[1]) {
+            audioPath = matches[1];
+          }
+        } else if (audioPath.includes('/')) {
+          // Handle simple path like "audio/filename.mp3"
+          const parts = audioPath.split('/');
+          audioPath = parts[parts.length - 1];
         }
         
         console.log("Getting signed URL for:", audioPath);
