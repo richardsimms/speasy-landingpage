@@ -65,6 +65,14 @@ export default async function PlayerPage({ searchParams }: PlayerPageProps) {
     .order("published_at", { ascending: false })
     .limit(5)
 
+  if (contentItem.audio && contentItem.audio.length > 0) {
+    const audioPath = contentItem.audio[0].file_url // e.g., "private/filename.mp3"
+    const { data, error } = await supabase.storage.from('audio').createSignedUrl(audioPath, 60 * 60) // 1 hour expiry
+    if (data?.signedUrl) {
+      contentItem.audio[0].file_url = data.signedUrl
+    }
+  }
+
   return (
     <div className="container py-6 md:py-10">
       <AudioPlayer contentItem={contentItem} relatedContent={relatedContent || []} />

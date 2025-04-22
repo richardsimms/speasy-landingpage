@@ -1,0 +1,13 @@
+name: Schedule Edge Function
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # This runs the function every day at midnight UTC
+
+jobs:
+  run-edge-function:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call Edge Function
+        run: |
+          curl -X POST https://lmmobnqmxkcdwdhhpwwd.supabase.co/functions/v1/refresh_feeds
