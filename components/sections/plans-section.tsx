@@ -82,7 +82,7 @@ export default function PlansSection() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle>Pro Plan (Coming soon)</CardTitle>
+                    <CardTitle>Pro Plan</CardTitle>
                     <CardDescription>Personalized for your inbox</CardDescription>
                   </div>
                   <div className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium">
@@ -125,6 +125,16 @@ export default function PlansSection() {
           </motion.div>
         </div>
       </div>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.5 }}
+      >
+        <p className="mt-8 text-center text-muted-foreground">Speasy Pro is coming soon—with personal newsletter sync, smarter filters, and AI-powered summaries.
+        </p>
+        <p className="text-center text-muted-foreground">Join the waitlist and help shape the future of Speasy.</p>
+      </motion.div>
     </section>
   )
 }

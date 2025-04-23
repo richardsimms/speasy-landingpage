@@ -29,7 +29,9 @@ export default function Header() {
             <Link href="/auth/login" className="text-sm font-medium transition-colors hover:text-primary">
               Sign In
             </Link>
-            <EarlyAccessForm />
+            <div className="hidden md:block">
+              <EarlyAccessForm />
+            </div>
           </div>
         </div>
     </header>

@@ -12,13 +12,13 @@ const testimonials = [
     avatar: "/air-conditioner-unit.png",
   },
   {
-    quote: "This turned my inbox into a podcast. I didn't know how badly I needed that.",
+    quote: "I listen while cooking dinner. It’s become my learning hour.",
     name: "Sarah Johnson",
     role: "Startup Founder",
     avatar: "/stylized-initials.png",
   },
   {
-    quote: "The audio quality is surprisingly good. It doesn't sound robotic at all.",
+    quote: "Every train ride now includes 3 newsletters I used to skip.",
     name: "Michael Torres",
     role: "Marketing Director",
     avatar: "/abstract-geometric-mt.png",
@@ -36,7 +36,7 @@ export default function TestimonialsSection() {
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
         >
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">What Users Are Saying</h2>
+          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">How others are listening smarter</h2>
         </motion.div>
 
         <div className="grid gap-8 md:grid-cols-3">

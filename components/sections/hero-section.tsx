@@ -5,8 +5,8 @@ import React from "react"
 import { useState } from "react"
 import { motion } from "framer-motion"
 import { Play, Pause } from "lucide-react"
-import { EarlyAccessForm } from "@/components/early-access-form"
 import AudioWaveform from "@/components/audio-waveform"
+import { Button } from "@/components/ui/button"
 
 export default function HeroSection() {
   const [isPlaying, setIsPlaying] = useState(false)
@@ -57,10 +57,17 @@ export default function HeroSection() {
             </motion.div>
 
             <div className="flex flex-col gap-4 sm:flex-row">
-              <EarlyAccessForm />
-              <p className="text-sm text-muted-foreground mt-2">
+              <Button
+              size="lg"
+              variant="default"
+              type="button"
+              onClick={() => {
+                window.location.href = "/auth/login"
+              }}
+            >Start listening - $5/month</Button>
+      {/*         <p className="text-sm text-muted-foreground mt-2">
                 Start free with curated summaries. Upgrade for your personal inbox feed.
-              </p>
+              </p> */}
             </div>
           </div>
 
