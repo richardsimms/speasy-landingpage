@@ -27,70 +27,31 @@ export default async function DashboardPage() {
   let latestContent: any[] = []
 
   if (subscribedCategoryIds.length > 0) {
-    // Get tags matching the user's subscribed categories
-    const { data: categoryNames } = await supabase
-      .from("categories")
-      .select("name")
-      .in("id", subscribedCategoryIds)
+    // Get content from sources that match the user's subscribed categories
+    const { data: contentItems, error: contentError } = await supabase
+      .from("content_items")
+      .select(`
+        *,
+        source:content_sources!inner(name, category_id),
+        audio:audio_files(file_url, duration, type)
+      `)
+      .in("source.category_id", subscribedCategoryIds)
+      .order("published_at", { ascending: false })
+      .limit(10)
     
-    if (categoryNames && categoryNames.length > 0) {
-      const categoryNamesList = categoryNames.map(cat => cat.name)
-      console.log("Category names:", categoryNamesList)
-      
-      // Get tag IDs that match these category names
-      const { data: tagIds } = await supabase
-        .from("tags")
-        .select("id")
-        .in("name", categoryNamesList)
-      
-      if (tagIds && tagIds.length > 0) {
-        const tagIdsList = tagIds.map(tag => tag.id)
-        console.log("Tag IDs:", tagIdsList)
-        
-        // Get content IDs that match these tags
-        const { data: contentIds, error: contentIdsError } = await supabase
-          .from("content_item_tags")
-          .select("content_id")
-          .in("tag_id", tagIdsList)
-        
-        console.log("Content IDs error:", contentIdsError)
-        
-        if (contentIds && contentIds.length > 0) {
-          const contentIdsList = contentIds.map(item => item.content_id)
-          console.log("Content IDs:", contentIdsList)
-          
-          // Get the actual content items
-          const { data: contentItems, error: contentError } = await supabase
-            .from("content_items")
-            .select(`
-              *,
-              source:content_sources(name, category_id),
-              audio:audio_files(file_url, duration, type)
-            `)
-            .in("id", contentIdsList)
-            .order("published_at", { ascending: false })
-            .limit(10)
-          
-          console.log("Content items error:", contentError)
-          
-          if (contentItems) {
-            latestContent = contentItems
-            console.log("Found filtered content items:", contentItems.length)
-          }
-        } else {
-          console.log("No content IDs found for the tags")
-        }
-      } else {
-        console.log("No tag IDs found for the categories")
-      }
+    console.log("Content items error:", contentError)
+    
+    if (contentItems && contentItems.length > 0) {
+      latestContent = contentItems
+      console.log("Found filtered content items:", contentItems.length)
     } else {
-      console.log("No category names found")
+      console.log("No content found for subscribed categories")
     }
   } else {
     console.log("No subscribed categories")
   }
   
-  // If no content was found through tags, show all content
+  // If no content was found through categories, show all content
   if (latestContent.length === 0) {
     console.log("Falling back to all content")
     const { data: allContent } = await supabase
