@@ -55,7 +55,7 @@ export function EarlyAccessForm() {
 
   return (
     <>
-      <Button onClick={() => setOpen(true)} size="lg" className="rounded-md">
+      <Button onClick={() => setOpen(true)} size="lg" variant="ghost" className="rounded-md">
         Join Pro waitlist
       </Button>
 

@@ -29,13 +29,13 @@ export default function CtaSection() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
             <Button
               size="lg"
-              variant="outline"
+              variant="default"
               type="button"
               onClick={() => {
                 window.location.href = "/auth/login"
               }}
             >
-              Try the Demo
+              Start listening - $5/month
             </Button>
             <EarlyAccessForm />
           </div>
