@@ -32,7 +32,7 @@ export default function PlansSection() {
           >
             <Card className="h-full flex flex-col">
               <CardHeader>
-                <CardTitle>Free Plan</CardTitle>
+                <CardTitle>Start listening ($5/mo)</CardTitle>
                 <CardDescription>Get started with curated content</CardDescription>
               </CardHeader>
               <CardContent className="flex-1">
@@ -65,7 +65,7 @@ export default function PlansSection() {
                 window.location.href = "/auth/login"
               }}
             >
-              Try the Demo
+              Start listening - $5/month
             </Button>
             </div>
               </CardFooter>
@@ -82,7 +82,7 @@ export default function PlansSection() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle>Pro Plan</CardTitle>
+                    <CardTitle>Pro Plan (Coming soon)</CardTitle>
                     <CardDescription>Personalized for your inbox</CardDescription>
                   </div>
                   <div className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium">

@@ -56,13 +56,13 @@ export function EarlyAccessForm() {
   return (
     <>
       <Button onClick={() => setOpen(true)} size="lg" className="rounded-md">
-        Get Early Access
+        Join Pro waitlist
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle className="text-xl">Get early access to Speasy</DialogTitle>
+            <DialogTitle className="text-xl">Get access to Pro Speasy</DialogTitle>
             <DialogDescription>Join our waitlist to be among the first to try Speasy when we launch.</DialogDescription>
           </DialogHeader>
           <div className="absolute right-4 top-4">
