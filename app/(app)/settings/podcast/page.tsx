@@ -66,8 +66,9 @@ export default function PodcastSettingsPage() {
         throw new Error("Not authenticated")
       }
 
-      // Generate a new feed URL
-      const newFeedUrl = `https://speasy.app/api/feeds/${session.user.id}/${Date.now()}`
+      // Generate a new feed URL with the correct format
+      const feedId = Date.now().toString()
+      const newFeedUrl = `${window.location.origin}/api/feeds/${session.user.id}/${feedId}`
 
       // Update the feed URL
       const { error } = await supabase
