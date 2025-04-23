@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Check, Copy, RefreshCw } from "lucide-react"
+import { Check, Copy, RefreshCw, Save } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -11,7 +11,10 @@ import { createClient } from "@/lib/supabase"
 
 export default function PodcastSettingsPage() {
   const [podcastFeed, setPodcastFeed] = useState<string | null>(null)
+  const [feedTitle, setFeedTitle] = useState("My Speasy Feed")
+  const [feedDescription, setFeedDescription] = useState("Your personalized audio content feed")
   const [isLoading, setIsLoading] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
   const [isCopied, setIsCopied] = useState(false)
   const supabase = createClient()
 
@@ -24,13 +27,15 @@ export default function PodcastSettingsPage() {
       if (session) {
         const { data: feed } = await supabase
           .from("podcast_feeds")
-          .select("feed_url")
+          .select("feed_url, title, description")
           .eq("user_id", session.user.id)
           .eq("is_default", true)
           .single()
 
         if (feed) {
           setPodcastFeed(feed.feed_url)
+          if (feed.title) setFeedTitle(feed.title)
+          if (feed.description) setFeedDescription(feed.description)
         }
       }
     }
@@ -101,6 +106,48 @@ export default function PodcastSettingsPage() {
     }
   }
 
+  const handleSaveSettings = async () => {
+    setIsSaving(true)
+
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+
+      if (!session) {
+        throw new Error("Not authenticated")
+      }
+
+      // Update feed settings
+      const { error } = await supabase
+        .from("podcast_feeds")
+        .update({
+          title: feedTitle,
+          description: feedDescription,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("user_id", session.user.id)
+        .eq("is_default", true)
+
+      if (error) {
+        throw error
+      }
+
+      toast({
+        title: "Settings saved",
+        description: "Your podcast feed settings have been updated.",
+      })
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error saving settings",
+        description: error.message || "Something went wrong. Please try again.",
+      })
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
   return (
     <div className="space-y-6">
       <Card>
@@ -149,20 +196,29 @@ export default function PodcastSettingsPage() {
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="feed-title">Feed Title</Label>
-            <Input id="feed-title" defaultValue="My Speasy Feed" placeholder="Enter a title for your podcast feed" />
+            <Input 
+              id="feed-title"
+              value={feedTitle}
+              onChange={(e) => setFeedTitle(e.target.value)}
+              placeholder="Enter a title for your podcast feed" 
+            />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="feed-description">Feed Description</Label>
             <Input
               id="feed-description"
-              defaultValue="Your personalized audio content feed"
+              value={feedDescription}
+              onChange={(e) => setFeedDescription(e.target.value)}
               placeholder="Enter a description for your podcast feed"
             />
           </div>
         </CardContent>
         <CardFooter>
-          <Button>Save Settings</Button>
+          <Button onClick={handleSaveSettings} disabled={isSaving}>
+            <Save className="mr-2 h-4 w-4" />
+            {isSaving ? "Saving..." : "Save Settings"}
+          </Button>
         </CardFooter>
       </Card>
     </div>
