@@ -1,0 +1,14 @@
+name: Process LLM Jobs
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'  # Run every 5 minutes
+  workflow_dispatch:       # Allow manual triggering of the workflow
+
+jobs:
+  run-edge-function:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call Edge Function
+        run: |
+          curl -X POST https://lmmobnqmxkcdwdhhpwwd.supabase.co/functions/v1/process_llm_job 
