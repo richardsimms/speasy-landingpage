@@ -40,7 +40,7 @@ export default async function BlogPage() {
                       <div className="mt-4">
                         <Link
                           href={`/blog/${post.slug}`}
-                          className="text-primary hover:underline inline-flex items-center"
+                          className="text-secondary-foreground hover:underline inline-flex items-center"
                         >
                           Read more
                           <svg

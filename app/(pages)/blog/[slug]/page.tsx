@@ -49,7 +49,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             <Markdown content={post.content} />
 
             <div className="mt-12 pt-6 border-t">
-              <a href="/blog" className="text-primary hover:underline inline-flex items-center">
+              <a href="/blog" className="text-muted-foreground hover:underline inline-flex items-center">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="24"
