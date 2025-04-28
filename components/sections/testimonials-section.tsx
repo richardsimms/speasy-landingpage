@@ -84,15 +84,10 @@ export default function TestimonialsSection() {
             transition={{ duration: 0.5 }}
           >
             <img
-              src="/placeholder.svg?key=zukc2"
+              src="/walk.png"
               alt="Person listening while walking"
               className="object-cover w-full h-full"
             />
-            <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
-              <div className="bg-white/90 text-black px-4 py-2 rounded-full text-sm font-medium">
-                A designer listening on a walk
-              </div>
-            </div>
           </motion.div>
 
           <motion.div
@@ -103,15 +98,10 @@ export default function TestimonialsSection() {
             transition={{ duration: 0.5, delay: 0.1 }}
           >
             <img
-              src="/urban-audio-commute.png"
+              src="/commute.png"
               alt="Person commuting with headphones"
               className="object-cover w-full h-full"
             />
-            <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
-              <div className="bg-white/90 text-black px-4 py-2 rounded-full text-sm font-medium">
-                A founder on their morning commute
-              </div>
-            </div>
           </motion.div>
         </div>
       </div>

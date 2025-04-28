@@ -68,10 +68,10 @@ export default function PlansSection() {
                 </ul>
               </CardContent>
               <CardFooter>
-                <div className="w-full flex flex-col sm:flex-row gap-4 justify-center pt-4">
+                <div className="w-full flex flex-col sm:flex-row gap-4 justify-left pt-4">
                   <Button
                     size="lg"
-                    variant="outline"
+                    variant="default"
                     type="button"
                     onClick={handleStartListening}
                     className="w-full sm:w-auto whitespace-normal"
@@ -97,7 +97,7 @@ export default function PlansSection() {
                     <CardTitle>Pro Plan</CardTitle>
                     <CardDescription>Personalized for your inbox</CardDescription>
                   </div>
-                  <div className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium">
+                  <div className="bg-primary/50 text-primary-foreground px-3 py-1 rounded-full text-sm font-medium">
                     Coming Soon
                   </div>
                 </div>
