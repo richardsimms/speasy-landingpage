@@ -14,7 +14,7 @@ export default function StorySection() {
           transition={{ duration: 0.5 }}
         >
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
-            Inbox overload is real. But you shouldn't have to choose between learning and living.
+            Inbox overload is real. But you shouldn't have to <span className="text-primary">choose</span> between learning and living.
           </h2>
 
           <div className="space-y-6 text-lg text-muted-foreground">

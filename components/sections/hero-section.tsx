@@ -7,6 +7,7 @@ import { motion } from "framer-motion"
 import { Play, Pause } from "lucide-react"
 import AudioWaveform from "@/components/audio-waveform"
 import { Button } from "@/components/ui/button"
+import { redirectToStripeCheckout } from "@/utils/stripe"
 
 export default function HeroSection() {
   const [isPlaying, setIsPlaying] = useState(false)
@@ -15,6 +16,15 @@ export default function HeroSection() {
   const togglePlayback = () => {
     setIsPlaying(!isPlaying)
     // In a real implementation, this would control actual audio playback
+  }
+
+  // Handle start listening button click
+  const handleStartListening = async () => {
+    try {
+      await redirectToStripeCheckout();
+    } catch (error) {
+      console.error('Error redirecting to checkout:', error);
+    }
   }
 
   // Simulate audio progress when playing
@@ -48,26 +58,25 @@ export default function HeroSection() {
               transition={{ duration: 0.5 }}
             >
               <h1 className="text-4xl font-bold tracking-tight sm:text-6xl xl:text-7xl/none">
-                Your Newsletters. <span className="text-primary">Summarized.</span> In Your Ears.
+              Turn your inbox into a <span className="text-primary">Podcast.</span> Start listening today. 
               </h1>
               <p className="max-w-[600px] text-muted-foreground text-xl">
-                Speasy turns top-tier newsletters—and your own inbox—into short, podcast-style audio summaries. No inbox
-                guilt. No more skimming. Just hit play.
+              Speasy transforms popular newsletters into podcast-style summaries you can listen to on the go. No inbox setup required—just subscribe, press play, and reclaim your time.
               </p>
             </motion.div>
 
-            <div className="flex flex-col gap-4 sm:flex-row">
+            <div className="flex flex-col gap-4 sm:flex-row vertical-center">
               <Button
               size="lg"
               variant="default"
               type="button"
-              onClick={() => {
-                window.location.href = "/auth/login"
-              }}
-            >Start listening - $5/month</Button>
-      {/*         <p className="text-sm text-muted-foreground mt-2">
-                Start free with curated summaries. Upgrade for your personal inbox feed.
-              </p> */}
+              onClick={handleStartListening}
+            >
+              Start listening - $5/month
+            </Button>
+           <p className="text-sm text-muted-foreground mt-3  ">
+           Over <span className="text-primary font-bold">1,000</span> articles turned into audio this month
+              </p> 
             </div>
           </div>
 

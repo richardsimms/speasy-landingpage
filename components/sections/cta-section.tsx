@@ -23,7 +23,7 @@ export default function CtaSection() {
           </h2>
 
           <p className="text-lg text-muted-foreground">
-            You'll start with curated summaries. Want your own inbox audio feed? That's next.
+          Join early and help us build the next version of Speasy, with inbox sync, custom playlists, and AI-powered personalization. Reclaim your reading list—One listen at a time
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
@@ -49,6 +49,7 @@ export default function CtaSection() {
                 className="h-10"
               />
               <img src="/placeholder.svg?height=40&width=120&query=Spotify logo" alt="Spotify" className="h-10" />
+              
               <img src="/placeholder.svg?height=40&width=120&query=Overcast logo" alt="Overcast" className="h-10" />
               <img
                 src="/placeholder.svg?height=40&width=120&query=Pocket Casts logo"

@@ -20,7 +20,7 @@ export default function PlansSection() {
           transition={{ duration: 0.5 }}
         >
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Want your own inbox to work like this?</h2>
-          <p className="mt-4 text-lg text-muted-foreground">Choose the plan that works for you.</p>
+          <p className="mt-4 text-lg text-muted-foreground">Start with curated. Upgrade to personal.</p>
         </motion.div>
 
         <div className="grid gap-8 md:grid-cols-2 max-w-4xl mx-auto">
@@ -47,7 +47,7 @@ export default function PlansSection() {
                   </li>
                   <li className="flex items-start gap-2">
                     <Check className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-                    <span>Weekly digest podcast</span>
+                    <span>Private podcast feed</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <Check className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
@@ -114,6 +114,10 @@ export default function PlansSection() {
                   </li>
                   <li className="flex items-start gap-2">
                     <Check className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                    <span>Custom summary lengths and tone</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
                     <span>Transcripts + follow-up Q&A</span>
                   </li>
                 </ul>
@@ -131,7 +135,7 @@ export default function PlansSection() {
         viewport={{ once: true }}
         transition={{ duration: 0.5 }}
       >
-        <p className="mt-8 text-center text-muted-foreground">Speasy Pro is coming soon—with personal newsletter sync, smarter filters, and AI-powered summaries.
+        <p className="mt-8  text-center text-muted-foreground">Speasy Pro is coming soon—with personal newsletter sync, smarter filters, and AI-powered summaries.
         </p>
         <p className="text-center text-muted-foreground">Join the waitlist and help shape the future of Speasy.</p>
       </motion.div>
