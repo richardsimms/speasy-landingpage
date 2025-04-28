@@ -22,9 +22,26 @@ export const createCheckoutSession = async (email?: string) => {
   }
 };
 
+// Ensure required meta tags exist
+const ensureMetaTags = () => {
+  // Check if the og:type meta tag exists
+  if (!document.querySelector("meta[property='og:type']")) {
+    // Create and append the meta tag if it doesn't exist
+    const metaTag = document.createElement('meta');
+    metaTag.setAttribute('property', 'og:type');
+    metaTag.setAttribute('content', 'website');
+    document.head.appendChild(metaTag);
+  }
+};
+
 // Function to redirect to Stripe Checkout
 export const redirectToStripeCheckout = async () => {
   try {
+    // Ensure required meta tags exist
+    if (typeof document !== 'undefined') {
+      ensureMetaTags();
+    }
+    
     // Create a checkout session and redirect to it
     const { sessionUrl } = await createCheckoutSession();
     window.location.href = sessionUrl;

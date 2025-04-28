@@ -4,10 +4,26 @@ import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { EarlyAccessForm } from "@/components/early-access-form"
 import { useRouter } from "next/navigation"
-
+import { redirectToStripeCheckout } from "@/utils/stripe"
+// Import SVG components
+import PodcastSvg from "@/components/logos/podcast.svg"
+import SpotifySvg from "@/components/logos/spotify.svg"
+import OvercastSvg from "@/components/logos/overcast.svg"
+import PocketcastSvg from "@/components/logos/pocketcast.svg"
+import Image from "next/image"
 
 export default function CtaSection() {
   const router = useRouter()
+
+    // Handle start listening button click
+    const handleStartListening = async () => {
+      try {
+        await redirectToStripeCheckout();
+      } catch (error) {
+        console.error('Error redirecting to checkout:', error);
+      }
+    }
+
   return (
     <section className="w-full py-20 md:py-32 bg-gradient-to-b from-background to-primary/5">
       <div className="container px-4 md:px-6">
@@ -31,9 +47,7 @@ export default function CtaSection() {
               size="lg"
               variant="default"
               type="button"
-              onClick={() => {
-                window.location.href = "/auth/login"
-              }}
+              onClick={handleStartListening}
             >
               Start listening - $5/month
             </Button>
@@ -43,18 +57,33 @@ export default function CtaSection() {
           <div className="pt-8">
             <p className="text-sm text-muted-foreground mb-4">Available on your favorite podcast apps</p>
             <div className="flex flex-wrap gap-6 justify-center">
-              <img
-                src="/placeholder.svg?height=40&width=120&query=Apple Podcasts logo"
+              <Image
+                src={PodcastSvg}
                 alt="Apple Podcasts"
-                className="h-10"
+                className="h-10 w-auto"
+                width={40}
+                height={40}
               />
-              <img src="/placeholder.svg?height=40&width=120&query=Spotify logo" alt="Spotify" className="h-10" />
-              
-              <img src="/placeholder.svg?height=40&width=120&query=Overcast logo" alt="Overcast" className="h-10" />
-              <img
-                src="/placeholder.svg?height=40&width=120&query=Pocket Casts logo"
+              <Image 
+                src={SpotifySvg} 
+                alt="Spotify" 
+                className="h-10 w-auto" 
+                width={40} 
+                height={40}
+              />
+              <Image 
+                src={OvercastSvg} 
+                alt="Overcast" 
+                className="h-10 w-auto" 
+                width={40} 
+                height={40}
+              />
+              <Image
+                src={PocketcastSvg}
                 alt="Pocket Casts"
-                className="h-10"
+                className="h-10 w-auto"
+                width={40}
+                height={40}
               />
             </div>
           </div>
@@ -62,12 +91,14 @@ export default function CtaSection() {
           <div className="pt-8 border-t">
             <div className="flex flex-wrap gap-4 justify-center">
               <div className="bg-muted/50 px-4 py-2 rounded-full text-sm">
-                "This is the Blinkist for newsletters but actually good."
+                "This is the Blinkist for newsletters."
               </div>
               <div className="bg-muted/50 px-4 py-2 rounded-full text-sm">
                 "Finally, a way to consume newsletters without the guilt."
               </div>
-              <div className="bg-muted/50 px-4 py-2 rounded-full text-sm">"Game changer for busy professionals."</div>
+              <div className="bg-muted/50 px-4 py-2 rounded-full text-sm">
+                "Game changer for busy professionals."
+              </div>
             </div>
           </div>
         </motion.div>

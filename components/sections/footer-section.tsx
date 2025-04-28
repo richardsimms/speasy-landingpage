@@ -17,18 +17,18 @@ export default function FooterSection() {
               Speasy turns top-tier newsletters—and your own inbox—into short, podcast-style audio summaries.
             </p>
             <div className="flex space-x-4">
-              <Link href="#" className="text-muted-foreground hover:text-foreground">
+{/*               <Link href="#" className="text-muted-foreground hover:text-foreground">
                 <Twitter className="h-5 w-5" />
                 <span className="sr-only">Twitter</span>
-              </Link>
-              <Link href="#" className="text-muted-foreground hover:text-foreground">
+              </Link> */}
+              <Link href="https://www.linkedin.com/company/speasytts/" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground">
                 <Linkedin className="h-5 w-5" />
                 <span className="sr-only">LinkedIn</span>
               </Link>
-              <Link href="#" className="text-muted-foreground hover:text-foreground">
+{/*               <Link href="#" className="text-muted-foreground hover:text-foreground">
                 <Github className="h-5 w-5" />
                 <span className="sr-only">GitHub</span>
-              </Link>
+              </Link> */}
             </div>
           </div>
 
@@ -55,9 +55,6 @@ export default function FooterSection() {
               </Link>
               <Link href="/blog" className="text-sm text-muted-foreground hover:text-foreground">
                 Blog
-              </Link>
-              <Link href="/careers" className="text-sm text-muted-foreground hover:text-foreground">
-                Careers
               </Link>
             </nav>
           </div>

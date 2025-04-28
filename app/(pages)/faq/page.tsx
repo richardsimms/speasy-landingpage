@@ -49,9 +49,9 @@ export default function FAQPage() {
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem value="item-5">
-                <AccordionTrigger>What's the difference between the free and pro plans?</AccordionTrigger>
+                <AccordionTrigger>What's the difference between the plans?</AccordionTrigger>
                 <AccordionContent>
-                  The free plan gives you access to our curated selection of popular newsletters. The pro plan adds the
+                  The Start listening plan ($5/month) gives you access to our curated selection of popular newsletters. The Pro plan (coming soon) adds the
                   ability to connect your email inbox, so we can summarize your personal newsletter subscriptions and
                   other important emails.
                 </AccordionContent>

@@ -7,7 +7,13 @@ import { GeistMono } from "geist/font/mono"
 export const metadata = {
   title: "Speasy - Your Newsletters. Summarized. In Your Ears.",
   description: "Speasy turns top-tier newsletters—and your own inbox—into short, podcast-style audio summaries.",
-    generator: 'v0.dev'
+  generator: 'v0.dev',
+  openGraph: {
+    type: 'website',
+    title: 'Speasy - Your Newsletters. Summarized. In Your Ears.',
+    description: 'Speasy turns top-tier newsletters—and your own inbox—into short, podcast-style audio summaries.',
+    url: 'https://speasy.app/',
+  }
 }
 
 export default function RootLayout({

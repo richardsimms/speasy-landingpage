@@ -6,12 +6,23 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { EarlyAccessForm } from "@/components/early-access-form"
 import { useRouter } from "next/navigation"
+import { redirectToStripeCheckout } from "@/utils/stripe"
 
 export default function PlansSection() {
   const router = useRouter()
+
+  // Handle start listening button click
+  const handleStartListening = async () => {
+    try {
+      await redirectToStripeCheckout();
+    } catch (error) {
+      console.error('Error redirecting to checkout:', error);
+    }
+  }
+
   return (
-    <section  id="pricing" className="w-full py-20 md:py-32 bg-background">
-      <div className="container px-4 md:px-6">
+    <section id="pricing" className="w-full py-20 md:py-32 bg-background overflow-hidden">
+      <div className="container px-4 md:px-6 mx-auto">
         <motion.div
           className="text-center mb-12"
           initial={{ opacity: 0, y: 20 }}
@@ -25,7 +36,8 @@ export default function PlansSection() {
 
         <div className="grid gap-8 md:grid-cols-2 max-w-4xl mx-auto">
           <motion.div
-            initial={{ opacity: 0, x: -20 }}
+            className="w-full"
+            initial={{ opacity: 0, x: -10 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
@@ -56,31 +68,31 @@ export default function PlansSection() {
                 </ul>
               </CardContent>
               <CardFooter>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-            <Button
-              size="lg"
-              variant="outline"
-              type="button"
-              onClick={() => {
-                window.location.href = "/auth/login"
-              }}
-            >
-              Start listening - $5/month
-            </Button>
-            </div>
+                <div className="w-full flex flex-col sm:flex-row gap-4 justify-center pt-4">
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    type="button"
+                    onClick={handleStartListening}
+                    className="w-full sm:w-auto whitespace-normal"
+                  >
+                    Start listening - $5/month
+                  </Button>
+                </div>
               </CardFooter>
             </Card>
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, x: 20 }}
+            className="w-full"
+            initial={{ opacity: 0, x: 10 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.1 }}
           >
             <Card className="h-full flex flex-col border-primary/50 bg-primary/5">
               <CardHeader>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between flex-wrap gap-2">
                   <div>
                     <CardTitle>Pro Plan</CardTitle>
                     <CardDescription>Personalized for your inbox</CardDescription>
@@ -130,12 +142,13 @@ export default function PlansSection() {
         </div>
       </div>
       <motion.div
+        className="container px-4 md:px-6 mx-auto"
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.5 }}
       >
-        <p className="mt-8  text-center text-muted-foreground">Speasy Pro is coming soon—with personal newsletter sync, smarter filters, and AI-powered summaries.
+        <p className="mt-8 text-center text-muted-foreground">Speasy Pro is coming soon—with personal newsletter sync, smarter filters, and AI-powered summaries.
         </p>
         <p className="text-center text-muted-foreground">Join the waitlist and help shape the future of Speasy.</p>
       </motion.div>
