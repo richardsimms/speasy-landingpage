@@ -6,6 +6,7 @@ import TestimonialsSection from "@/components/sections/testimonials-section"
 import CtaSection from "@/components/sections/cta-section"
 import FooterSection from "@/components/sections/footer-section"
 import TechStackSection from "@/components/sections/tech-stack-section"
+import NewsletterLogosSection from "@/components/sections/newsletter-logos-section"
 import Header from "@/components/sections/header"
 
 export default function Home() {
@@ -14,6 +15,7 @@ export default function Home() {
       <Header />
       <HeroSection />
       <StorySection />
+      <NewsletterLogosSection />
       <DemoSection />
       <PlansSection />
       <TestimonialsSection />

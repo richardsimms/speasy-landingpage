@@ -6,10 +6,10 @@ import { EarlyAccessForm } from "@/components/early-access-form"
 import { useRouter } from "next/navigation"
 import { redirectToStripeCheckout } from "@/utils/stripe"
 // Import SVG components
-import PodcastSvg from "@/components/logos/podcast.svg"
-import SpotifySvg from "@/components/logos/spotify.svg"
-import OvercastSvg from "@/components/logos/overcast.svg"
-import PocketcastSvg from "@/components/logos/pocketcast.svg"
+import PodcastSvg from "@/public/logos/podcast.svg"
+import SpotifySvg from "@/public/logos/spotify.svg"
+import OvercastSvg from "@/public/logos/overcast.svg"
+import PocketcastSvg from "@/public/logos/pocketcast.svg"
 import Image from "next/image"
 
 export default function CtaSection() {
