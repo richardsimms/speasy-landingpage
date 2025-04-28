@@ -2,7 +2,7 @@
 
 import React from "react"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { motion } from "framer-motion"
 import { Play, Pause } from "lucide-react"
 import AudioWaveform from "@/components/audio-waveform"
@@ -12,10 +12,19 @@ import { redirectToStripeCheckout } from "@/utils/stripe"
 export default function HeroSection() {
   const [isPlaying, setIsPlaying] = useState(false)
   const [audioProgress, setAudioProgress] = useState(0)
+  const [duration, setDuration] = useState(0)
+  const [currentTime, setCurrentTime] = useState(0)
+  const audioRef = useRef<HTMLAudioElement>(null)
 
   const togglePlayback = () => {
-    setIsPlaying(!isPlaying)
-    // In a real implementation, this would control actual audio playback
+    if (audioRef.current) {
+      if (isPlaying) {
+        audioRef.current.pause()
+      } else {
+        audioRef.current.play()
+      }
+      setIsPlaying(!isPlaying)
+    }
   }
 
   // Handle start listening button click
@@ -27,24 +36,21 @@ export default function HeroSection() {
     }
   }
 
-  // Simulate audio progress when playing
-  React.useEffect(() => {
-    let interval: NodeJS.Timeout
+  // Format time in MM:SS
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60)
+    const secs = Math.floor(seconds % 60)
+    return `${mins}:${secs < 10 ? '0' + secs : secs}`
+  }
 
-    if (isPlaying) {
-      interval = setInterval(() => {
-        setAudioProgress((prev) => {
-          if (prev >= 100) {
-            setIsPlaying(false)
-            return 0
-          }
-          return prev + 1
-        })
-      }, 300)
+  // Update audio progress
+  const updateProgress = () => {
+    if (audioRef.current) {
+      const { currentTime, duration } = audioRef.current
+      setCurrentTime(currentTime)
+      setAudioProgress((currentTime / duration) * 100)
     }
-
-    return () => clearInterval(interval)
-  }, [isPlaying])
+  }
 
   return (
     <section className="w-full py-20 md:py-32 bg-gradient-to-b from-primary/5 to-background">
@@ -93,6 +99,19 @@ export default function HeroSection() {
             transition={{ duration: 0.5 }}
           >
             <div className="relative w-full max-w-[400px] aspect-[9/16] mx-auto bg-card rounded-3xl shadow-xl overflow-hidden border border-border">
+              {/* Audio element - hidden but functional */}
+              <audio 
+                ref={audioRef}
+                src="/audio/ElevenLabs_2025-04-28_LennyNewsletter.mp3"
+                onTimeUpdate={updateProgress}
+                onLoadedMetadata={() => {
+                  if (audioRef.current) {
+                    setDuration(audioRef.current.duration)
+                  }
+                }}
+                onEnded={() => setIsPlaying(false)}
+              />
+              
               {/* Phone mockup with audio player */}
               <div className="absolute inset-0 flex flex-col">
                 {/* Phone status bar */}
@@ -166,8 +185,8 @@ export default function HeroSection() {
                     <AudioWaveform isPlaying={isPlaying} progress={audioProgress} />
 
                     <div className="flex justify-between text-sm">
-                      <span>1:24</span>
-                      <span>5:03</span>
+                      <span>{formatTime(currentTime)}</span>
+                      <span>{formatTime(duration)}</span>
                     </div>
 
                     <div className="p-4 bg-muted rounded-lg">
@@ -175,17 +194,17 @@ export default function HeroSection() {
                       <div className="mt-2 text-sm text-muted-foreground h-20 overflow-hidden relative">
                         <div className={`transition-transform duration-300 ${isPlaying ? "animate-scroll-slow" : ""}`}>
                           <p className="mb-2">
-                            Today we're discussing the three key metrics every product manager should track...
+                            Get ready to unlock a new mindset for growth: Daniel Lereya shares how monday.com's bold shift to radical transparency,
                           </p>
                           <p className="mb-2">
-                            First, user engagement is critical because it shows how valuable your product is to users...
+                            audacious goal-setting, and prioritising impact over output propelled them to $1B ARR. 
                           </p>
                           <p className="mb-2">
-                            Second, retention rates indicate whether your product has staying power...
+                            You'll discover how embracing real-time metrics, setting seemingly impossible challenges, 
                           </p>
                           <p className="mb-2">
-                            And finally, conversion rate helps you understand your funnel efficiency...
-                          </p>
+                            and launching multiple products at once can transform not just results, but your entire company culture.
+                          </p>                          
                         </div>
                         <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-muted to-transparent"></div>
                       </div>
