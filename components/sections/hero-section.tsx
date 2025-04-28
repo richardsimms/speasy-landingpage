@@ -38,6 +38,7 @@ export default function HeroSection() {
 
   // Format time in MM:SS
   const formatTime = (seconds: number) => {
+    if (isNaN(seconds) || !isFinite(seconds)) return "0:00";
     const mins = Math.floor(seconds / 60)
     const secs = Math.floor(seconds % 60)
     return `${mins}:${secs < 10 ? '0' + secs : secs}`
@@ -104,12 +105,15 @@ export default function HeroSection() {
                 ref={audioRef}
                 src="/audio/ElevenLabs_2025-04-28_LennyNewsletter.mp3"
                 onTimeUpdate={updateProgress}
-                onLoadedMetadata={() => {
+                onLoadedMetadata={(e) => {
                   if (audioRef.current) {
-                    setDuration(audioRef.current.duration)
+                    const audioDuration = audioRef.current.duration;
+                    console.log("Audio duration loaded:", audioDuration);
+                    setDuration(audioDuration);
                   }
                 }}
                 onEnded={() => setIsPlaying(false)}
+                preload="metadata"
               />
               
               {/* Phone mockup with audio player */}
@@ -169,7 +173,7 @@ export default function HeroSection() {
                 <div className="flex-1 p-4 flex flex-col">
                   <div className="mb-6">
                     <h3 className="text-xl font-bold">Lenny's Newsletter</h3>
-                    <p className="text-sm text-muted-foreground">Product Strategy • 5 min summary</p>
+                    <p className="text-sm text-muted-foreground">Product Strategy • 2 min summary</p>
                   </div>
 
                   <div className="flex-1 flex items-center justify-center">
@@ -194,17 +198,55 @@ export default function HeroSection() {
                       <div className="mt-2 text-sm text-muted-foreground h-20 overflow-hidden relative">
                         <div className={`transition-transform duration-300 ${isPlaying ? "animate-scroll-slow" : ""}`}>
                           <p className="mb-2">
-                            Get ready to unlock a new mindset for growth: Daniel Lereya shares how monday.com's bold shift to radical transparency,
+                            Get ready to unlock the secrets behind one of the most inspiring transformations in tech.
                           </p>
                           <p className="mb-2">
-                            audacious goal-setting, and prioritising impact over output propelled them to $1B ARR. 
+                            Today, we dive into the story of monday.com — and how they turned a hard reality check into a rocket ship to $1 billion in annual revenue.
                           </p>
                           <p className="mb-2">
-                            You'll discover how embracing real-time metrics, setting seemingly impossible challenges, 
+                            Here's why this matters:
                           </p>
                           <p className="mb-2">
-                            and launching multiple products at once can transform not just results, but your entire company culture.
-                          </p>                          
+                            monday.com wasn't always a market leader. In fact, they realised they were getting outpaced by competitors. But instead of crumbling, they reinvented everything — and what they learned could change the way you think about product, leadership, and ambition.
+                          </p>
+                          <p className="mb-2">
+                            Get ready to rethink what's possible:
+                          </p>
+                          <ul className="mb-2 list-disc list-inside space-y-1">
+                            <li>
+                              You'll see how setting "impossible" goals — like launching 25 features in just one month — shattered old limits and sparked creative breakthroughs.
+                            </li>
+                            <li>
+                              You'll hear how radical transparency — real-time metrics shared with every employee, even during job interviews — built a company culture wired for ownership and alignment.
+                            </li>
+                            <li>
+                              You'll discover why focusing on impact over output unlocked bigger growth than shipping faster ever could.
+                            </li>
+                          </ul>
+                          <p className="mb-2">
+                            The real game changer?
+                          </p>
+                          <p className="mb-2">
+                            monday.com didn't just iterate — they reimagined their whole market position, launching five products at once and capturing a massive new audience.
+                          </p>
+                          <p className="mb-2">
+                            They used tight, timeboxed sprints — what they call "traps" — to stay fast, focused, and fearless.
+                          </p>
+                          <p className="mb-2">
+                            And beneath all the business tactics, there's a deeper lesson:
+                          </p>
+                          <p className="mb-2">
+                            Daniel Lereya, their Chief Product and Technology Officer, shares how embracing self-doubt, navigating impostor syndrome, and learning to delegate helped him scale himself as a leader, not just the company.
+                          </p>
+                          <p className="mb-2">
+                            The exciting idea?
+                          </p>
+                          <p className="mb-2">
+                            When you combine radical transparency, audacious goals, and impact-driven thinking, you don't just build products — you build momentum, resilience, and a culture where the impossible starts to feel normal.
+                          </p>
+                          <p className="mb-2">
+                            So if you're ready to level up your thinking and lead with boldness, take a page from monday.com's playbook — and start turning your biggest challenges into your greatest opportunities.
+                          </p>
                         </div>
                         <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-muted to-transparent"></div>
                       </div>
