@@ -1,5 +1,7 @@
 import Link from "next/link"
-import { Headphones, Twitter, Linkedin, Github } from "lucide-react"
+import {  Linkedin,  } from "lucide-react"
+import { Logo } from "@/components/logo"
+
 
 export default function FooterSection() {
   return (
@@ -9,10 +11,11 @@ export default function FooterSection() {
       <div className="container px-4 md:px-6 py-12">
         <div className="grid gap-8 md:grid-cols-4">
           <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <Headphones className="h-5 w-5 text-primary" />
-              <span className="text-lg font-medium">Speasy</span>
-            </div>
+          <div className="flex items-center gap-2">
+            <Link href="/" className="flex items-center" aria-label="Speasy Home">
+              <Logo className="h-8 w-auto" />
+            </Link>
+          </div>
             <p className="text-sm text-muted-foreground">
               Speasy turns top-tier newsletters—and your own inbox—into short, podcast-style audio summaries.
             </p>
