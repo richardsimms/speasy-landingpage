@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { createClient } from "@/lib/supabase"
+import { Logo } from "./logo"
 
 export function AppHeader() {
   const pathname = usePathname()
@@ -28,12 +29,11 @@ export function AppHeader() {
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Link href="/dashboard" className="flex items-center gap-2">
-            <Headphones className="h-5 w-5 text-primary" />
-            <span className="text-lg font-medium tracking-tight">Speasy</span>
-          </Link>
-        </div>
+      <div className="flex items-center gap-2">
+            <Link href="/" className="flex items-center" aria-label="Speasy Home">
+              <Logo className="h-8 w-auto" />
+            </Link>
+          </div>
 
         <div className="hidden md:flex md:flex-1 md:justify-center md:px-4">
           <div className="relative w-full max-w-md">
