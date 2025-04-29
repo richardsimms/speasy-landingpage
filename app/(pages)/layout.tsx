@@ -5,6 +5,7 @@ import { ThemeToggle } from "@/components/theme-toggle"
 import { EarlyAccessForm } from "@/components/early-access-form"
 import FooterSection from "@/components/sections/footer-section"
 import { Logo } from "@/components/logo"
+import { Analytics } from "@vercel/analytics/react"
 
 export default function PagesLayout({
   children,

@@ -3,6 +3,7 @@ import "@/app/globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { GeistSans } from "geist/font/sans"
 import { GeistMono } from "geist/font/mono"
+import { Analytics } from "@vercel/analytics/react"
 
 export const metadata = {
   title: "Speasy - Your Newsletters. Summarized. In Your Ears.",
