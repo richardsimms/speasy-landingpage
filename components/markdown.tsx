@@ -30,7 +30,13 @@ export function Markdown({ content, className }: MarkdownProps) {
           ),
           li: ({ className, ...props }) => <li className={cn("mt-2", className)} {...props} />,
           a: ({ className, ...props }) => (
-            <a className={cn("text-primary underline underline-offset-4", className)} {...props} />
+            <a 
+              className={cn(
+                "font-medium text-primary-800 dark:text-primary hover:text-primary-900 dark:hover:text-primary-100 underline underline-offset-4 transition-colors", 
+                className
+              )} 
+              {...props} 
+            />
           ),
           blockquote: ({ className, ...props }) => (
             <blockquote className={cn("border-l-4 border-primary pl-4 italic", className)} {...props} />
