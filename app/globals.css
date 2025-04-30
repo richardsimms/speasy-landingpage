@@ -24,6 +24,7 @@
     --input: 240 5.9% 90%;
     --ring: 84 79% 56%;
     --radius: 0.5rem;
+    --logo-text-color: #231F20;
   }
 
   .dark {
@@ -46,6 +47,7 @@
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
     --ring: 84 79% 56%;
+    --logo-text-color: #E5E7EB;
   }
 }
 

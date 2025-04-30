@@ -97,9 +97,9 @@ export default function TermsOfServicePage() {
               <p className="text-muted-foreground">
                 legal@speasy.com
                 <br />
-                123 Tech Street
+                2a Florence Street
                 <br />
-                San Francisco, CA 94107
+                Melbourne, AU 3187
               </p>
             </div>
           </div>

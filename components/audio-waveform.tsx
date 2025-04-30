@@ -37,7 +37,7 @@ export default function AudioWaveform({ isPlaying, progress }: AudioWaveformProp
       const isPlayed = i <= progressPoint
 
       // Set color based on whether it's been played
-      ctx.fillStyle = isPlayed ? "hsl(var(--primary))" : "hsl(var(--muted-foreground) / 0.3)"
+      ctx.fillStyle = isPlayed ? "hsl(var(--primary))" : "hsl(var(--secondary))"
 
       // Draw the bar
       const x = i * (barWidth + 1)

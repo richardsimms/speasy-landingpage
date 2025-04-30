@@ -28,6 +28,7 @@ export default async function AppLayout({
         <AppSidebar />
         <main className="flex-1 overflow-y-auto bg-muted/40 pb-16">{children}</main>
       </div>
+      <Analytics />
     </div>
   )
 }

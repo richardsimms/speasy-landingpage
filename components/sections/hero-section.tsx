@@ -2,18 +2,21 @@
 
 import React from "react"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { motion } from "framer-motion"
 import { Play, Pause } from "lucide-react"
 import AudioWaveform from "@/components/audio-waveform"
 import { Button } from "@/components/ui/button"
 import { redirectToStripeCheckout } from "@/utils/stripe"
+import Image from "next/image"
 
 export default function HeroSection() {
   const [isPlaying, setIsPlaying] = useState(false)
   const [audioProgress, setAudioProgress] = useState(0)
   const [duration, setDuration] = useState(0)
   const [currentTime, setCurrentTime] = useState(0)
+  const [isLoading, setIsLoading] = useState(true)
+  const DEFAULT_DURATION = 120 // 2 minutes in seconds
   const audioRef = useRef<HTMLAudioElement>(null)
 
   const togglePlayback = () => {
@@ -38,7 +41,14 @@ export default function HeroSection() {
 
   // Format time in MM:SS
   const formatTime = (seconds: number) => {
-    if (isNaN(seconds) || !isFinite(seconds)) return "0:00";
+    // Add debugging
+    console.log("Formatting time for seconds:", seconds);
+    
+    if (isNaN(seconds) || !isFinite(seconds)) {
+      console.warn("Invalid seconds value:", seconds);
+      return "0:00";
+    }
+    
     const mins = Math.floor(seconds / 60)
     const secs = Math.floor(seconds % 60)
     return `${mins}:${secs < 10 ? '0' + secs : secs}`
@@ -103,14 +113,25 @@ export default function HeroSection() {
               {/* Audio element - hidden but functional */}
               <audio 
                 ref={audioRef}
-                src="/audio/ElevenLabs_2025-04-28_LennyNewsletter.mp3"
+                src="/audio/ElevenLabs_2025-04-30T10_23_36_Vince-Speasy.mp3"
                 onTimeUpdate={updateProgress}
                 onLoadedMetadata={(e) => {
                   if (audioRef.current) {
                     const audioDuration = audioRef.current.duration;
                     console.log("Audio duration loaded:", audioDuration);
-                    setDuration(audioDuration);
+                    if (!isNaN(audioDuration) && isFinite(audioDuration) && audioDuration > 0) {
+                      setDuration(audioDuration);
+                    } else {
+                      // If we can't get a valid duration, use the default
+                      setDuration(DEFAULT_DURATION);
+                    }
+                    setIsLoading(false);
                   }
+                }}
+                onError={(e) => {
+                  console.error("Audio loading error:", e);
+                  setDuration(DEFAULT_DURATION);
+                  setIsLoading(false);
                 }}
                 onEnded={() => setIsPlaying(false)}
                 preload="metadata"
@@ -119,7 +140,7 @@ export default function HeroSection() {
               {/* Phone mockup with audio player */}
               <div className="absolute inset-0 flex flex-col">
                 {/* Phone status bar */}
-                <div className="h-6 bg-background/90 flex items-center justify-between px-4">
+                <div className="h-6 mt-4 bg-background/90 flex items-center justify-between px-4">
                   <div className="text-xs">9:41</div>
                   <div className="flex items-center gap-1">
                     <div className="w-4 h-4">
@@ -157,7 +178,7 @@ export default function HeroSection() {
                           <path d="M13.73 21a2 2 0 0 1-3.46 0" />
                         </svg>
                       </div>
-                      <span className="font-medium">Speasy</span>
+                      <span className="font-medium">Podcast app</span>
                     </div>
                     <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
                       <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2">
@@ -172,80 +193,84 @@ export default function HeroSection() {
                 {/* Audio player */}
                 <div className="flex-1 p-4 flex flex-col">
                   <div className="mb-6">
-                    <h3 className="text-xl font-bold">Lenny's Newsletter</h3>
-                    <p className="text-sm text-muted-foreground">Product Strategy • 2 min summary</p>
+                    <h3 className="text-xl font-bold">Speasy</h3>
+                    <p className="text-sm text-muted-foreground">What it is • 2 min summary</p>
                   </div>
 
                   <div className="flex-1 flex items-center justify-center">
-                    <button
-                      onClick={togglePlayback}
-                      className="w-16 h-16 rounded-full bg-primary flex items-center justify-center text-primary-foreground"
-                    >
-                      {isPlaying ? <Pause className="w-8 h-8" /> : <Play className="w-8 h-8 ml-1" />}
-                    </button>
+                    <div className="relative w-full h-full rounded-2xl overflow-hidden shadow-xl">
+                      <Image
+                        src="/images/podcast-cover.jpg"
+                        alt="Speasy Podcast Cover"
+                        fill
+                        className="object-cover"
+                        priority
+                      />
+                      <div className="absolute inset-0 bg-black/20 hover:bg-black/30 transition-colors flex items-center justify-center">
+                        <button
+                          onClick={togglePlayback}
+                          className="w-16 h-16 rounded-full bg-primary flex items-center justify-center text-primary-foreground transform hover:scale-105 transition-transform"
+                        >
+                          {isPlaying ? <Pause className="w-8 h-8" /> : <Play className="w-8 h-8 ml-1" />}
+                        </button>
+                      </div>
+                    </div>
                   </div>
 
                   <div className="mt-6 space-y-4">
-                    <AudioWaveform isPlaying={isPlaying} progress={audioProgress} />
+                    <div className="h-10">
+                      <AudioWaveform isPlaying={isPlaying} progress={audioProgress} />
+                    </div>
 
                     <div className="flex justify-between text-sm">
                       <span>{formatTime(currentTime)}</span>
-                      <span>{formatTime(duration)}</span>
+                      <span>{isLoading ? "2:00" : formatTime(duration)}</span>
                     </div>
 
                     <div className="p-4 bg-muted rounded-lg">
                       <p className="text-sm font-medium">Transcript</p>
                       <div className="mt-2 text-sm text-muted-foreground h-20 overflow-hidden relative">
-                        <div className={`transition-transform duration-300 ${isPlaying ? "animate-scroll-slow" : ""}`}>
+                        <div className={`transition-transform duration-900 ${isPlaying ? "animate-scroll-slow" : ""}`}>
                           <p className="mb-2">
-                            Get ready to unlock the secrets behind one of the most inspiring transformations in tech.
+                            Feeling buried under unread newsletters? You're not alone.
                           </p>
                           <p className="mb-2">
-                            Today, we dive into the story of monday.com — and how they turned a hard reality check into a rocket ship to $1 billion in annual revenue.
+                            Your inbox is full of content you want to read—industry trends, thought leadership, AI breakthroughs. But life moves fast. Between back-to-back meetings, commutes, and trying to switch off—you just don't have time to read everything.
                           </p>
                           <p className="mb-2">
-                            Here's why this matters:
+                            Enter Speasy—a personal podcast feed that turns top curated newsletters into high-quality audio you can actually keep up with.
                           </p>
                           <p className="mb-2">
-                            monday.com wasn't always a market leader. In fact, they realised they were getting outpaced by competitors. But instead of crumbling, they reinvented everything — and what they learned could change the way you think about product, leadership, and ambition.
+                            Instead of scanning headlines or letting articles pile up unread, Speasy delivers clear, professional audio summaries straight to your favorite podcast app. No extra screens, no extra guilt. Just listen and go.
                           </p>
                           <p className="mb-2">
-                            Get ready to rethink what's possible:
+                            Here's how it works:
                           </p>
                           <ul className="mb-2 list-disc list-inside space-y-1">
                             <li>
-                              You'll see how setting "impossible" goals — like launching 25 features in just one month — shattered old limits and sparked creative breakthroughs.
+                              Step one—Sign up for just $5 a month.
                             </li>
                             <li>
-                              You'll hear how radical transparency — real-time metrics shared with every employee, even during job interviews — built a company culture wired for ownership and alignment.
+                              Step two—Choose from curated categories like Tech, Design, Business, and AI.
                             </li>
                             <li>
-                              You'll discover why focusing on impact over output unlocked bigger growth than shipping faster ever could.
+                              Step three—Start listening. In Speasy, or in Apple Podcasts, Spotify, Overcast—whatever app you already use.
                             </li>
                           </ul>
                           <p className="mb-2">
-                            The real game changer?
+                            Every episode is a distilled summary of expert newsletters—handpicked and spoken aloud with premium AI voice tech. It sounds human. It feels effortless.
                           </p>
                           <p className="mb-2">
-                            monday.com didn't just iterate — they reimagined their whole market position, launching five products at once and capturing a massive new audience.
+                            Whether you're commuting, walking, doing dishes, or taking a break—Speasy helps you stay sharp, inspired, and in the loop. No more screen fatigue. No more inbox overwhelm. Just great content, flowing into your day.
                           </p>
                           <p className="mb-2">
-                            They used tight, timeboxed sprints — what they call "traps" — to stay fast, focused, and fearless.
+                            If you're someone who loves to learn but hates falling behind, Speasy was made for you.
                           </p>
                           <p className="mb-2">
-                            And beneath all the business tactics, there's a deeper lesson:
+                            Start listening today. $5 a month. Zero noise. All signal.
                           </p>
                           <p className="mb-2">
-                            Daniel Lereya, their Chief Product and Technology Officer, shares how embracing self-doubt, navigating impostor syndrome, and learning to delegate helped him scale himself as a leader, not just the company.
-                          </p>
-                          <p className="mb-2">
-                            The exciting idea?
-                          </p>
-                          <p className="mb-2">
-                            When you combine radical transparency, audacious goals, and impact-driven thinking, you don't just build products — you build momentum, resilience, and a culture where the impossible starts to feel normal.
-                          </p>
-                          <p className="mb-2">
-                            So if you're ready to level up your thinking and lead with boldness, take a page from monday.com's playbook — and start turning your biggest challenges into your greatest opportunities.
+                            Speasy—Reclaim your time. Rewrite your story.
                           </p>
                         </div>
                         <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-muted to-transparent"></div>
