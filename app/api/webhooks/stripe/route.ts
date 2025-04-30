@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
-import { supabase } from '@/lib/supabase';
+import { supabase, supabaseAdmin } from '@/lib/supabase';
 import { headers } from 'next/headers';
 
 // Stripe webhook handler
@@ -67,6 +67,16 @@ async function handleCheckoutSessionCompleted(session: any) {
 
       if (error) {
         console.error('Error saving user to Supabase:', error);
+        return;
+      }
+
+      // Send invite email to the user using admin client
+      const { error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(customer_email, {
+        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}dashboard`
+      });
+
+      if (inviteError) {
+        console.error('Error sending invite email:', inviteError);
       }
     }
   } catch (error) {

@@ -51,4 +51,4 @@ export const redirectToStripeCheckout = async () => {
     const stripeCheckoutUrl = 'https://buy.stripe.com/dR6cOdfi43Q63Ru7st';
     window.location.href = stripeCheckoutUrl;
   }
-}; 
+};
