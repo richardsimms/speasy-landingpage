@@ -48,7 +48,7 @@ export const redirectToStripeCheckout = async () => {
   } catch (error) {
     console.error('Error redirecting to Stripe checkout:', error);
     // Fallback to direct URL if the dynamic checkout fails
-    const stripeCheckoutUrl = 'https://buy.stripe.com/dR6cOdfi43Q63Ru7st';
+    const stripeCheckoutUrl = 'https://buy.stripe.com/test_eVa5nPc9U0gfcDKeUU';
     window.location.href = stripeCheckoutUrl;
   }
 };

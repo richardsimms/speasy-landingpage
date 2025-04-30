@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { createClient } from "@/lib/supabase"
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -33,7 +33,7 @@ export default function LoginPage() {
     }
 
     try {
-      const supabase = createClient()
+      const supabase = createClientComponentClient()
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
@@ -85,7 +85,14 @@ export default function LoginPage() {
               />
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Sending link..." : "Send magic link"}
+              {loading ? (
+                <div className="flex items-center space-x-2">
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent"></div>
+                  <span>Sending link...</span>
+                </div>
+              ) : (
+                "Send magic link"
+              )}
             </Button>
           </form>
 

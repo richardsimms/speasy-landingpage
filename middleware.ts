@@ -6,38 +6,38 @@ export async function middleware(req: NextRequest) {
   const res = NextResponse.next()
   const supabase = createMiddlewareClient({ req, res })
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
+  // Handle auth error parameters in the URL hash
+  const url = new URL(req.url)
+  if (url.hash && url.hash.includes('error=')) {
+    const errorParams = new URLSearchParams(url.hash.substring(1))
+    const error = errorParams.get('error')
+    const errorCode = errorParams.get('error_code')
+    const errorDescription = errorParams.get('error_description')
 
-  // Check if the request is for a protected route
-  const isProtectedRoute =
-    req.nextUrl.pathname.startsWith("/dashboard") ||
-    req.nextUrl.pathname.startsWith("/settings") ||
-    req.nextUrl.pathname.startsWith("/player") ||
-    req.nextUrl.pathname.startsWith("/saved") ||
-    req.nextUrl.pathname.startsWith("/history")
-
-  // If accessing a protected route without being authenticated
-  if (isProtectedRoute && !session) {
-    const redirectUrl = req.nextUrl.clone()
-    redirectUrl.pathname = "/auth/login"
-    redirectUrl.searchParams.set(`redirectedFrom`, req.nextUrl.pathname)
-    return NextResponse.redirect(redirectUrl)
+    if (error || errorCode || errorDescription) {
+      const errorUrl = new URL('/auth/error', req.url)
+      errorUrl.searchParams.set('error', error || '')
+      errorUrl.searchParams.set('error_code', errorCode || '')
+      errorUrl.searchParams.set('error_description', errorDescription || '')
+      return NextResponse.redirect(errorUrl)
+    }
   }
 
-  // If accessing login page while authenticated
-  if (req.nextUrl.pathname === "/auth/login" && session) {
-    const redirectUrl = req.nextUrl.clone()
-    redirectUrl.pathname = "/dashboard"
-    return NextResponse.redirect(redirectUrl)
+  // Refresh session
+  const { data: { session } } = await supabase.auth.getSession()
+
+  // Protected routes
+  if (req.nextUrl.pathname.startsWith('/dashboard')) {
+    if (!session) {
+      return NextResponse.redirect(new URL('/auth/login', req.url))
+    }
   }
 
-  // If accessing the root path (/) while authenticated, redirect to dashboard
-  if (req.nextUrl.pathname === "/" && session) {
-    const redirectUrl = req.nextUrl.clone()
-    redirectUrl.pathname = "/dashboard"
-    return NextResponse.redirect(redirectUrl)
+  // Auth routes
+  if (req.nextUrl.pathname.startsWith('/auth/login')) {
+    if (session) {
+      return NextResponse.redirect(new URL('/dashboard', req.url))
+    }
   }
 
   return res
@@ -45,12 +45,6 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    "/",
-    "/dashboard/:path*",
-    "/settings/:path*",
-    "/player/:path*",
-    "/saved/:path*",
-    "/history/:path*",
-    "/auth/login",
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }
