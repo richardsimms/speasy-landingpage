@@ -12,13 +12,14 @@ export async function POST(request: Request) {
     const checkoutParams: any = {
       payment_method_types: ['card'],
       mode: 'subscription',
+      allow_promotion_codes: true,
       line_items: [
         {
           price: process.env.STRIPE_PRICE_ID,
           quantity: 1,
         },
       ],
-      success_url: `${process.env.NEXT_PUBLIC_SITE_URL}success${email ? `?email=${email}` : ''}`,
+      success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/success${email ? `?email=${email}` : ''}`,
       cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}`,
     };
 
