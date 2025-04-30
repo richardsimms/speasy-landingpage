@@ -6,17 +6,26 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { EarlyAccessForm } from "@/components/early-access-form"
 import { useRouter } from "next/navigation"
-import { redirectToStripeCheckout } from "@/utils/stripe"
+import { redirectToStripeYearlyCheckout, redirectToStripeMonthlyCheckout } from "@/utils/stripe"
 
 export default function PlansSection() {
   const router = useRouter()
 
-  // Handle start listening button click
-  const handleStartListening = async () => {
+  // Handle monthly checkout button click
+  const handleMonthlyCheckout = async () => {
     try {
-      await redirectToStripeCheckout();
+      await redirectToStripeMonthlyCheckout();
     } catch (error) {
-      console.error('Error redirecting to checkout:', error);
+      console.error('Error redirecting to monthly checkout:', error);
+    }
+  }
+
+  // Handle yearly checkout button click
+  const handleYearlyCheckout = async () => {
+    try {
+      await redirectToStripeYearlyCheckout();
+    } catch (error) {
+      console.error('Error redirecting to yearly checkout:', error);
     }
   }
 
@@ -73,10 +82,19 @@ export default function PlansSection() {
                     size="lg"
                     variant="default"
                     type="button"
-                    onClick={handleStartListening}
+                    onClick={handleMonthlyCheckout}
                     className="w-full sm:w-auto whitespace-normal"
                   >
                     Start listening - $5/month
+                  </Button>
+                  <Button
+                    size="lg"
+                    variant="secondary"
+                    type="button"
+                    onClick={handleYearlyCheckout}
+                    className="w-full sm:w-auto whitespace-normal"
+                  >
+                    $45/year
                   </Button>
                 </div>
               </CardFooter>

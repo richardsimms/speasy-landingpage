@@ -35,7 +35,7 @@ const ensureMetaTags = () => {
 };
 
 // Function to redirect to Stripe Checkout
-export const redirectToStripeCheckout = async () => {
+export const redirectToStripeMonthlyCheckout = async () => {
   try {
     // Ensure required meta tags exist
     if (typeof document !== 'undefined') {
@@ -48,7 +48,25 @@ export const redirectToStripeCheckout = async () => {
   } catch (error) {
     console.error('Error redirecting to Stripe checkout:', error);
     // Fallback to direct URL if the dynamic checkout fails
-    const stripeCheckoutUrl = 'https://buy.stripe.com/test_eVa5nPc9U0gfcDKeUU';
+    const stripeCheckoutUrl = 'https://buy.stripe.com/aEU5lL4DqfyOco0bIK';
+    window.location.href = stripeCheckoutUrl;
+  }
+};
+
+export const redirectToStripeYearlyCheckout = async () => {
+  try {
+    // Ensure required meta tags exist
+    if (typeof document !== 'undefined') {
+      ensureMetaTags();
+    }
+    
+    // Create a checkout session and redirect to it
+    const { sessionUrl } = await createCheckoutSession();
+    window.location.href = sessionUrl;
+  } catch (error) {
+    console.error('Error redirecting to Stripe checkout:', error);
+    // Fallback to direct URL if the dynamic checkout fails
+    const stripeCheckoutUrl = 'https://buy.stripe.com/4gw15v0na2M2afS3cg';
     window.location.href = stripeCheckoutUrl;
   }
 };
