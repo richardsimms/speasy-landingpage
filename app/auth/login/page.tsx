@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Headphones } from "lucide-react"
@@ -34,11 +33,6 @@ export default function LoginPage() {
 
     try {
       const supabase = createClient()
-      
-      if (!supabase) {
-        throw new Error("Failed to initialize Supabase client")
-      }
-
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
