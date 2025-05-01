@@ -28,15 +28,15 @@ export function DashboardClient({
     <div className="container py-6 md:py-10">
       <div className="flex flex-col gap-6">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight">Dashboard</h1>
+          <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">Dashboard</h1>
           <p className="text-muted-foreground">Welcome back, {userName}</p>
         </div>
 
         <Tabs defaultValue="latest" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="latest">Latest Content</TabsTrigger>
-            <TabsTrigger value="saved">Saved</TabsTrigger>
-            <TabsTrigger value="submitted">Your Submissions</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="latest" className="text-xs md:text-sm">Latest</TabsTrigger>
+            <TabsTrigger value="saved" className="text-xs md:text-sm">Saved</TabsTrigger>
+            <TabsTrigger value="submitted" className="text-xs md:text-sm">Your Submissions</TabsTrigger>
           </TabsList>
 
           <TabsContent value="latest" className="space-y-4">
@@ -45,11 +45,11 @@ export function DashboardClient({
             {latestContent.length === 0 && (
               <Card>
                 <CardHeader>
-                  <CardTitle>No content yet</CardTitle>
-                  <CardDescription>Subscribe to categories or add your own content to get started.</CardDescription>
+                  <CardTitle className="text-lg md:text-xl">No content yet</CardTitle>
+                  <CardDescription className="text-sm md:text-base">Subscribe to categories or add your own content to get started.</CardDescription>
                 </CardHeader>
                 <CardFooter>
-                  <Button asChild>
+                  <Button asChild className="w-full md:w-auto">
                     <Link href="/settings/subscriptions">Manage Subscriptions</Link>
                   </Button>
                 </CardFooter>
@@ -65,11 +65,11 @@ export function DashboardClient({
             {submittedUrls.length === 0 ? (
               <Card>
                 <CardHeader>
-                  <CardTitle>No submitted content</CardTitle>
-                  <CardDescription>Add URLs to convert them to audio.</CardDescription>
+                  <CardTitle className="text-lg md:text-xl">No submitted content</CardTitle>
+                  <CardDescription className="text-sm md:text-base">Add URLs to convert them to audio.</CardDescription>
                 </CardHeader>
                 <CardFooter>
-                  <Button asChild>
+                  <Button asChild className="w-full md:w-auto">
                     <Link
                       href="#"
                       onClick={(e) => {
@@ -87,21 +87,21 @@ export function DashboardClient({
                 {submittedUrls.map((item) => (
                   <Card key={item.id}>
                     <CardHeader>
-                      <CardTitle className="text-lg">{item.title || item.url}</CardTitle>
-                      <CardDescription>
+                      <CardTitle className="text-base md:text-lg line-clamp-2">{item.title || item.url}</CardTitle>
+                      <CardDescription className="text-xs md:text-sm">
                         Status: <span className="capitalize">{item.status}</span>
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-sm text-muted-foreground truncate">{item.url}</p>
+                      <p className="text-xs md:text-sm text-muted-foreground truncate">{item.url}</p>
                     </CardContent>
                     <CardFooter>
                       {item.content ? (
-                        <Button asChild>
+                        <Button asChild className="w-full md:w-auto">
                           <Link href={`/player?id=${item.content.id}`}>Listen</Link>
                         </Button>
                       ) : (
-                        <Button disabled>Processing</Button>
+                        <Button disabled className="w-full md:w-auto">Processing</Button>
                       )}
                     </CardFooter>
                   </Card>
@@ -112,7 +112,7 @@ export function DashboardClient({
         </Tabs>
 
         <div className="mt-8">
-          <h2 className="text-2xl font-semibold tracking-tight mb-4">Categories</h2>
+          <h2 className="text-xl font-semibold tracking-tight mb-4 md:text-2xl">Categories</h2>
           <CategoryList categories={categories} subscribedIds={subscribedCategoryIds} />
         </div>
       </div>

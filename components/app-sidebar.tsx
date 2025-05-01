@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useIsMobile } from "@/hooks/use-mobile"
 import {
   LayoutDashboard,
   Headphones,
@@ -22,6 +23,7 @@ export function AppSidebar() {
   const pathname = usePathname()
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [isAddContentOpen, setIsAddContentOpen] = useState(false)
+  const isMobile = useIsMobile()
 
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed)
@@ -53,6 +55,31 @@ export function AppSidebar() {
       active: pathname === "/history",
     },
   ]
+
+  if (isMobile) {
+    return (
+      <>
+        <div className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <div className="grid h-16 grid-cols-4">
+            {routes.map((route) => (
+              <Button
+                key={route.href}
+                variant={route.active ? "secondary" : "ghost"}
+                className="h-full flex-col gap-1 rounded-none"
+                asChild
+              >
+                <Link href={route.href}>
+                  <route.icon className={cn("h-5 w-5", route.active ? "text-primary" : "text-muted-foreground")} />
+                  <span className="text-xs">{route.label}</span>
+                </Link>
+              </Button>
+            ))}
+          </div>
+        </div>
+        <AddContentDialog open={isAddContentOpen} onOpenChange={setIsAddContentOpen} />
+      </>
+    )
+  }
 
   return (
     <>
