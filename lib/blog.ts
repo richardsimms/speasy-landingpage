@@ -1,4 +1,5 @@
-import { supabase } from "@/lib/supabase"
+import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
+import { cookies } from "next/headers"
 import { notFound } from "next/navigation"
 
 export type BlogPost = {
@@ -16,6 +17,7 @@ export type BlogPost = {
 }
 
 export async function getBlogPosts(): Promise<BlogPost[]> {
+  const supabase = createServerComponentClient({ cookies })
   const { data, error } = await supabase
     .from("blog_posts")
     .select("*")
@@ -31,6 +33,7 @@ export async function getBlogPosts(): Promise<BlogPost[]> {
 }
 
 export async function getBlogPostBySlug(slug: string): Promise<BlogPost> {
+  const supabase = createServerComponentClient({ cookies })
   const { data, error } = await supabase
     .from("blog_posts")
     .select("*")

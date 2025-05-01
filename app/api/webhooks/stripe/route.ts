@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
-import { supabase, supabaseAdmin } from '@/lib/supabase';
+import { createAdminClient } from '@/lib/supabase';
 import { headers } from 'next/headers';
 
 // Stripe webhook handler
 export async function POST(request: Request) {
   const body = await request.text();
   const signatureHeader = request.headers.get('stripe-signature');
+  const supabase = createAdminClient();
   
   if (!signatureHeader) {
     return NextResponse.json(
@@ -33,12 +34,12 @@ export async function POST(request: Request) {
   switch (event.type) {
     case 'checkout.session.completed':
       const session = event.data.object;
-      await handleCheckoutSessionCompleted(session);
+      await handleCheckoutSessionCompleted(session, supabase);
       break;
     case 'customer.subscription.created':
     case 'customer.subscription.updated':
       const subscription = event.data.object;
-      await handleSubscriptionUpdated(subscription);
+      await handleSubscriptionUpdated(subscription, supabase);
       break;
     default:
       console.log(`Unhandled event type: ${event.type}`);
@@ -48,7 +49,7 @@ export async function POST(request: Request) {
 }
 
 // Handle completed checkout sessions
-async function handleCheckoutSessionCompleted(session: any) {
+async function handleCheckoutSessionCompleted(session: any, supabase: any) {
   try {
     const { customer_email } = session;
     
@@ -71,7 +72,7 @@ async function handleCheckoutSessionCompleted(session: any) {
       }
 
       // Send invite email to the user using admin client
-      const { error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(customer_email, {
+      const { error: inviteError } = await supabase.auth.admin.inviteUserByEmail(customer_email, {
         redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}dashboard`
       });
 
@@ -85,7 +86,7 @@ async function handleCheckoutSessionCompleted(session: any) {
 }
 
 // Handle subscription updates
-async function handleSubscriptionUpdated(subscription: any) {
+async function handleSubscriptionUpdated(subscription: any, supabase: any) {
   try {
     const customerId = subscription.customer;
     const status = subscription.status;
@@ -101,7 +102,7 @@ async function handleSubscriptionUpdated(subscription: any) {
         .eq('stripe_customer_id', customerId);
 
       if (error) {
-        console.error('Error updating subscription status in Supabase:', error);
+        console.error('Error updating subscription status:', error);
       }
     }
   } catch (error) {
