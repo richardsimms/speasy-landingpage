@@ -6,6 +6,35 @@ This document provides detailed instructions for setting up and configuring Supa
 
 Speasy uses Supabase for user authentication and database storage. The application implements a passwordless authentication flow using magic links. After a user completes payment with Stripe, they receive a magic link to access their account.
 
+## Client Implementation
+
+The application uses different Supabase clients for different contexts:
+
+1. **Client Components**:
+   ```typescript
+   import { createClient } from '@/lib/supabase'
+   
+   // In your component
+   const supabase = createClient()
+   ```
+
+2. **Server Components**:
+   ```typescript
+   import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
+   import { cookies } from "next/headers"
+   
+   // In your server component
+   const supabase = createServerComponentClient({ cookies })
+   ```
+
+3. **API Routes and Server Actions**:
+   ```typescript
+   import { createAdminClient } from '@/lib/supabase'
+   
+   // In your API route or server action
+   const supabase = createAdminClient()
+   ```
+
 ## Prerequisites
 
 Before you begin, make sure you have:
@@ -44,6 +73,7 @@ Add the following variables to your `.env.local` file (if not already present):
 ```
 NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 ```
 
 ### 3. Database Schema Setup
@@ -82,29 +112,19 @@ CREATE TRIGGER on_auth_user_created
   FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
 ```
 
-This script:
-- Creates a `users` table to store additional user data
-- Creates a trigger to automatically add new authenticated users to your custom users table
-
 ### 4. Authentication Implementation
 
-The success page already implements the magic link flow:
+The login page implements the magic link flow:
 
 ```typescript
-// app/success/page.tsx
-async function sendLoginLink() {
-  if (!email) {
-    setStatus('error')
-    setMessage('No email provided. Please contact support.')
-    return
-  }
-
+// app/auth/login/page.tsx
+async function handleLogin(email: string) {
   try {
     const supabase = createClient()
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: `${window.location.origin}/dashboard`,
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
     })
 
@@ -112,210 +132,49 @@ async function sendLoginLink() {
       throw error
     }
 
-    setStatus('success')
-    setMessage('Check your email for a login link.')
+    // Show success message
   } catch (error) {
-    console.error('Error sending magic link:', error)
-    setStatus('error')
-    setMessage('Error sending login link. Please try again or contact support.')
+    // Handle error
   }
 }
 ```
 
 ### 5. Protected Routes Setup
 
-1. Create a middleware file to protect routes (if not already present):
+1. Create a middleware file to protect routes:
 
 ```typescript
 // middleware.ts
-import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
+import { createMiddlewareClient } from "@supabase/auth-helpers-nextjs"
+import { NextResponse } from "next/server"
+import type { NextRequest } from "next/server"
 
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next()
   const supabase = createMiddlewareClient({ req, res })
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
+  // Refresh session
+  const { data: { session } } = await supabase.auth.getSession()
 
-  // Protect dashboard routes
-  if (!session && req.nextUrl.pathname.startsWith('/dashboard')) {
-    const redirectUrl = req.nextUrl.clone()
-    redirectUrl.pathname = '/auth/login'
-    redirectUrl.searchParams.set('redirectedFrom', req.nextUrl.pathname)
-    return NextResponse.redirect(redirectUrl)
+  // Protected routes
+  if (req.nextUrl.pathname.startsWith('/dashboard')) {
+    if (!session) {
+      return NextResponse.redirect(new URL('/auth/login', req.url))
+    }
+  }
+
+  // Auth routes
+  if (req.nextUrl.pathname.startsWith('/auth/login')) {
+    if (session) {
+      return NextResponse.redirect(new URL('/dashboard', req.url))
+    }
   }
 
   return res
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*'],
-}
-```
-
-### 6. Creating a Login Page
-
-If you need a dedicated login page:
-
-```tsx
-// app/auth/login/page.tsx
-"use client"
-
-import { useState } from 'react'
-import { createClient } from '@/lib/supabase'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-
-export default function LoginPage() {
-  const [email, setEmail] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const [message, setMessage] = useState('')
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setMessage('')
-
-    try {
-      const supabase = createClient()
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          emailRedirectTo: `${window.location.origin}/dashboard`,
-        },
-      })
-
-      if (error) {
-        throw error
-      }
-
-      setMessage('Check your email for a login link.')
-    } catch (error) {
-      console.error('Error sending magic link:', error)
-      setMessage('Error sending login link. Please try again.')
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  return (
-    <div className="flex min-h-screen flex-col items-center justify-center p-6">
-      <div className="w-full max-w-md space-y-8 rounded-lg bg-card p-8 shadow-lg">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold">Sign In</h1>
-          <p className="mt-2 text-muted-foreground">
-            Enter your email to receive a magic link
-          </p>
-        </div>
-
-        <form onSubmit={handleLogin} className="mt-8 space-y-6">
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium">
-              Email
-            </label>
-            <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="mt-1"
-              placeholder="your@email.com"
-            />
-          </div>
-
-          {message && (
-            <div className="rounded-md bg-primary/10 p-4 text-primary">
-              <p>{message}</p>
-            </div>
-          )}
-
-          <div>
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={isLoading}
-            >
-              {isLoading ? 'Sending...' : 'Send Magic Link'}
-            </Button>
-          </div>
-        </form>
-      </div>
-    </div>
-  )
-}
-```
-
-### 7. User Profile Component
-
-Create a user profile component for the dashboard:
-
-```tsx
-// components/user-profile.tsx
-"use client"
-
-import { useState, useEffect } from 'react'
-import { createClient } from '@/lib/supabase'
-import { Button } from '@/components/ui/button'
-
-export default function UserProfile() {
-  const [user, setUser] = useState<any>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const supabase = createClient()
-
-  useEffect(() => {
-    async function getUser() {
-      setIsLoading(true)
-      try {
-        const { data: { user } } = await supabase.auth.getUser()
-        if (user) {
-          // Get additional user data from database
-          const { data } = await supabase
-            .from('users')
-            .select('*')
-            .eq('id', user.id)
-            .single()
-            
-          setUser({ ...user, ...data })
-        }
-      } catch (error) {
-        console.error('Error fetching user:', error)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    getUser()
-  }, [])
-
-  const handleSignOut = async () => {
-    await supabase.auth.signOut()
-    window.location.href = '/'
-  }
-
-  if (isLoading) {
-    return <div>Loading...</div>
-  }
-
-  if (!user) {
-    return <div>Not logged in</div>
-  }
-
-  return (
-    <div className="space-y-4">
-      <h2 className="text-2xl font-bold">Your Profile</h2>
-      <div>
-        <p><strong>Email:</strong> {user.email}</p>
-        <p><strong>Subscription Status:</strong> {user.subscription_status || 'Not subscribed'}</p>
-      </div>
-      <Button onClick={handleSignOut} variant="outline">
-        Sign Out
-      </Button>
-    </div>
-  )
+  matcher: ['/dashboard/:path*', '/auth/:path*'],
 }
 ```
 
