@@ -34,6 +34,11 @@ export default function LoginPage() {
 
     try {
       const supabase = createClient()
+      
+      if (!supabase) {
+        throw new Error("Failed to initialize Supabase client")
+      }
+
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
@@ -50,9 +55,10 @@ export default function LoginPage() {
         text: "Check your email for the magic link! After clicking the link, you'll be automatically redirected to your dashboard. If you're not redirected, please contact support.",
       })
     } catch (error: any) {
+      console.error("Login error:", error)
       setMessage({
         type: "error",
-        text: error.message || "An error occurred during login",
+        text: error.message || "An error occurred during login. Please try again.",
       })
     } finally {
       setLoading(false)
