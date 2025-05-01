@@ -106,31 +106,41 @@ export function ContentList({ items, emptyMessage = "No content available." }: C
           <CardContent>
             <p className="text-sm text-muted-foreground line-clamp-2">{item.url}</p>
           </CardContent>
-          <CardFooter className="flex justify-between">
+          <CardFooter className="flex flex-col gap-2 md:flex-row md:justify-between">
             <div className="flex gap-2">
               <Button
                 variant="outline"
                 size="sm"
+                className="flex-1 md:flex-none"
                 onClick={() => handleSave(item.id)}
                 disabled={savedItems.includes(item.id)}
               >
                 {savedItems.includes(item.id) ? (
                   <>
                     <BookmarkCheck className="mr-2 h-4 w-4" />
-                    Saved
+                    <span className="hidden md:inline">Saved</span>
                   </>
                 ) : (
                   <>
                     <Bookmark className="mr-2 h-4 w-4" />
-                    Save
+                    <span className="hidden md:inline">Save</span>
                   </>
                 )}
               </Button>
-              <Button variant="outline" size="sm" onClick={() => handleMarkAsRead(item.id)}>
-                Mark as Read
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="flex-1 md:flex-none"
+                onClick={() => handleMarkAsRead(item.id)}
+              >
+                <span className="hidden md:inline">Mark as Read</span>
+                <span className="md:hidden">Read</span>
               </Button>
             </div>
-            <Button asChild>
+            <Button 
+              asChild 
+              className="w-full md:w-auto"
+            >
               <Link href={`/player?id=${item.id}`}>
                 <Play className="mr-2 h-4 w-4" />
                 Listen
