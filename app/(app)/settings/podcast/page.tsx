@@ -32,8 +32,9 @@ export default function PodcastSettingsPage() {
           .eq("is_default", true)
           .single()
 
-        if (feed) {
-          setPodcastFeed(feed.feed_url)
+          if (feed) {
+            const fullUrl = `${window.location.origin}/api/feeds/${session.user.id}/${feed.feed_url}`
+            setPodcastFeed(fullUrl)          
           if (feed.title) setFeedTitle(feed.title)
           if (feed.description) setFeedDescription(feed.description)
         }
