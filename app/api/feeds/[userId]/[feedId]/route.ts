@@ -29,12 +29,13 @@ type UserContentResponse = {
   content: ContentItemResponse
 }
 
-export async function GET(request: NextRequest, { params }: { params: { userId: string; feedId: string } }) {
-  const { userId, feedId } = params
+export async function GET(request: NextRequest, context: { params: { userId: string; feedId: string } }) {
+  const { params } = context;
+  const { userId, feedId } = params;
+
+  const supabase = createRouteHandlerClient({ cookies });
 
   try {
-    const supabase = createRouteHandlerClient({ cookies })
-
     // Build the expected feed URL
     const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://speasy.app'
     const expectedFeedUrl = `${baseUrl}/api/feeds/${userId}/${feedId}`

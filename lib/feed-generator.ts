@@ -30,12 +30,19 @@ export const CONFIG = {
   // Specific URL generators
   urls: {
     audio: (path?: string) => {
-      if (!path) return '';
-      
-      // If it's already a full URL, return it as is
-      if (path.startsWith('http')) return path;
-      
-      return path;
+      if (!path) return `${CONFIG.getBaseUrl()}/public/audio`;
+      // Remove any leading/trailing slashes and normalize path
+      const normalizedPath = path
+        .replace(/^[\\/]+/, '') // Remove leading slashes
+        .replace(/[\\/]+$/, '') // Remove trailing slashes
+        .replace(/[\\/]+/g, '/'); // Replace multiple slashes with single slash
+      if (normalizedPath.startsWith('public/audio/') || normalizedPath.startsWith('/public/audio/')) {
+        return `${CONFIG.getBaseUrl()}/${normalizedPath.replace(/^\//, '')}`;
+      }
+      if (normalizedPath.startsWith('audio/')) {
+        return `${CONFIG.getBaseUrl()}/public/${normalizedPath}`;
+      }
+      return `${CONFIG.getBaseUrl()}/public/audio/${normalizedPath}`;
     },
     article: (id: string) => `${CONFIG.getBaseUrl()}/content/${id}`,
     feed: (userId: string, feedId: string) => `${CONFIG.getBaseUrl()}/api/feeds/${userId}/${feedId}`,
