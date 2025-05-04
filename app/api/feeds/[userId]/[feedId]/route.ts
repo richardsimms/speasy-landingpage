@@ -51,57 +51,67 @@ export async function GET(request: NextRequest, { params }: { params: { userId: 
       return new NextResponse("Feed not found", { status: 404 })
     }
 
-    // Get user's content items
-    const { data: userContent } = await supabase
-      .from("user_content_items")
-      .select(`
-        content:content_items(
-          id,
-          title,
-          summary,
-          url,
-          published_at,
-          content_markdown,
-          source:content_sources(name),
+    // 1. Get user's subscribed categories
+    const { data: subscriptions } = await supabase
+      .from("user_category_subscriptions")
+      .select("category_id")
+      .eq("user_id", userId);
+
+    const subscribedCategoryIds = subscriptions?.map((sub) => sub.category_id) || [];
+
+    let latestContent: any[] = [];
+
+    if (subscribedCategoryIds.length > 0) {
+      const { data: contentItems } = await supabase
+        .from("content_items")
+        .select(`
+          *,
+          source:content_sources!inner(name, category_id),
           audio:audio_files(file_url, duration, type)
-        )
-      `)
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false })
-      .limit(50)
+        `)
+        .in("source.category_id", subscribedCategoryIds)
+        .order("published_at", { ascending: false })
+        .limit(10);
 
-    // Debug log for content
-    console.log("userContent", JSON.stringify(userContent, null, 2));
-
-    // Extract content items for the feed and convert to the expected format
-    const contentItems: ContentItem[] = []
-    
-    if (userContent) {
-      // Using 'any' for simplicity with complex nested Supabase response
-      const userContentAny = userContent as any[]
-      
-      for (const item of userContentAny) {
-        if (!item.content) continue
-        
-        const content = item.content
-        
-        // Shape the content into the expected ContentItem format
-        contentItems.push({
-          id: content.id,
-          title: content.title,
-          summary: content.summary,
-          url: content.url,
-          published_at: content.published_at,
-          content_markdown: content.content_markdown,
-          source: content.source && content.source.length > 0 
-            ? { name: content.source[0].name } 
-            : undefined,
-          audio: content.audio
-        })
+      if (contentItems && contentItems.length > 0) {
+        latestContent = contentItems;
       }
     }
-    
-    // Generate feed with our new async generator (Apple Podcasts compliant)
+
+    if (latestContent.length === 0) {
+      const { data: allContent } = await supabase
+        .from("content_items")
+        .select(`
+          *,
+          source:content_sources(name, category_id),
+          audio:audio_files(file_url, duration, type)
+        `)
+        .order("published_at", { ascending: false })
+        .limit(10);
+
+      if (allContent) {
+        latestContent = allContent;
+      }
+    }
+
+    // Debug log for content
+    console.log("latestContent", JSON.stringify(latestContent, null, 2));
+
+    // Map content_items rows to ContentItem[] for the feed generator
+    const contentItems: ContentItem[] = latestContent
+      .filter((item) => item.audio && item.audio.length > 0)
+      .map((item) => ({
+        id: item.id,
+        title: item.title,
+        summary: item.summary,
+        url: item.url,
+        published_at: item.published_at,
+        content_markdown: item.content_markdown,
+        source: item.source && item.source.length > 0 ? { name: item.source[0].name } : undefined,
+        audio: item.audio
+      }));
+
+    // Generate feed with our async generator (Apple Podcasts compliant)
     const rssFeedXml = await generateRssFeedAsync(contentItems, {
       title: feed.title || "Speasy Feed",
       description: feed.description || "Your personalized audio content feed",
