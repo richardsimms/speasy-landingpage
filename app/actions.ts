@@ -1,6 +1,9 @@
 "use server"
 
-import { supabase } from "@/lib/supabase"
+import { createAdminClient } from "@/lib/supabase"
+
+const supabase = createAdminClient()
+
 import { revalidatePath } from "next/cache"
 import { createServerActionClient } from "@supabase/auth-helpers-nextjs"
 import { cookies } from "next/headers"

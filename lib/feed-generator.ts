@@ -86,7 +86,23 @@ async function getAudioFileSize(url: string): Promise<number> {
 }
 
 // Async version for Apple Podcasts compliance
-export async function generateRssFeedAsync(contentItems: ContentItem[], feedInfo: FeedInfo): Promise<string> {
+export async function generateRssFeedAsync(
+  contentItems: ContentItem[],
+  {
+    title,
+    description,
+    userId,
+    feedId, // ← real UUID, not 'default'
+  }: {
+    title: string
+    description: string
+    userId: string
+    feedId: string
+  }
+): Promise<string> {
+  const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://speasy.app'
+  const feedUrl = `${baseUrl}/api/feeds/${userId}/${feedId}`
+
   const now = new Date().toUTCString();
 
   const podcastItems = await Promise.all(
@@ -168,15 +184,15 @@ export async function generateRssFeedAsync(contentItems: ContentItem[], feedInfo
      xmlns:dc="http://purl.org/dc/elements/1.1/"
      xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>${escapeXml(feedInfo.title)}</title>
+    <title>${escapeXml(title)}</title>
     <link>${CONFIG.getBaseUrl()}</link>
-    <description><![CDATA[${feedInfo.description}]]></description>
+    <description><![CDATA[${description}]]></description>
     <language>en-us</language>
     <lastBuildDate>${now}</lastBuildDate>
     <generator>Speasy RSS Generator</generator>
 
     <itunes:author>Speasy</itunes:author>
-    <itunes:summary><![CDATA[${feedInfo.description}]]></itunes:summary>
+    <itunes:summary><![CDATA[${description}]]></itunes:summary>
     <itunes:category text="Technology"/>
     <itunes:explicit>no</itunes:explicit>
     <itunes:owner>
@@ -185,13 +201,13 @@ export async function generateRssFeedAsync(contentItems: ContentItem[], feedInfo
     </itunes:owner>
 
     <image>
-      <url>${CONFIG.urls.cover(feedInfo.userId)}</url>
-      <title>${escapeXml(feedInfo.title)}</title>
+      <url>${CONFIG.urls.cover(userId)}</url>
+      <title>${escapeXml(title)}</title>
       <link>${CONFIG.getBaseUrl()}</link>
     </image>
-    <itunes:image href="${CONFIG.urls.cover(feedInfo.userId)}"/>
+    <itunes:image href="${CONFIG.urls.cover(userId)}"/>
 
-    <atom:link href="${CONFIG.urls.feed(feedInfo.userId, feedInfo.feedId)}" rel="self" type="application/rss+xml"/>
+    <atom:link href="${CONFIG.urls.feed(userId, feedId)}" rel="self" type="application/rss+xml"/>
 
     ${podcastItems.join("\n")}
   </channel>
