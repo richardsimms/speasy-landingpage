@@ -30,11 +30,10 @@ type UserContentResponse = {
 }
 
 export async function GET(request: NextRequest, context: { params: { userId: string; feedId: string } }) {
-  const params = context.params;
-  const { userId, feedId } = params;
+  const { userId, feedId } = context.params;
 
-  const cookieStore = cookies();
-  const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
+  // Initialize Supabase client without authentication for public RSS feed
+  const supabase = createRouteHandlerClient({ cookies });
 
   try {
     // Get actual deployed URL from request headers or fallback to env
@@ -52,47 +51,37 @@ export async function GET(request: NextRequest, context: { params: { userId: str
     
     console.log("Looking for feed URLs:", { expectedFeedUrl, defaultFeedUrl });
 
-    // First try exact URL match
-    let { data: feed } = await supabase
+    // Get all feeds for this user and find the right one
+    const { data: feeds } = await supabase
       .from("podcast_feeds")
       .select("*")
-      .eq("user_id", userId)
-      .eq("feed_url", expectedFeedUrl)
-      .single();
+      .eq("user_id", userId);
 
-    // Try domain-agnostic path match using LIKE operator
-    if (!feed) {
-      const { data: pathFeed } = await supabase
-        .from("podcast_feeds")
-        .select("*")
-        .eq("user_id", userId)
-        .or(`feed_url.like.%${expectedPath},feed_url.like.%${defaultPath}`)
-        .single();
+    let feed = null;
+    
+    if (feeds && feeds.length > 0) {
+      console.log("Found feeds for user:", feeds);
       
-      feed = pathFeed;
-    }
-
-    // If still not found, try looking up by userId and is_default flag
-    if (!feed) {
-      const { data: defaultFeedByFlag } = await supabase
-        .from("podcast_feeds")
-        .select("*")
-        .eq("user_id", userId)
-        .eq("is_default", true)
-        .single();
+      // First look for an exact match
+      feed = feeds.find(f => f.feed_url === expectedFeedUrl || f.feed_url === defaultFeedUrl);
       
-      feed = defaultFeedByFlag;
-    }
-
-    // As a last resort, try to find any feed for this user
-    if (!feed) {
-      const { data: anyFeed } = await supabase
-        .from("podcast_feeds")
-        .select("*")
-        .eq("user_id", userId)
-        .single();
+      // Then try path matching (domain-agnostic)
+      if (!feed) {
+        feed = feeds.find(f => 
+          (typeof f.feed_url === 'string') && 
+          (f.feed_url.endsWith(expectedPath) || f.feed_url.endsWith(defaultPath))
+        );
+      }
       
-      feed = anyFeed;
+      // Finally, try the is_default flag
+      if (!feed) {
+        feed = feeds.find(f => f.is_default === true);
+      }
+      
+      // Last resort - just use the first feed
+      if (!feed && feeds.length > 0) {
+        feed = feeds[0];
+      }
     }
 
     if (!feed) {
@@ -100,7 +89,7 @@ export async function GET(request: NextRequest, context: { params: { userId: str
       return new NextResponse("Feed not found", { status: 404 });
     }
 
-    console.log("Found feed:", feed);
+    console.log("Using feed:", feed);
 
     // 1. Get user's subscribed categories
     const { data: subscriptions } = await supabase
@@ -109,6 +98,7 @@ export async function GET(request: NextRequest, context: { params: { userId: str
       .eq("user_id", userId);
 
     const subscribedCategoryIds = subscriptions?.map((sub) => sub.category_id) || [];
+    console.log("User subscribed to categories:", subscribedCategoryIds);
 
     let latestContent: any[] = [];
 
@@ -116,8 +106,13 @@ export async function GET(request: NextRequest, context: { params: { userId: str
       const { data: contentItems } = await supabase
         .from("content_items")
         .select(`
-          *,
-          source:content_sources!inner(name, category_id),
+          id,
+          title,
+          url,
+          summary,
+          published_at,
+          content,
+          source:content_sources(name, category_id),
           audio:audio_files(file_url, duration, type)
         `)
         .in("source.category_id", subscribedCategoryIds)
@@ -133,7 +128,12 @@ export async function GET(request: NextRequest, context: { params: { userId: str
       const { data: allContent } = await supabase
         .from("content_items")
         .select(`
-          *,
+          id,
+          title,
+          url,
+          summary,
+          published_at,
+          content,
           source:content_sources(name, category_id),
           audio:audio_files(file_url, duration, type)
         `)
@@ -146,7 +146,7 @@ export async function GET(request: NextRequest, context: { params: { userId: str
     }
 
     // Debug log for content
-    console.log("latestContent", JSON.stringify(latestContent, null, 2));
+    console.log("Found content items:", latestContent?.length || 0);
 
     // Map content_items rows to ContentItem[] for the feed generator
     const contentItems: ContentItem[] = latestContent
@@ -157,10 +157,12 @@ export async function GET(request: NextRequest, context: { params: { userId: str
         summary: item.summary,
         url: item.url,
         published_at: item.published_at,
-        content_markdown: item.content_markdown,
+        content_markdown: item.content, // Use content field as markdown
         source: item.source && item.source.length > 0 ? { name: item.source[0].name } : undefined,
         audio: item.audio
       }));
+
+    console.log("Prepared items for feed:", contentItems.length);
 
     // Generate feed with our async generator (Apple Podcasts compliant)
     const rssFeedXml = await generateRssFeedAsync(contentItems, {
