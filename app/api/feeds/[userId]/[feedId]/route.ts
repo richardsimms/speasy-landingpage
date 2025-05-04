@@ -35,8 +35,17 @@ export async function GET(request: NextRequest, { params }: { params: { userId: 
   try {
     const supabase = createRouteHandlerClient({ cookies })
 
-    // Verify that the feed exists
-    const { data: feed } = await supabase.from("podcast_feeds").select("*").eq("user_id", userId).single()
+    // Build the expected feed URL
+    const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://speasy.app'
+    const expectedFeedUrl = `${baseUrl}/api/feeds/${userId}/${feedId}`
+
+    // Verify that the feed exists for both user and feed URL
+    const { data: feed } = await supabase
+      .from("podcast_feeds")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("feed_url", expectedFeedUrl)
+      .single()
 
     if (!feed) {
       return new NextResponse("Feed not found", { status: 404 })
@@ -60,6 +69,9 @@ export async function GET(request: NextRequest, { params }: { params: { userId: 
       .eq("user_id", userId)
       .order("created_at", { ascending: false })
       .limit(50)
+
+    // Debug log for content
+    console.log("userContent", JSON.stringify(userContent, null, 2));
 
     // Extract content items for the feed and convert to the expected format
     const contentItems: ContentItem[] = []
