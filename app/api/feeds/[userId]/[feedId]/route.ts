@@ -30,27 +30,77 @@ type UserContentResponse = {
 }
 
 export async function GET(request: NextRequest, context: { params: { userId: string; feedId: string } }) {
-  const { params } = context;
+  const params = context.params;
   const { userId, feedId } = params;
 
-  const supabase = createRouteHandlerClient({ cookies });
+  const cookieStore = cookies();
+  const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
 
   try {
-    // Build the expected feed URL
-    const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://speasy.app'
-    const expectedFeedUrl = `${baseUrl}/api/feeds/${userId}/${feedId}`
+    // Get actual deployed URL from request headers or fallback to env
+    const host = request.headers.get('host') || 'speasy.app';
+    const proto = request.headers.get('x-forwarded-proto') || 'https';
+    const baseUrl = `${proto}://${host}`;
+    console.log("Using baseUrl:", baseUrl);
+    
+    const expectedFeedUrl = `${baseUrl}/api/feeds/${userId}/${feedId}`;
+    const defaultFeedUrl = `${baseUrl}/api/feeds/${userId}/default`;
+    
+    // Just the path parts for comparison with database values that might have different domains
+    const expectedPath = `/api/feeds/${userId}/${feedId}`;
+    const defaultPath = `/api/feeds/${userId}/default`;
+    
+    console.log("Looking for feed URLs:", { expectedFeedUrl, defaultFeedUrl });
 
-    // Verify that the feed exists for both user and feed URL
-    const { data: feed } = await supabase
+    // First try exact URL match
+    let { data: feed } = await supabase
       .from("podcast_feeds")
       .select("*")
       .eq("user_id", userId)
       .eq("feed_url", expectedFeedUrl)
-      .single()
+      .single();
+
+    // Try domain-agnostic path match using LIKE operator
+    if (!feed) {
+      const { data: pathFeed } = await supabase
+        .from("podcast_feeds")
+        .select("*")
+        .eq("user_id", userId)
+        .or(`feed_url.like.%${expectedPath},feed_url.like.%${defaultPath}`)
+        .single();
+      
+      feed = pathFeed;
+    }
+
+    // If still not found, try looking up by userId and is_default flag
+    if (!feed) {
+      const { data: defaultFeedByFlag } = await supabase
+        .from("podcast_feeds")
+        .select("*")
+        .eq("user_id", userId)
+        .eq("is_default", true)
+        .single();
+      
+      feed = defaultFeedByFlag;
+    }
+
+    // As a last resort, try to find any feed for this user
+    if (!feed) {
+      const { data: anyFeed } = await supabase
+        .from("podcast_feeds")
+        .select("*")
+        .eq("user_id", userId)
+        .single();
+      
+      feed = anyFeed;
+    }
 
     if (!feed) {
-      return new NextResponse("Feed not found", { status: 404 })
+      console.error("Feed not found", { userId, feedId, expectedFeedUrl, defaultFeedUrl });
+      return new NextResponse("Feed not found", { status: 404 });
     }
+
+    console.log("Found feed:", feed);
 
     // 1. Get user's subscribed categories
     const { data: subscriptions } = await supabase
@@ -118,16 +168,16 @@ export async function GET(request: NextRequest, context: { params: { userId: str
       description: feed.description || "Your personalized audio content feed",
       userId,
       feedId
-    })
+    });
 
     // Return RSS feed
     return new NextResponse(rssFeedXml, {
       headers: {
         "Content-Type": "application/rss+xml; charset=utf-8",
       },
-    })
+    });
   } catch (error) {
-    console.error("Error generating feed:", error)
-    return new NextResponse("Error generating feed", { status: 500 })
+    console.error("Error generating feed:", error);
+    return new NextResponse("Error generating feed", { status: 500 });
   }
 }
