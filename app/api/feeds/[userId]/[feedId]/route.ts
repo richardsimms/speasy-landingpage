@@ -1,7 +1,7 @@
 import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
 import { cookies } from "next/headers"
 import { type NextRequest, NextResponse } from "next/server"
-import { generateRssFeed, type ContentItem } from "@/lib/feed-generator"
+import { generateRssFeedAsync, type ContentItem } from "@/lib/feed-generator"
 
 // Define types for Supabase responses
 type AudioFile = {
@@ -89,8 +89,8 @@ export async function GET(request: NextRequest, { params }: { params: { userId: 
       }
     }
     
-    // Generate feed with our new generator
-    const rssFeedXml = generateRssFeed(contentItems, {
+    // Generate feed with our new async generator (Apple Podcasts compliant)
+    const rssFeedXml = await generateRssFeedAsync(contentItems, {
       title: feed.title || "Speasy Feed",
       description: feed.description || "Your personalized audio content feed",
       userId,

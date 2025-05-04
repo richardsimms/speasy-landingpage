@@ -67,75 +67,92 @@ export interface FeedInfo {
   feedId: string;
 }
 
-export function generateRssFeed(contentItems: ContentItem[], feedInfo: FeedInfo): string {
+// Helper to get file size in bytes for enclosure
+async function getAudioFileSize(url: string): Promise<number> {
+  try {
+    const res = await fetch(url, { method: 'HEAD' });
+    const len = res.headers.get('content-length');
+    return len ? parseInt(len, 10) : 0;
+  } catch {
+    return 0;
+  }
+}
+
+// Async version for Apple Podcasts compliance
+export async function generateRssFeedAsync(contentItems: ContentItem[], feedInfo: FeedInfo): Promise<string> {
   const now = new Date().toUTCString();
 
-  const podcastItems = contentItems
-    .filter((item) => item.audio && item.audio.length > 0)
-    .map((item) => {
-      const pubDate = item.published_at
-        ? new Date(item.published_at).toUTCString()
-        : now;
+  const podcastItems = await Promise.all(
+    contentItems
+      .filter((item) => item.audio && item.audio.length > 0)
+      .map(async (item) => {
+        const pubDate = item.published_at
+          ? new Date(item.published_at).toUTCString()
+          : now;
 
-      // Format duration as HH:MM:SS
-      const audioFile = item.audio?.[0];
-      const duration = audioFile?.duration || 0;
-      const hours = Math.floor(duration / 3600);
-      const minutes = Math.floor((duration % 3600) / 60);
-      const seconds = Math.floor(duration % 60);
-      const formattedDuration = `${hours.toString().padStart(2, "0")}:${minutes
-        .toString()
-        .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+        // Format duration as HH:MM:SS
+        const audioFile = item.audio?.[0];
+        const duration = audioFile?.duration || 0;
+        const hours = Math.floor(duration / 3600);
+        const minutes = Math.floor((duration % 3600) / 60);
+        const seconds = Math.floor(duration % 60);
+        const formattedDuration = `${hours.toString().padStart(2, "0")}:${minutes
+          .toString()
+          .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
 
-      // Handle audio URL construction
-      const fullAudioUrl = audioFile?.file_url || '';
+        // Handle audio URL construction
+        const fullAudioUrl = audioFile?.file_url || '';
+        let fileSize = 0;
+        if (fullAudioUrl && fullAudioUrl.startsWith('http')) {
+          fileSize = await getAudioFileSize(fullAudioUrl);
+        }
 
-      // Create a rich HTML description with the full article content
-      // Convert markdown content to HTML
-      const content = item.content_markdown || item.summary || '';
-      const convertedHtml = converter.makeHtml(content);
-      const htmlDescription = `
-        <div class="podcast-content">
-          <h1>${item.title}</h1>
-          ${convertedHtml}
-          ${
-            item.url
-              ? `<p><a href="${item.url}" target="_blank" rel="noopener">Read original article</a></p>`
-              : ""
-          }
-        </div>
-      `;
+        // Create a rich HTML description with the full article content
+        // Convert markdown content to HTML
+        const content = item.content_markdown || item.summary || '';
+        const convertedHtml = converter.makeHtml(content);
+        const htmlDescription = `
+          <div class="podcast-content">
+            <h1>${item.title}</h1>
+            ${convertedHtml}
+            ${
+              item.url
+                ? `<p><a href="${item.url}" target="_blank" rel="noopener">Read original article</a></p>`
+                : ""
+            }
+          </div>
+        `;
 
-      return `
-        <item>
-          <title><![CDATA[${item.title}]]></title>
-          <link>${CONFIG.urls.article(item.id)}</link>
-          <guid isPermaLink="false">${item.id}</guid>
+        return `
+          <item>
+            <title><![CDATA[${item.title}]]></title>
+            <link>${CONFIG.urls.article(item.id)}</link>
+            <guid isPermaLink="false">${item.id}</guid>
 
-          <description><![CDATA[${item.summary || htmlDescription}]]></description>
-          <content:encoded><![CDATA[${htmlDescription}]]></content:encoded>
+            <description><![CDATA[${item.summary || htmlDescription}]]></description>
+            <content:encoded><![CDATA[${htmlDescription}]]></content:encoded>
 
-          <pubDate>${pubDate}</pubDate>
+            <pubDate>${pubDate}</pubDate>
 
-          <enclosure 
-            url="${escapeXml(fullAudioUrl)}" 
-            type="audio/mpeg" 
-            length="0"
-          />
+            <enclosure 
+              url="${escapeXml(fullAudioUrl)}" 
+              type="audio/mpeg" 
+              length="${fileSize}"
+            />
 
-          <itunes:title><![CDATA[${item.title}]]></itunes:title>
-          <itunes:duration>${formattedDuration}</itunes:duration>
-          <itunes:summary><![CDATA[${item.summary || content.substring(0, 400) + "..."}]]></itunes:summary>
-          <itunes:explicit>no</itunes:explicit>
-          ${
-            item.source?.name
-              ? `<itunes:author><![CDATA[${item.source.name}]]></itunes:author>`
-              : ""
-          }
-        </item>
-      `;
-    })
-    .join("\n");
+            <itunes:title><![CDATA[${item.title}]]></itunes:title>
+            <itunes:duration>${formattedDuration}</itunes:duration>
+            <itunes:summary><![CDATA[${item.summary || content.substring(0, 400) + "..."}]]></itunes:summary>
+            <itunes:explicit>no</itunes:explicit>
+            ${
+              item.source?.name
+                ? `<itunes:author><![CDATA[${item.source.name}]]></itunes:author>`
+                : ""
+            }
+          </item>
+        `;
+      })
+  );
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" 
@@ -169,7 +186,7 @@ export function generateRssFeed(contentItems: ContentItem[], feedInfo: FeedInfo)
 
     <atom:link href="${CONFIG.urls.feed(feedInfo.userId, feedInfo.feedId)}" rel="self" type="application/rss+xml"/>
 
-    ${podcastItems}
+    ${podcastItems.join("\n")}
   </channel>
 </rss>`;
 }

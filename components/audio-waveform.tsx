@@ -48,5 +48,5 @@ export default function AudioWaveform({ isPlaying, progress }: AudioWaveformProp
     }
   }, [isPlaying, progress])
 
-  return <canvas ref={canvasRef} width={300} height={40} className="w-full h-10" />
+  return <canvas ref={canvasRef} width={300} height={40} className="w-full h-10 rounded-full" />
 }
