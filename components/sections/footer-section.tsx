@@ -38,10 +38,10 @@ export default function FooterSection() {
           <div className="space-y-4">
             <h3 className="text-sm font-medium">Product</h3>
             <nav className="flex flex-col space-y-2">
-              <Link href="#how-it-works" className="text-sm text-muted-foreground hover:text-foreground">
+              <Link href="/#how-it-works" className="text-sm text-muted-foreground hover:text-foreground">
                 How It Works
               </Link>
-              <Link href="#pricing" className="text-sm text-muted-foreground hover:text-foreground">
+              <Link href="/#pricing" className="text-sm text-muted-foreground hover:text-foreground">
                 Pricing
               </Link>
               <Link href="/faq" className="text-sm text-muted-foreground hover:text-foreground">
