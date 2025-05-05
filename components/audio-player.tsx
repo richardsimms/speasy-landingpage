@@ -329,18 +329,12 @@ export function AudioPlayer({ contentItem, relatedContent }: AudioPlayerProps) {
                 <Rewind className="h-5 w-5" />
                 <span className="sr-only">Rewind 10 seconds</span>
               </Button>
-              <Button variant="ghost" size="icon" disabled>
-                <SkipBack className="h-5 w-5" />
-                <span className="sr-only">Previous</span>
-              </Button>
+ 
               <Button variant="default" size="icon" className="h-12 w-12 rounded-full" onClick={handlePlayPause}>
                 {isPlaying ? <Pause className="h-6 w-6" /> : <Play className="h-6 w-6" />}
                 <span className="sr-only">{isPlaying ? "Pause" : "Play"}</span>
               </Button>
-              <Button variant="ghost" size="icon" disabled>
-                <SkipForward className="h-5 w-5" />
-                <span className="sr-only">Next</span>
-              </Button>
+
               <Button variant="ghost" size="icon" onClick={skipForward}>
                 <FastForward className="h-5 w-5" />
                 <span className="sr-only">Forward 30 seconds</span>
@@ -361,6 +355,7 @@ export function AudioPlayer({ contentItem, relatedContent }: AudioPlayerProps) {
                   className="w-24"
                 />
               </div>
+            </div>
 
               <div className="flex items-center gap-2">
                 <Button variant="ghost" size="sm" onClick={handleSave} disabled={isSaved}>
@@ -372,7 +367,6 @@ export function AudioPlayer({ contentItem, relatedContent }: AudioPlayerProps) {
                   Share
                 </Button>
               </div>
-            </div>
           </div>
         </CardContent>
         <CardFooter>
