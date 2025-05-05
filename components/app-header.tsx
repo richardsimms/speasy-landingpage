@@ -34,7 +34,7 @@ export function AppHeader() {
               <Logo className="h-8 w-auto" />
             </Link>
           </div>
-
+{/* 
         <div className="hidden md:flex md:flex-1 md:justify-center md:px-4">
           <div className="relative w-full max-w-md">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -44,10 +44,17 @@ export function AppHeader() {
               className="w-full bg-background pl-8 md:w-[300px] lg:w-[400px]"
             />
           </div>
-        </div>
+        </div> */}
 
         <div className="flex items-center gap-4">
+{/*           <Button variant="ghost" size="icon" className="relative">
+            <Bell className="h-5 w-5" />
+            <span className="absolute right-1 top-1 flex h-2 w-2 rounded-full bg-primary"></span>
+            <span className="sr-only">Notifications</span>
+          </Button> */}
+
           <ThemeToggle />
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="rounded-full">
