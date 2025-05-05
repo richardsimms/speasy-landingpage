@@ -89,11 +89,9 @@ export default async function DashboardPage() {
   const { data: submittedUrls } = await supabase
     .from("user_submitted_urls")
     .select(`
-      *,
-      content:content_items(
-        *,
-        audio:audio_files(file_url, duration, type)
-      )
+      id, title, url, published_at,
+      source:content_sources(name),
+      audio:audio_files(file_url, duration)
     `)
     .eq("user_id", session.user.id)
     .order("created_at", { ascending: false })

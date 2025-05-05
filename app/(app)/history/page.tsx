@@ -20,7 +20,7 @@ export default async function HistoryPage() {
     .select(`
       *,
       content:content_items(
-        *,
+        id, title, url, published_at,
         source:content_sources(name, category_id),
         audio:audio_files(file_url, duration, type)
       )

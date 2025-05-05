@@ -25,9 +25,9 @@ export default async function PlayerPage({ searchParams }: PlayerPageProps) {
     const { data: latestContent } = await supabase
       .from("content_items")
       .select(`
-        *,
-        source:content_sources(name, category_id),
-        audio:audio_files(file_url, duration, type)
+        id, title, url, published_at,
+        source:content_sources(name),
+        audio:audio_files(file_url, duration)
       `)
       .order("published_at", { ascending: false })
       .limit(1)
