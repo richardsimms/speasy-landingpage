@@ -9,14 +9,14 @@ interface BlogPost {
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://speasy.app'
 
-  // Static routes
+  // Static routes - only include pages that actually exist
   const staticRoutes = [
     '',
     '/blog',
-    '/docs',
-    '/pricing',
+    '/faq',
+    "/privacy-policy",
+    "/terms-of-service",
     '/about',
-    '/contact',
   ].map((route) => ({
     url: `${baseUrl}${route}`,
     lastModified: new Date(),
@@ -26,6 +26,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // Get blog posts from Supabase
   const blogPosts = await fetchBlogPosts()
+  console.log('Blog posts for sitemap:', blogPosts) // Debug log
 
   const blogRoutes = blogPosts.map((post) => ({
     url: `${baseUrl}/blog/${post.slug}`,
@@ -38,15 +39,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 }
 
 async function fetchBlogPosts(): Promise<BlogPost[]> {
-  const { data: posts, error } = await supabase
-    .from('posts')
-    .select('slug, updated_at')
-    .order('updated_at', { ascending: false })
+  try {
+    const { data: posts, error } = await supabase
+      .from('blog_posts')
+      .select('slug, updated_at')
+      .eq('is_published', true)
+      .order('updated_at', { ascending: false })
 
-  if (error) {
-    console.error('Error fetching blog posts:', error)
+    if (error) {
+      console.error('Error fetching blog posts:', error)
+      return []
+    }
+
+    console.log('Fetched posts:', posts) // Debug log
+    return posts || []
+  } catch (e) {
+    console.error('Exception in fetchBlogPosts:', e)
     return []
   }
-
-  return posts || []
 } 
