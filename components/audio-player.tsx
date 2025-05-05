@@ -324,7 +324,7 @@ export function AudioPlayer({ contentItem, relatedContent }: AudioPlayerProps) {
               <span className="text-sm text-muted-foreground">{formatDuration(duration)}</span>
             </div>
 
-            <div className="flex items-center justify-center gap-4">
+            <div className="flex items-center justify-around gap-4">
               <Button variant="ghost" size="icon" onClick={skipBackward}>
                 <Rewind className="h-5 w-5" />
                 <span className="sr-only">Rewind 10 seconds</span>
@@ -341,32 +341,30 @@ export function AudioPlayer({ contentItem, relatedContent }: AudioPlayerProps) {
               </Button>
             </div>
 
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Button variant="ghost" size="icon" onClick={toggleMute}>
-                  {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
-                  <span className="sr-only">{isMuted ? "Unmute" : "Mute"}</span>
-                </Button>
-                <Slider
-                  value={[isMuted ? 0 : volume]}
-                  max={1}
-                  step={0.01}
-                  onValueChange={handleVolumeChange}
-                  className="w-24"
-                />
-              </div>
+            <div className="flex items-center">
+              <Button variant="ghost" size="icon" onClick={toggleMute}>
+                {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+                <span className="sr-only">{isMuted ? "Unmute" : "Mute"}</span>
+              </Button>
+              <Slider
+                value={[isMuted ? 0 : volume]}
+                max={1}
+                step={0.01}
+                onValueChange={handleVolumeChange}
+                className="w-40 ml-2"
+              />
             </div>
 
-              <div className="flex items-center gap-2">
-                <Button variant="ghost" size="sm" onClick={handleSave} disabled={isSaved}>
-                  {isSaved ? <BookmarkCheck className="mr-2 h-4 w-4" /> : <Bookmark className="mr-2 h-4 w-4" />}
-                  {isSaved ? "Saved" : "Save"}
-                </Button>
-                <Button variant="ghost" size="sm" onClick={handleShare}>
-                  <Share2 className="mr-2 h-4 w-4" />
-                  Share
-                </Button>
-              </div>
+            <div className="flex items-center justify-around gap-2">
+              <Button variant="ghost" size="sm" onClick={handleSave} disabled={isSaved}>
+                {isSaved ? <BookmarkCheck className="mr-2 h-4 w-4" /> : <Bookmark className="mr-2 h-4 w-4" />}
+                {isSaved ? "Saved" : "Save"}
+              </Button>
+              <Button variant="ghost" size="sm" onClick={handleShare}>
+                <Share2 className="mr-2 h-4 w-4" />
+                Share
+              </Button>
+            </div>
           </div>
         </CardContent>
         <CardFooter>
