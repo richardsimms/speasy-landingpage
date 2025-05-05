@@ -117,20 +117,20 @@ export default function PodcastSettingsPage() {
   
       if (!session) throw new Error("Not authenticated")
   
-      const trimmedTitle = feedTitle.trim()
-      const trimmedDescription = feedDescription.trim()
-  
       const { error } = await supabase
         .from("podcast_feeds")
         .update({
-          title: trimmedTitle,
-          description: trimmedDescription,
+          title: feedTitle,
+          description: feedDescription,
           updated_at: new Date().toISOString(),
         })
         .eq("user_id", session.user.id)
         .eq("is_default", true)
   
-      if (error) throw error
+      if (error) {
+        console.error("Supabase update error:", error)
+        throw new Error("Could not save podcast feed settings.")
+      }
   
       toast({
         title: "Settings saved",
@@ -146,6 +146,7 @@ export default function PodcastSettingsPage() {
       setIsSaving(false)
     }
   }
+  
   
 
   return (
