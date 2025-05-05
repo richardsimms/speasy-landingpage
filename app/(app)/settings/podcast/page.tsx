@@ -109,31 +109,29 @@ export default function PodcastSettingsPage() {
 
   const handleSaveSettings = async () => {
     setIsSaving(true)
-
+  
     try {
       const {
         data: { session },
       } = await supabase.auth.getSession()
-
-      if (!session) {
-        throw new Error("Not authenticated")
-      }
-
-      // Update feed settings
+  
+      if (!session) throw new Error("Not authenticated")
+  
+      const trimmedTitle = feedTitle.trim()
+      const trimmedDescription = feedDescription.trim()
+  
       const { error } = await supabase
         .from("podcast_feeds")
         .update({
-          title: feedTitle,
-          description: feedDescription,
+          title: trimmedTitle,
+          description: trimmedDescription,
           updated_at: new Date().toISOString(),
         })
         .eq("user_id", session.user.id)
         .eq("is_default", true)
-
-      if (error) {
-        throw error
-      }
-
+  
+      if (error) throw error
+  
       toast({
         title: "Settings saved",
         description: "Your podcast feed settings have been updated.",
@@ -148,6 +146,7 @@ export default function PodcastSettingsPage() {
       setIsSaving(false)
     }
   }
+  
 
   return (
     <div className="space-y-6">
