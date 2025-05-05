@@ -5,6 +5,8 @@ import { Markdown } from "@/components/markdown"
 import { Badge } from "@/components/ui/badge"
 import type { Metadata } from "next"
 
+export const dynamic = 'force-dynamic'
+
 interface BlogPostPageProps {
   params: Promise<{
     slug: string

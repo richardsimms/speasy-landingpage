@@ -5,6 +5,8 @@ import { formatDate } from "@/lib/utils"
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 
+export const dynamic = 'force-dynamic'
+
 export const metadata = {
   title: "Blog - Speasy",
   description: "Latest news, updates, and insights from the Speasy team",
