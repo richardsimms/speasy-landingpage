@@ -115,6 +115,7 @@ export default function DemoSection() {
                     <button
                       onClick={() => togglePlayback(sample.id)}
                       className="w-12 h-12 rounded-full bg-primary/10 hover:bg-primary/20 flex items-center justify-center text-primary transition-colors"
+                      aria-label={playingId === sample.id ? `Pause ${sample.newsletter} audio` : `Play ${sample.newsletter} audio`}
                     >
                       {playingId === sample.id ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6 ml-0.5" />}
                     </button>
