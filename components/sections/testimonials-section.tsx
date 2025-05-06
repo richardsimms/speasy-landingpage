@@ -9,19 +9,19 @@ const testimonials = [
     quote: "I finally caught up on every newsletter I've ignored for 6 months—in one walk.",
     name: "Alex Chen",
     role: "Product Designer",
-    avatar: "/air-conditioner-unit.png",
+    avatar: "/optimized/air-conditioner-unit.webp",
   },
   {
     quote: "I listen while cooking dinner. It’s become my learning hour.",
     name: "Sarah Johnson",
     role: "Startup Founder",
-    avatar: "/stylized-initials.png",
+    avatar: "/optimized/stylized-initials.webp",
   },
   {
     quote: "Every train ride now includes 3 newsletters I used to skip.",
     name: "Michael Torres",
     role: "Marketing Director",
-    avatar: "/abstract-geometric-mt.png",
+    avatar: "/optimized/abstract-geometric-mt.webp",
   },
 ]
 
@@ -84,9 +84,10 @@ export default function TestimonialsSection() {
             transition={{ duration: 0.5 }}
           >
             <img
-              src="/walk.png"
+              src="/optimized/walk.webp"
               alt="Person listening while walking"
               className="object-cover w-full h-full"
+              width={640} height={360}
             />
           </motion.div>
 
@@ -98,9 +99,10 @@ export default function TestimonialsSection() {
             transition={{ duration: 0.5, delay: 0.1 }}
           >
             <img
-              src="/commute.png"
+              src="/optimized/commute.webp"
               alt="Person commuting with headphones"
               className="object-cover w-full h-full"
+              width={640} height={360}
             />
           </motion.div>
         </div>

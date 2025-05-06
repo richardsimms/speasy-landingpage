@@ -113,7 +113,7 @@ export default function HeroSection() {
               {/* Audio element - hidden but functional */}
               <audio 
                 ref={audioRef}
-                src="/audio/ElevenLabs_2025-04-30T10_23_36_Vince-Speasy.mp3"
+                src="/optimized/audio/hero-audio.mp3"
                 onTimeUpdate={updateProgress}
                 onLoadedMetadata={(e) => {
                   if (audioRef.current) {
@@ -200,16 +200,18 @@ export default function HeroSection() {
                   <div className="flex-1 flex items-center justify-center">
                     <div className="relative w-full h-full rounded-2xl overflow-hidden shadow-xl">
                       <Image
-                        src="/images/podcast-cover.jpg"
+                        src="/optimized/podcast-cover.webp"
                         alt="Speasy Podcast Cover"
                         fill
                         className="object-cover"
                         priority
+                        quality={85}
                       />
                       <div className="absolute inset-0 bg-black/20 hover:bg-black/30 transition-colors flex items-center justify-center">
                         <button
                           onClick={togglePlayback}
                           className="w-16 h-16 rounded-full bg-primary flex items-center justify-center text-primary-foreground transform hover:scale-105 transition-transform"
+                          aria-label={isPlaying ? "Pause audio" : "Play audio"}
                         >
                           {isPlaying ? <Pause className="w-8 h-8" /> : <Play className="w-8 h-8 ml-1" />}
                         </button>
