@@ -18,7 +18,8 @@ declare module 'unfluff';
 declare module 'node-fetch';
 
 // Use require for unfluff to avoid TS import error
-const unfluff = require('unfluff');
+const unfluffModule = require('unfluff');
+const unfluff = unfluffModule.default || unfluffModule;
 const fetch = require('node-fetch');
 
 type SubscribeData = {
