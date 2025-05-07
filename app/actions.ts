@@ -70,6 +70,9 @@ export async function submitUrl(url: string) {
     try {
       const response = await fetch(url)
       const html = await response.text()
+      // Dynamically import unfluff for ESM compatibility
+      const unfluffModule = await import('unfluff');
+      const unfluff = unfluffModule.default || unfluffModule;
       scraped = unfluff(html)
     } catch (err) {
       console.error("Error scraping URL:", err)
