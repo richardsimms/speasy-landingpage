@@ -9,5 +9,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Call Edge Function
+        env:
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |
-          curl -X POST https://lmmobnqmxkcdwdhhpwwd.supabase.co/functions/v1/refresh_feeds
+          curl -X POST https://lmmobnqmxkcdwdhhpwwd.supabase.co/functions/v1/refresh_feeds \
+            -H "Authorization: Bearer ${SUPABASE_SERVICE_ROLE_KEY}" \
+            -H "Content-Type: application/json"
