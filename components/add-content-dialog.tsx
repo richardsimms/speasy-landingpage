@@ -121,18 +121,6 @@ export function AddContentDialog({ open, onOpenChange }: AddContentDialogProps) 
             </Form>
           </TabsContent>
 
-          <TabsContent value="file" className="space-y-4">
-            <div className="rounded-lg border border-dashed p-10 text-center">
-              <FileText className="mx-auto h-10 w-10 text-muted-foreground" />
-              <p className="mt-2 text-sm text-muted-foreground">Drag and drop a file, or click to browse</p>
-              <Button variant="outline" className="mt-4">
-                Browse Files
-              </Button>
-            </div>
-            <DialogFooter>
-              <Button disabled>Upload</Button>
-            </DialogFooter>
-          </TabsContent>
 
           <TabsContent value="newsletter" className="space-y-4">
             <p className="text-sm text-muted-foreground">

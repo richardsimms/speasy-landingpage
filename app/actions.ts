@@ -8,6 +8,18 @@ import { revalidatePath } from "next/cache"
 import { createServerActionClient } from "@supabase/auth-helpers-nextjs"
 import { cookies } from "next/headers"
 import { v4 as uuidv4 } from "uuid"
+// Temporary module declaration for unfluff to suppress TS error
+// @ts-ignore
+// eslint-disable-next-line
+declare module 'unfluff';
+// Temporary module declaration for node-fetch to suppress TS error
+// @ts-ignore
+// eslint-disable-next-line
+declare module 'node-fetch';
+
+// Use require for unfluff to avoid TS import error
+const unfluff = require('unfluff');
+const fetch = require('node-fetch');
 
 type SubscribeData = {
   name: string
@@ -52,12 +64,39 @@ export async function submitUrl(url: string) {
       return { success: false, error: "Not authenticated" }
     }
 
-    // Insert the URL into the user_submitted_urls table
+    // Scrape the URL for content
+    let scraped: any = {}
+    try {
+      const response = await fetch(url)
+      const html = await response.text()
+      scraped = unfluff(html)
+    } catch (err) {
+      console.error("Error scraping URL:", err)
+      return { success: false, error: "Failed to fetch or parse the URL." }
+    }
+
+    // Insert the scraped content into content_items
+    const { data: contentItem, error: contentError } = await supabase.from("content_items").insert({
+      title: scraped.title || url,
+      url,
+      content: scraped.text || scraped.description || "",
+      summary: scraped.description || "",
+      created_at: new Date().toISOString(),
+    }).select().single()
+
+    if (contentError || !contentItem) {
+      console.error("Error inserting content item:", contentError)
+      return { success: false, error: contentError?.message || "Failed to save content." }
+    }
+
+    // Insert the URL into the user_submitted_urls table, linking to the content item
     const { error } = await supabase.from("user_submitted_urls").insert({
       id: uuidv4(),
       user_id: session.user.id,
       url,
+      title: scraped.title || url,
       status: "pending",
+      content_item_id: contentItem.id,
       created_at: new Date().toISOString(),
     })
 
@@ -66,8 +105,7 @@ export async function submitUrl(url: string) {
       return { success: false, error: error.message }
     }
 
-    // Trigger the content processing (this would be handled by a background job in production)
-    // For now, we'll just revalidate the dashboard path
+    // Revalidate dashboard
     revalidatePath("/dashboard")
 
     return { success: true }
