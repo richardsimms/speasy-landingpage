@@ -53,7 +53,7 @@ export default async function PlayerPage({ searchParams }: PlayerPageProps) {
   }
 
   // Get related content items
-  const { data: relatedContent } = await supabase
+/*   const { data: relatedContent } = await supabase
     .from("content_items")
     .select(`
       *,
@@ -63,7 +63,7 @@ export default async function PlayerPage({ searchParams }: PlayerPageProps) {
     .eq("source.category_id", contentItem.source?.category_id)
     .neq("id", contentItem.id)
     .order("published_at", { ascending: false })
-    .limit(5)
+    .limit(5) */
 
   // Process audio files for playback - using public URLs
   if (contentItem?.audio && contentItem.audio.length > 0) {
@@ -106,7 +106,7 @@ export default async function PlayerPage({ searchParams }: PlayerPageProps) {
 
   return (
     <div className="container py-6 md:py-10">
-      <AudioPlayer contentItem={contentItem} relatedContent={relatedContent || []} />
+      <AudioPlayer contentItem={contentItem} relatedContent={[]} />
     </div>
   )
 }

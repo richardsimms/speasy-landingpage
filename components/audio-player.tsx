@@ -6,8 +6,6 @@ import { useRouter } from "next/navigation"
 import {
   Play,
   Pause,
-  SkipBack,
-  SkipForward,
   Volume2,
   VolumeX,
   Rewind,
@@ -42,7 +40,7 @@ interface AudioPlayerProps {
   relatedContent: ContentItem[]
 }
 
-export function AudioPlayer({ contentItem, relatedContent }: AudioPlayerProps) {
+export function AudioPlayer({ contentItem, }: AudioPlayerProps) {
   const router = useRouter()
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
@@ -376,7 +374,7 @@ export function AudioPlayer({ contentItem, relatedContent }: AudioPlayerProps) {
         </CardFooter>
       </Card>
 
-      {/* Related content */}
+      {/* Related content 
       {relatedContent.length > 0 && (
         <div className="space-y-4">
           <h2 className="text-xl font-semibold">Related Content</h2>
@@ -397,7 +395,7 @@ export function AudioPlayer({ contentItem, relatedContent }: AudioPlayerProps) {
           </div>
         </div>
       )}
-
+  */}
       {/* Debug information in development */}
       {process.env.NODE_ENV === 'development' && contentItem._debug && (
         <div className="mt-6 p-4 bg-gray-100 rounded text-sm">
