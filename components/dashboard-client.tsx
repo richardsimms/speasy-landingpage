@@ -6,10 +6,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ContentList } from "@/components/content-list"
 import { CategoryList } from "@/components/category-list"
-import { AddContentDialog } from "@/components/add-content-dialog"
-import { useState } from "react"
-
-const [isAddContentOpen, setIsAddContentOpen] = useState(false)
 
 interface DashboardClientProps {
   userName: string
@@ -73,7 +69,17 @@ export function DashboardClient({
                   <CardDescription className="text-sm md:text-base">Add URLs to convert them to audio.</CardDescription>
                 </CardHeader>
                 <CardFooter>
-                  <AddContentDialog open={isAddContentOpen} onOpenChange={setIsAddContentOpen} />
+                  <Button asChild className="w-full md:w-auto">
+                    <Link
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        document.dispatchEvent(new CustomEvent("open-add-content"))
+                      }}
+                    >
+                      Add Content
+                    </Link>
+                  </Button>
                 </CardFooter>
               </Card>
             ) : (
