@@ -30,7 +30,7 @@ export function AppHeader() {
     <header className="sticky top-0 z-40 w-full border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
       <div className="flex items-center gap-2">
-            <Link href="/" className="flex items-center" aria-label="Speasy Home">
+            <Link href="/dashboard" className="flex items-center" aria-label="Speasy Home">
               <Logo className="h-8 w-auto" />
             </Link>
           </div>
