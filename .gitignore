@@ -27,3 +27,4 @@ yarn-error.log*
 next-env.d.ts
 public/.DS_Store
 app/(app)/settings/.DS_Store
+*.DS_Store
