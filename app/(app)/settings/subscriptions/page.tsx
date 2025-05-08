@@ -31,11 +31,11 @@ export default async function SubscriptionsPage() {
       <div>
         <h3 className="text-lg font-medium">Newsletter Subscriptions</h3>
         <p className="text-sm text-muted-foreground">
-          Subscribe to categories to receive audio content from these sources.x
+          Subscribe to categories to receive audio content from these sources.
         </p>
       </div>
 
-      {/* <CategoryList categories={categories || []} subscribedIds={subscribedCategoryIds} /> */}
+      <CategoryList categories={categories || []} subscribedIds={subscribedCategoryIds} /> 
       <CancelAndDeleteActions />
     </div>
   )

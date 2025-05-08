@@ -52,27 +52,22 @@ export default function CancelAndDeleteActions() {
   }
 
   return (
-    <div className="space-y-8 pt-8">
-      <div className="space-y-2">
-        <Button variant="outline" onClick={handleCancelSubscription} disabled={loading}>
-          {loading ? "Canceling..." : "Cancel Subscription"}
-        </Button>
-      </div>
-      <div className="border border-red-600 bg-red-50 rounded-lg p-6 flex flex-col items-center text-center">
-        <AlertTriangle className="text-red-600 mb-2" size={32} />
-        <div className="font-semibold text-red-700 text-lg mb-2">Danger Zone</div>
-        <div className="text-red-700 mb-4">
-          <strong>Deleting your account is permanent and cannot be undone.</strong><br />
-          All your data will be lost. Please proceed with caution.
+    <div className="w-full max-w-2xl mx-auto mt-12">
+      <div className="border border-red-700 bg-[#181314] rounded-xl p-8 flex flex-col items-center text-center shadow-lg">
+        <AlertTriangle className="text-red-600 mb-4" size={40} />
+        <div className="text-xl font-semibold text-white mb-2">Delete Account</div>
+        <div className="text-base text-gray-300 mb-6 max-w-md">
+          The account will be <span className="text-red-400 font-bold">permanently deleted</span>, including all your data. <br />
+          <span className="text-red-400">This action is irreversible and cannot be undone.</span>
         </div>
         <Button
           variant="destructive"
           size="lg"
-          className="w-full max-w-xs text-lg font-bold shadow-md"
+          className="w-full max-w-xs text-lg font-bold rounded-md"
           onClick={handleDeleteAccount}
           disabled={deleting}
         >
-          {deleting ? "Deleting..." : "Delete Account"}
+          {deleting ? "Deleting..." : "Delete"}
         </Button>
       </div>
     </div>
