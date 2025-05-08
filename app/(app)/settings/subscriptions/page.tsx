@@ -1,3 +1,5 @@
+'use client'
+
 import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
 import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
@@ -5,8 +7,6 @@ import { CategoryList } from "@/components/category-list"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/use-toast"
-
-'use client'
 
 export default async function SubscriptionsPage() {
   const supabase = createServerComponentClient({ cookies })
