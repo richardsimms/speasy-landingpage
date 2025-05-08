@@ -53,8 +53,8 @@ export default function CancelAndDeleteActions() {
 
   return (
     <div className="w-full max-w-2xl mx-auto mt-12">
-      <div className="border border-red-700 bg-[#181314] rounded-xl p-8 flex flex-col items-center text-center shadow-lg">
-        <AlertTriangle className="text-red-600 mb-4" size={40} />
+      <div className="border border-red-700 bg-[#181314] rounded-xl p-8 w-full shadow-lg">
+
         <div className="text-xl font-semibold text-white mb-2">Delete Account</div>
         <div className="text-base text-gray-300 mb-6 max-w-md">
           The account will be <span className="text-red-400 font-bold">permanently deleted</span>, including all your data. <br />
