@@ -1,6 +1,6 @@
 "use server"
 
-import { createAdminClient } from "@/lib/supabase"
+import { createAdminClient } from "@/lib/server-only"
 
 const supabase = createAdminClient()
 

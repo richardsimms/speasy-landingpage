@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createAdminClient } from '@/lib/supabase';
+import { createAdminClient } from '@/lib/server-only';
 import { cookies } from 'next/headers';
 
 export async function POST(request: Request) {
@@ -26,4 +26,4 @@ export async function POST(request: Request) {
     console.error('Error deleting account:', error);
     return NextResponse.json({ error: 'Error deleting account' }, { status: 500 });
   }
-} 
+}  

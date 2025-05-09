@@ -46,6 +46,7 @@ NEXT_PUBLIC_SITE_URL=https://your-domain.com
 # Supabase
 NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+NEXT_PUBLIC_ALLOWED_EMAIL_DOMAINS=speasy.app,gmail.com
 
 # Stripe
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_your_publishable_key
@@ -128,4 +129,4 @@ For more detailed troubleshooting, refer to the specific guide for the component
 
 ## Support
 
-If you need additional help, please contact the Speasy team or file an issue in the repository. 
+If you need additional help, please contact the Speasy team or file an issue in the repository.  
