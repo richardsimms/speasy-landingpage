@@ -85,7 +85,7 @@ describe('Feed Generator', () => {
     
     const result = await generateRssFeedAsync(malformedContent, mockFeedInfo);
     
-    expect(result).toContain('Test with &lt;script&gt;alert("XSS")&lt;/script&gt;');
-    expect(result).toContain('Summary with <b>HTML</b>');
+    expect(result).toContain('<![CDATA[Test with <script>alert("XSS")</script>]]>');
+    expect(result).toContain('<![CDATA[Summary with <b>HTML</b>]]>');
   });
 });

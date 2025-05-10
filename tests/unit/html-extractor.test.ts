@@ -11,12 +11,20 @@ vi.mock('unfluff', () => {
 });
 
 vi.mock('node-fetch', () => {
-  return vi.fn().mockImplementation(() => 
-    Promise.resolve({
-      text: () => Promise.resolve('<html><head><title>Test Page</title></head><body><p>Test content</p></body></html>')
-    })
-  );
+  return {
+    default: vi.fn().mockImplementation(() => 
+      Promise.resolve({
+        text: () => Promise.resolve('<html><head><title>Test Page</title></head><body><p>Test content</p></body></html>')
+      })
+    )
+  };
 });
+
+global.fetch = vi.fn().mockImplementation(() => 
+  Promise.resolve({
+    text: () => Promise.resolve('<html><head><title>Test Page</title></head><body><p>Test content</p></body></html>')
+  })
+);
 
 describe('HTML Extractor', () => {
   beforeEach(() => {

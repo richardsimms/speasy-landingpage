@@ -2,6 +2,29 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { POST } from '@/app/api/webhooks/stripe/route';
 import { NextResponse } from 'next/server';
 
+vi.mock('stripe', () => {
+  return function() {
+    return {
+      webhooks: {
+        constructEvent: vi.fn().mockImplementation((body, signature, secret) => ({
+          type: 'checkout.session.completed',
+          data: {
+            object: {
+              customer_email: 'test@example.com',
+              customer: 'cus_test123'
+            }
+          }
+        }))
+      },
+      customers: {
+        retrieve: vi.fn().mockResolvedValue({
+          email: 'test@example.com'
+        })
+      }
+    };
+  };
+});
+
 vi.mock('@/lib/stripe', () => ({
   stripe: {
     webhooks: {

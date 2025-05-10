@@ -1,6 +1,27 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { saveContentItem, markContentAsRead } from '@/app/actions';
 
+vi.mock('@/lib/server-only', () => ({
+  createAdminClient: vi.fn().mockReturnValue({
+    from: vi.fn().mockReturnValue({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({
+        data: null,
+        error: null
+      }),
+      insert: vi.fn().mockResolvedValue({
+        data: { id: 'new-record-id' },
+        error: null
+      }),
+      update: vi.fn().mockResolvedValue({
+        data: { id: 'updated-record-id' },
+        error: null
+      })
+    })
+  })
+}));
+
 vi.mock('@supabase/auth-helpers-nextjs', () => ({
   createServerActionClient: vi.fn(() => ({
     auth: {
