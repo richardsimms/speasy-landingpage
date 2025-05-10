@@ -104,7 +104,7 @@ describe('Stripe Webhook Handler', () => {
     expect(response).toBeInstanceOf(NextResponse);
     expect(await response.json()).toEqual({ received: true });
     
-    expect(require('@/lib/stripe').stripe.webhooks.constructEvent).toHaveBeenCalled();
+    expect(vi.mocked(require('stripe')().webhooks.constructEvent)).toHaveBeenCalled();
     
     const adminClient = require('@/lib/server-only').createAdminClient();
     expect(adminClient.from).toHaveBeenCalledWith('users');

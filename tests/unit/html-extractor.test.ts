@@ -46,7 +46,7 @@ describe('HTML Extractor', () => {
       description: 'Extracted description',
     });
     
-    expect(fetch).toHaveBeenCalledWith('https://example.com');
+    expect(vi.mocked(global.fetch)).toHaveBeenCalledWith('https://example.com');
     
     expect(unfluff).toHaveBeenCalledWith(html);
   });
