@@ -53,4 +53,39 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser to see the landing page. 
+Open [http://localhost:3000](http://localhost:3000) in your browser to see the landing page.
+
+## Testing
+
+The project uses Vitest for unit and integration testing. The tests are located in the `tests` directory.
+
+### Running Tests
+
+```bash
+# Run all tests
+npm run test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Run tests with coverage
+npm run test:coverage
+
+# Run tests with UI
+npm run test:ui
+```
+
+### Test Structure
+
+- `tests/unit/`: Unit tests for individual functions and components
+- `tests/integration/`: Integration tests for API routes and server actions
+- `tests/setup.ts`: Test setup and global mocks
+
+### CI Pipeline
+
+The project uses GitHub Actions for continuous integration. The CI pipeline runs:
+- Linting
+- Type checking
+- Tests
+
+The CI configuration is located in `.github/workflows/ci.yml`.
