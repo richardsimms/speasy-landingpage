@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 
 interface Category {
   id: string;
@@ -21,7 +22,6 @@ function StepCategory({ value, onChange, otherValue, setOtherValue }: any) {
   const [otherChecked, setOtherChecked] = useState(!!otherValue);
   useEffect(() => {
     (async () => {
-      const { createClientComponentClient } = await import("@supabase/auth-helpers-nextjs");
       const supabase = createClientComponentClient();
       const { data } = await supabase.from("categories").select("id, name");
       if (data) setCategories(data);
@@ -152,19 +152,10 @@ function StepExclusions({ value, onChange }: any) {
   );
 }
 
-function Completion({ onPreview }: any) {
-  return (
-    <div className="flex flex-col items-center justify-center h-full gap-6">
-      <h2 className="text-2xl font-bold">You're all set!</h2>
-      <p className="text-center">We'll tune your feed based on what matters to you.</p>
-      <button className="bg-blue-600 text-white px-6 py-2 rounded-full" onClick={onPreview}>Preview my feed</button>
-    </div>
-  );
-}
-
 export default function OnboardingPageClient() {
   const [step, setStep] = useState(0);
   const [categoryPreferences, setCategoryPreferences] = useState<string[]>([]);
+  const [otherCategory, setOtherCategory] = useState('');
   const [listeningContext, setListeningContext] = useState('');
   const [sessionLength, setSessionLength] = useState('');
   const [preferredTone, setPreferredTone] = useState('');
@@ -173,29 +164,54 @@ export default function OnboardingPageClient() {
   const [complete, setComplete] = useState(false);
   const router = useRouter();
 
+  // Fetch initial subscriptions on mount
+  useEffect(() => {
+    (async () => {
+      const supabase = createClientComponentClient();
+      const { data: subscriptions } = await supabase
+        .from("user_category_subscriptions")
+        .select("category_id");
+      if (subscriptions) {
+        setCategoryPreferences(subscriptions.map((s: any) => s.category_id));
+      }
+    })();
+  }, []);
+
   // Handlers for each step
-  const handleCategory = (val: string, isOther = false) => {
-    if (isOther && val) {
-      setCategoryPreferences(prev => prev.includes(val) ? prev : [...prev, val]);
-    } else if (val) {
-      setCategoryPreferences(prev => prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val]);
-    }
-  };
+  const handleCategory = (ids: string[]) => setCategoryPreferences(ids);
 
   const handleNext = async () => {
-    if (step === 0 && categoryPreferences.length === 0) return; // Require at least one
+    if (step === 0 && categoryPreferences.length === 0 && !otherCategory) return; // Require at least one
     if (step === steps.length - 1) {
       setLoading(true);
-      // Submit to API
+      const supabase = createClientComponentClient();
+      // Fetch current subscriptions
+      const { data: currentSubs } = await supabase
+        .from("user_category_subscriptions")
+        .select("category_id");
+      const currentIds = currentSubs ? currentSubs.map((s: any) => s.category_id) : [];
+      // Add new subscriptions
+      for (const id of categoryPreferences) {
+        if (!currentIds.includes(id)) {
+          await supabase.from("user_category_subscriptions").insert({ category_id: id });
+        }
+      }
+      // Remove unselected subscriptions
+      for (const id of currentIds) {
+        if (!categoryPreferences.includes(id)) {
+          await supabase.from("user_category_subscriptions").delete().eq("category_id", id);
+        }
+      }
+      // Save other preferences as before (PATCH /api/preferences)
       await fetch('/api/preferences', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          categoryPreferences,
           listening_context: listeningContext,
           session_length: sessionLength,
           preferred_tone: preferredTone,
           exclusions,
+          otherCategory,
         }),
       });
       setLoading(false);
@@ -207,10 +223,10 @@ export default function OnboardingPageClient() {
 
   const handleBack = () => setStep(s => (s > 0 ? s - 1 : s));
 
-  if (complete) return <Completion onPreview={() => router.push('/')} />;
+  if (complete) return <div className="flex flex-col items-center justify-center h-full gap-6"><h2 className="text-2xl font-bold">You're all set!</h2><p className="text-center">We'll tune your feed based on what matters to you.</p><button className="bg-blue-600 text-white px-6 py-2 rounded-full" onClick={() => router.push('/')}>Preview my feed</button></div>;
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-white px-4 py-8">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-white dark:bg-zinc-900 px-4 py-8">
       <div className="w-full max-w-md mx-auto">
         <AnimatePresence mode="wait">
           <motion.div
@@ -219,19 +235,19 @@ export default function OnboardingPageClient() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -50 }}
             transition={{ duration: 0.3 }}
-            className="bg-white rounded-xl shadow-lg p-6 min-h-[400px] flex flex-col justify-between"
+            className="bg-white rounded-xl shadow-lg p-6 min-h-[400px] flex flex-col justify-between dark:bg-zinc-900"
           >
-            {step === 0 && <StepCategory value={categoryPreferences} onChange={handleCategory} />}
+            {step === 0 && <StepCategory value={categoryPreferences} onChange={handleCategory} otherValue={otherCategory} setOtherValue={setOtherCategory} />}
             {step === 1 && <StepContext value={listeningContext} onChange={setListeningContext} />}
             {step === 2 && <StepLength value={sessionLength} onChange={setSessionLength} />}
             {step === 3 && <StepTone value={preferredTone} onChange={setPreferredTone} />}
             {step === 4 && <StepExclusions value={exclusions} onChange={setExclusions} />}
             <div className="flex justify-between mt-8">
-              <button className="text-gray-500" onClick={handleBack} disabled={step === 0}>Back</button>
+              <button className="text-gray-500 dark:text-gray-300" onClick={handleBack} disabled={step === 0}>Back</button>
               <button
-                className="bg-blue-600 text-white px-6 py-2 rounded-full disabled:opacity-50"
+                className="bg-black text-white dark:bg-white dark:text-black px-6 py-2 rounded-full disabled:opacity-50"
                 onClick={handleNext}
-                disabled={loading || (step === 0 && categoryPreferences.length === 0)}
+                disabled={loading || (step === 0 && categoryPreferences.length === 0 && !otherCategory)}
               >
                 {step === steps.length - 1 ? (loading ? 'Saving...' : 'Finish') : 'Next'}
               </button>
