@@ -24,6 +24,17 @@ export default async function OnboardingPage() {
     if (typeof window !== 'undefined') window.location.href = '/';
     return null;
   }
-  // Render onboarding client UI
-  return <OnboardingPageClient />;
+  const preferences = await getUserPreferences(user.id);
+  const needsOnboarding =
+    !preferences?.categoryPreferences ||
+    preferences.categoryPreferences.length === 0;
+
+  if (needsOnboarding) {
+    // Show onboarding
+    return <OnboardingPageClient />;
+  } else {
+    // Redirect to dashboard or main app
+    if (typeof window !== 'undefined') window.location.href = '/';
+    return null;
+  }
 } 

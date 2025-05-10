@@ -16,6 +16,14 @@ export async function GET(req: NextRequest) {
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    // Fetch category subscriptions and join with categories to get names
+    const { data: categoryRows } = await supabase
+      .from('user_category_subscriptions')
+      .select('category_id, categories(name)')
+      .eq('user_id', userId);
+
+    const categoryPreferences = categoryRows?.map(row => row.categories.name) || [];
+
     // Fetch preferences from users and user_onboarding_metadata
     const { data: user, error: userError } = await supabase
       .from('users')
@@ -34,7 +42,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: metaError.message }, { status: 500 });
     }
     return NextResponse.json({
-      categoryPreferences: user?.categoryPreferences || [],
+      categoryPreferences,
       listening_context: meta?.listening_context || '',
       session_length: meta?.session_length || '',
       preferred_tone: meta?.preferred_tone || '',
