@@ -21,18 +21,18 @@ export default function LoginPage() {
     setLoading(true)
     setMessage(null)
 
-    const allowedDomains = process.env.NEXT_PUBLIC_ALLOWED_EMAIL_DOMAINS?.split(',') || ['speasy.app'];
+    // const allowedDomains = process.env.NEXT_PUBLIC_ALLOWED_EMAIL_DOMAINS?.split(',') || ['speasy.app'];
 
-    // Validate email domain
-    const emailDomain = email.split('@')[1];
-    if (!allowedDomains.includes(emailDomain)) {
-      setMessage({
-        type: "error",
-        text: `Please use an approved email domain to login`,
-      })
-      setLoading(false)
-      return
-    }
+    // // Validate email domain
+    // const emailDomain = email.split('@')[1];
+    // if (!allowedDomains.includes(emailDomain)) {
+    //   setMessage({
+    //     type: "error",
+    //     text: `Please use an approved email domain to login`,
+    //   })
+    //   setLoading(false)
+    //   return
+    // }
 
     try {
       const supabase = createClient()
