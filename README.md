@@ -78,8 +78,23 @@ npm run test:ui
 ### Test Structure
 
 - `tests/unit/`: Unit tests for individual functions and components
+  - `feed-generator.test.ts`: Tests for RSS feed generation
+  - `html-extractor.test.ts`: Tests for HTML content extraction
 - `tests/integration/`: Integration tests for API routes and server actions
+  - `stripe-webhook.test.ts`: Tests for Stripe webhook handler
+  - `actions.test.ts`: Tests for server actions like saveContentItem
 - `tests/setup.ts`: Test setup and global mocks
+
+### Environment Setup for Tests
+
+Create a `.env.test` file with test environment variables:
+
+```
+NEXT_PUBLIC_SUPABASE_URL=your_test_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_test_supabase_anon_key
+STRIPE_SECRET_KEY=test_key
+STRIPE_WEBHOOK_SECRET=test_webhook_secret
+```
 
 ### CI Pipeline
 
@@ -89,3 +104,19 @@ The project uses GitHub Actions for continuous integration. The CI pipeline runs
 - Tests
 
 The CI configuration is located in `.github/workflows/ci.yml`.
+
+### Vercel Deployment
+
+For Vercel deployments, add the following environment variables in your Vercel project settings:
+
+```
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+STRIPE_SECRET_KEY=your_stripe_secret_key
+STRIPE_WEBHOOK_SECRET=your_stripe_webhook_secret
+```
+
+You can also update the build command in Vercel project settings to include tests:
+```
+npm run lint && npm run typecheck && npm run test && next build
+```    
