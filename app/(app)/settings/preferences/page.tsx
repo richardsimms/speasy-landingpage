@@ -73,19 +73,33 @@ export default function PreferencesPage() {
   const handleSave = async () => {
     setLoading(true);
     const supabase = createClientComponentClient();
+    const { data: { session } } = await supabase.auth.getSession();
+    const userId = session?.user?.id;
+    if (!userId) {
+      setLoading(false);
+      // Optionally show an error
+      return;
+    }
     // Add new subscriptions
     for (const id of categoryPreferences) {
       if (!currentSubscriptions.includes(id)) {
-        await supabase.from("user_category_subscriptions").insert({ category_id: id });
+        await supabase.from("user_category_subscriptions").insert({
+          user_id: userId,
+          category_id: id,
+        });
       }
     }
     // Remove unselected subscriptions
     for (const id of currentSubscriptions) {
       if (!categoryPreferences.includes(id)) {
-        await supabase.from("user_category_subscriptions").delete().eq("category_id", id);
+        await supabase
+          .from("user_category_subscriptions")
+          .delete()
+          .eq("user_id", userId)
+          .eq("category_id", id);
       }
     }
-    // Save other preferences as before (do NOT send categoryPreferences)
+    // Save other preferences as before
     await fetch('/api/preferences', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -99,7 +113,7 @@ export default function PreferencesPage() {
     });
     setLoading(false);
     setSaved(true);
-    setCurrentSubscriptions(categoryPreferences); // update local state
+    setCurrentSubscriptions(categoryPreferences);
     setTimeout(() => setSaved(false), 2000);
   };
 
