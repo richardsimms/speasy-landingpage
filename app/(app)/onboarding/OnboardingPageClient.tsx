@@ -1,7 +1,12 @@
 "use client";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
+
+interface Category {
+  id: string;
+  name: string;
+}
 
 const steps = [
   'Category',
@@ -11,30 +16,101 @@ const steps = [
   'Exclusions',
 ];
 
-function StepCategory({ value, onChange }: any) {
+function StepCategory({ value, onChange, otherValue, setOtherValue }: any) {
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [otherChecked, setOtherChecked] = useState(!!otherValue);
+  useEffect(() => {
+    (async () => {
+      const { createClientComponentClient } = await import("@supabase/auth-helpers-nextjs");
+      const supabase = createClientComponentClient();
+      const { data } = await supabase.from("categories").select("id, name");
+      if (data) setCategories(data);
+    })();
+  }, []);
+  const handleCheckbox = (id: string) => {
+    if (value.includes(id)) {
+      onChange(value.filter((v: string) => v !== id));
+    } else {
+      onChange([...value, id]);
+    }
+  };
   return (
-    <div className="flex flex-col gap-4">
-      <h2 className="text-2xl font-bold">What do you want to hear more about?</h2>
-      <div className="flex flex-wrap gap-2">
-        {["Design & Creativity","Tech & AI","Business & Startups","Personal Growth","Global News","Productivity","Health & Wellness"].map(opt => (
-          <button key={opt} className={`px-4 py-2 rounded-full border ${value.includes(opt) ? 'bg-blue-600 text-white' : 'bg-white'}`} onClick={() => onChange(opt)}>{opt}</button>
-        ))}
+    <div className="bg-white dark:bg-zinc-900 rounded-xl shadow border border-zinc-200 dark:border-zinc-800 p-8 max-w-xl mx-auto">
+      <div className="mb-4">
+        <div className="text-sm text-gray-500 dark:text-gray-400 mb-2">Step 1 of 5</div>
+        <div className="w-full h-2 bg-gray-200 dark:bg-zinc-800 rounded">
+          <div className="h-2 bg-black dark:bg-white rounded" style={{ width: "20%" }} />
+        </div>
       </div>
-      <input className="mt-2 p-2 border rounded" placeholder="Other (type here)" onBlur={e => onChange(e.target.value, true)} />
+      <h2 className="text-2xl font-bold text-center dark:text-white mb-1">What do you want to hear more about?</h2>
+      <p className="text-center text-gray-500 dark:text-gray-400 mb-4">Select all that interest you</p>
+      <div className="flex flex-col gap-3">
+        {categories.map(cat => (
+          <label key={cat.id} className="flex items-center gap-2 text-lg dark:text-white">
+            <input
+              type="checkbox"
+              checked={value.includes(cat.id)}
+              onChange={() => handleCheckbox(cat.id)}
+              className="w-5 h-5 accent-black dark:accent-white"
+            />
+            {cat.name}
+          </label>
+        ))}
+        <label className="flex items-center gap-2 text-lg dark:text-white">
+          <input
+            type="checkbox"
+            checked={otherChecked}
+            onChange={e => {
+              setOtherChecked(e.target.checked);
+              if (!e.target.checked) setOtherValue('');
+            }}
+            className="w-5 h-5 accent-black dark:accent-white"
+          />
+          Other
+        </label>
+        {otherChecked && (
+          <input
+            className="mt-1 p-2 border rounded w-full dark:bg-zinc-800 dark:text-white"
+            placeholder="Type your interest"
+            value={otherValue}
+            onChange={e => setOtherValue(e.target.value)}
+          />
+        )}
+      </div>
     </div>
   );
 }
 
 function StepContext({ value, onChange }: any) {
-  const options = ["Commute","Workout","Chores","Walk","Multitask","Before Bed"];
+  const options = [
+    "During my commute",
+    "While working out",
+    "While doing chores",
+    "On a walk",
+    "While multitasking",
+    "Before bed",
+  ];
   return (
-    <div className="flex flex-col gap-4">
-      <h2 className="text-2xl font-bold">When do you usually listen?</h2>
-      <div className="flex flex-wrap gap-2">
-        {options.map(opt => (
-          <button key={opt} className={`px-4 py-2 rounded-full border ${value === opt ? 'bg-blue-600 text-white' : 'bg-white'}`} onClick={() => onChange(opt)}>{opt}</button>
-        ))}
-      </div>
+    <div className="bg-white dark:bg-zinc-900 rounded-xl shadow border border-zinc-200 dark:border-zinc-800 p-8 max-w-xl mx-auto">
+      <h2 className="text-2xl font-bold mb-1 dark:text-white">Listening Context</h2>
+      <p className="text-gray-500 dark:text-gray-400 mb-6">When do you usually listen?</p>
+      <fieldset>
+        <div className="flex flex-col gap-5">
+          {options.map(opt => (
+            <label key={opt} className="flex items-center gap-3 text-lg font-medium dark:text-white">
+              <input
+                type="radio"
+                name="listening_context"
+                value={opt}
+                checked={value === opt}
+                onChange={() => onChange(opt)}
+                className="w-5 h-5 accent-black dark:accent-white"
+              />
+              {opt}
+            </label>
+          ))}
+        </div>
+      </fieldset>
     </div>
   );
 }

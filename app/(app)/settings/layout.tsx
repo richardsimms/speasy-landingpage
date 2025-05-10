@@ -27,6 +27,7 @@ export default function SettingsLayout({ children }: SettingsLayoutProps) {
               <SettingsNavLink href="/settings/profile">Profile</SettingsNavLink>
               <SettingsNavLink href="/settings/subscriptions">Subscriptions</SettingsNavLink>
               <SettingsNavLink href="/settings/podcast">Podcast Settings</SettingsNavLink>
+              <SettingsNavLink href="/settings/preferences">Preferences</SettingsNavLink>
             </nav>
           </div>
 

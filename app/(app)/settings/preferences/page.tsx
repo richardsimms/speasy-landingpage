@@ -1,22 +1,29 @@
 "use client";
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 
-const categories = [
-  "Design & Creativity",
-  "Tech & AI",
-  "Business & Startups",
-  "Personal Growth",
-  "Global News",
-  "Productivity",
-  "Health & Wellness"
+interface Category {
+  id: string;
+  name: string;
+}
+
+const contexts = [
+  "During my commute",
+  "While working out",
+  "While doing chores",
+  "On a walk",
+  "While multitasking",
+  "Before bed",
 ];
-const contexts = ["Commute","Workout","Chores","Walk","Multitask","Before Bed"];
 const lengths = ["5–10 mins","10–20","20–30","30+","It depends"];
 const tones = ["Professional","Friendly","Fast","Calm"];
 
 export default function PreferencesPage() {
+  const [categories, setCategories] = useState<Category[]>([]);
   const [categoryPreferences, setCategoryPreferences] = useState<string[]>([]);
+  const [otherCategory, setOtherCategory] = useState('');
+  const [otherChecked, setOtherChecked] = useState(false);
   const [listeningContext, setListeningContext] = useState('');
   const [sessionLength, setSessionLength] = useState('');
   const [preferredTone, setPreferredTone] = useState('');
@@ -26,6 +33,14 @@ export default function PreferencesPage() {
   const router = useRouter();
 
   useEffect(() => {
+    // Fetch categories from Supabase
+    const fetchCategories = async () => {
+      const supabase = createClientComponentClient();
+      const { data } = await supabase.from("categories").select("id, name");
+      if (data) setCategories(data);
+    };
+    fetchCategories();
+
     // Fetch current preferences
     (async () => {
       setLoading(true);
@@ -37,17 +52,17 @@ export default function PreferencesPage() {
         setSessionLength(data.session_length || '');
         setPreferredTone(data.preferred_tone || '');
         setExclusions(data.exclusions || '');
+        if (data.otherCategory) {
+          setOtherCategory(data.otherCategory);
+          setOtherChecked(true);
+        }
       }
       setLoading(false);
     })();
   }, []);
 
-  const handleCategory = (val: string, isOther = false) => {
-    if (isOther && val) {
-      setCategoryPreferences(prev => prev.includes(val) ? prev : [...prev, val]);
-    } else if (val) {
-      setCategoryPreferences(prev => prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val]);
-    }
+  const handleCategory = (id: string) => {
+    setCategoryPreferences(prev => prev.includes(id) ? prev.filter(v => v !== id) : [...prev, id]);
   };
 
   const handleSave = async () => {
@@ -57,6 +72,7 @@ export default function PreferencesPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         categoryPreferences,
+        otherCategory: otherChecked ? otherCategory : '',
         listening_context: listeningContext,
         session_length: sessionLength,
         preferred_tone: preferredTone,
@@ -69,57 +85,129 @@ export default function PreferencesPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center bg-white px-4 py-8">
-      <div className="w-full max-w-md mx-auto">
-        <h2 className="text-2xl font-bold mb-6">Preferences</h2>
-        <div className="flex flex-col gap-6">
-          <div>
-            <label className="font-semibold">Category Interests</label>
-            <div className="flex flex-wrap gap-2 mt-2">
-              {categories.map(opt => (
-                <button key={opt} className={`px-4 py-2 rounded-full border ${categoryPreferences.includes(opt) ? 'bg-blue-600 text-white' : 'bg-white'}`} onClick={() => handleCategory(opt)}>{opt}</button>
-              ))}
-            </div>
-            <input className="mt-2 p-2 border rounded w-full" placeholder="Other (type here)" onBlur={e => handleCategory(e.target.value, true)} />
+    <div className="min-h-screen flex flex-col items-center bg-white dark:bg-zinc-900 px-4 py-8">
+      <div className="w-full max-w-xl mx-auto space-y-8">
+        <h2 className="text-2xl font-bold mb-6 dark:text-white">Preferences</h2>
+        {/* Category Interests */}
+        <div className="bg-white dark:bg-zinc-900 rounded-xl shadow border border-zinc-200 dark:border-zinc-800 p-8">
+          <label className="font-semibold dark:text-white">Category Interests</label>
+          <div className="flex flex-col gap-3 mt-4">
+            {categories.map(cat => (
+              <label key={cat.id} className="flex items-center gap-2 text-lg dark:text-white">
+                <input
+                  type="checkbox"
+                  checked={categoryPreferences.includes(cat.id)}
+                  onChange={() => handleCategory(cat.id)}
+                  className="w-5 h-5 accent-black dark:accent-white"
+                />
+                {cat.name}
+              </label>
+            ))}
+            <label className="flex items-center gap-2 text-lg dark:text-white">
+              <input
+                type="checkbox"
+                checked={otherChecked}
+                onChange={e => {
+                  setOtherChecked(e.target.checked);
+                  if (!e.target.checked) setOtherCategory('');
+                }}
+                className="w-5 h-5 accent-black dark:accent-white"
+              />
+              Other
+            </label>
+            {otherChecked && (
+              <input
+                className="mt-1 p-2 border rounded w-full dark:bg-zinc-800 dark:text-white"
+                placeholder="Type your interest"
+                value={otherCategory}
+                onChange={e => setOtherCategory(e.target.value)}
+              />
+            )}
           </div>
-          <div>
-            <label className="font-semibold">Preferred Listening Context</label>
-            <div className="flex flex-wrap gap-2 mt-2">
-              {contexts.map(opt => (
-                <button key={opt} className={`px-4 py-2 rounded-full border ${listeningContext === opt ? 'bg-blue-600 text-white' : 'bg-white'}`} onClick={() => setListeningContext(opt)}>{opt}</button>
-              ))}
-            </div>
-          </div>
-          <div>
-            <label className="font-semibold">Session Length</label>
-            <div className="flex flex-wrap gap-2 mt-2">
-              {lengths.map(opt => (
-                <button key={opt} className={`px-4 py-2 rounded-full border ${sessionLength === opt ? 'bg-blue-600 text-white' : 'bg-white'}`} onClick={() => setSessionLength(opt)}>{opt}</button>
-              ))}
-            </div>
-          </div>
-          <div>
-            <label className="font-semibold">Tone Preference</label>
-            <div className="flex flex-wrap gap-2 mt-2">
-              {tones.map(opt => (
-                <button key={opt} className={`px-4 py-2 rounded-full border ${preferredTone === opt ? 'bg-blue-600 text-white' : 'bg-white'}`} onClick={() => setPreferredTone(opt)}>{opt}</button>
-              ))}
-            </div>
-          </div>
-          <div>
-            <label className="font-semibold">Avoid Topics</label>
-            <input className="mt-2 p-2 border rounded w-full" placeholder="e.g. No crypto, Avoid politics" value={exclusions} onChange={e => setExclusions(e.target.value)} />
-          </div>
-          <button
-            className="bg-blue-600 text-white px-6 py-2 rounded-full mt-4 disabled:opacity-50"
-            onClick={handleSave}
-            disabled={loading}
-          >
-            {loading ? 'Saving...' : 'Save Preferences'}
-          </button>
-          {saved && <div className="text-green-600 text-center mt-2">Preferences updated. Your feed will now reflect your changes.</div>}
         </div>
+        {/* Listening Context */}
+        <div className="bg-white dark:bg-zinc-900 rounded-xl shadow border border-zinc-200 dark:border-zinc-800 p-8">
+          <label className="font-semibold dark:text-white">Listening Context</label>
+          <p className="text-gray-500 dark:text-gray-400 mb-4">When do you usually listen?</p>
+          <fieldset>
+            <div className="flex flex-col gap-5">
+              {contexts.map(opt => (
+                <label key={opt} className="flex items-center gap-3 text-lg font-medium dark:text-white">
+                  <input
+                    type="radio"
+                    name="listening_context"
+                    value={opt}
+                    checked={listeningContext === opt}
+                    onChange={() => setListeningContext(opt)}
+                    className="w-5 h-5 accent-black dark:accent-white"
+                  />
+                  {opt}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        </div>
+        {/* Session Length */}
+        <div className="bg-white dark:bg-zinc-900 rounded-xl shadow border border-zinc-200 dark:border-zinc-800 p-8">
+          <label className="font-semibold dark:text-white">Session Length</label>
+          <fieldset>
+            <div className="flex flex-col gap-5 mt-4">
+              {lengths.map(opt => (
+                <label key={opt} className="flex items-center gap-3 text-lg font-medium dark:text-white">
+                  <input
+                    type="radio"
+                    name="session_length"
+                    value={opt}
+                    checked={sessionLength === opt}
+                    onChange={() => setSessionLength(opt)}
+                    className="w-5 h-5 accent-black dark:accent-white"
+                  />
+                  {opt}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        </div>
+        {/* Tone Preference */}
+        <div className="bg-white dark:bg-zinc-900 rounded-xl shadow border border-zinc-200 dark:border-zinc-800 p-8">
+          <label className="font-semibold dark:text-white">Tone Preference</label>
+          <fieldset>
+            <div className="flex flex-col gap-5 mt-4">
+              {tones.map(opt => (
+                <label key={opt} className="flex items-center gap-3 text-lg font-medium dark:text-white">
+                  <input
+                    type="radio"
+                    name="preferred_tone"
+                    value={opt}
+                    checked={preferredTone === opt}
+                    onChange={() => setPreferredTone(opt)}
+                    className="w-5 h-5 accent-black dark:accent-white"
+                  />
+                  {opt}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        </div>
+        {/* Avoid Topics */}
+        <div className="bg-white dark:bg-zinc-900 rounded-xl shadow border border-zinc-200 dark:border-zinc-800 p-8">
+          <label className="font-semibold dark:text-white">Avoid Topics</label>
+          <input
+            className="mt-2 p-2 border rounded w-full dark:bg-zinc-800 dark:text-white"
+            placeholder="e.g. No crypto, Avoid politics"
+            value={exclusions}
+            onChange={e => setExclusions(e.target.value)}
+          />
+        </div>
+        <button
+          className="w-full mt-4 bg-black text-white dark:bg-white dark:text-black font-semibold py-3 rounded-lg disabled:opacity-50"
+          onClick={handleSave}
+          disabled={loading}
+        >
+          {loading ? 'Saving...' : 'Save Preferences'}
+        </button>
+        {saved && <div className="text-green-600 dark:text-green-400 text-center mt-2">Preferences updated. Your feed will now reflect your changes.</div>}
       </div>
     </div>
   );
-} 
+}
