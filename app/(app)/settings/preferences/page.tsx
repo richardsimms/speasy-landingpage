@@ -22,6 +22,7 @@ const tones = ["Professional","Friendly","Fast","Calm"];
 export default function PreferencesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [categoryPreferences, setCategoryPreferences] = useState<string[]>([]);
+  const [currentSubscriptions, setCurrentSubscriptions] = useState<string[]>([]);
   const [otherCategory, setOtherCategory] = useState('');
   const [otherChecked, setOtherChecked] = useState(false);
   const [listeningContext, setListeningContext] = useState('');
@@ -33,21 +34,25 @@ export default function PreferencesPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Fetch categories from Supabase
-    const fetchCategories = async () => {
-      const supabase = createClientComponentClient();
-      const { data } = await supabase.from("categories").select("id, name");
+    const supabase = createClientComponentClient();
+    // Fetch categories
+    supabase.from("categories").select("id, name").then(({ data }) => {
       if (data) setCategories(data);
-    };
-    fetchCategories();
-
-    // Fetch current preferences
+    });
+    // Fetch current subscriptions
+    supabase.from("user_category_subscriptions").select("category_id").then(({ data }) => {
+      if (data) {
+        const ids = data.map((s: any) => s.category_id);
+        setCategoryPreferences(ids);
+        setCurrentSubscriptions(ids);
+      }
+    });
+    // Fetch other preferences as before...
     (async () => {
       setLoading(true);
       const res = await fetch('/api/preferences', { method: 'GET' });
       if (res.ok) {
         const data = await res.json();
-        setCategoryPreferences(data.categoryPreferences || []);
         setListeningContext(data.listening_context || '');
         setSessionLength(data.session_length || '');
         setPreferredTone(data.preferred_tone || '');
@@ -67,11 +72,24 @@ export default function PreferencesPage() {
 
   const handleSave = async () => {
     setLoading(true);
+    const supabase = createClientComponentClient();
+    // Add new subscriptions
+    for (const id of categoryPreferences) {
+      if (!currentSubscriptions.includes(id)) {
+        await supabase.from("user_category_subscriptions").insert({ category_id: id });
+      }
+    }
+    // Remove unselected subscriptions
+    for (const id of currentSubscriptions) {
+      if (!categoryPreferences.includes(id)) {
+        await supabase.from("user_category_subscriptions").delete().eq("category_id", id);
+      }
+    }
+    // Save other preferences as before (do NOT send categoryPreferences)
     await fetch('/api/preferences', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        categoryPreferences,
         otherCategory: otherChecked ? otherCategory : '',
         listening_context: listeningContext,
         session_length: sessionLength,
@@ -81,6 +99,7 @@ export default function PreferencesPage() {
     });
     setLoading(false);
     setSaved(true);
+    setCurrentSubscriptions(categoryPreferences); // update local state
     setTimeout(() => setSaved(false), 2000);
   };
 
