@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
-import { createAdminClient } from '@/lib/supabase';
+import { createAdminClient } from '@/lib/server-only';
 import { headers } from 'next/headers';
 
 // Stripe webhook handler
@@ -108,4 +108,4 @@ async function handleSubscriptionUpdated(subscription: any, supabase: any) {
   } catch (error) {
     console.error('Error handling subscription update:', error);
   }
-} 
+}  

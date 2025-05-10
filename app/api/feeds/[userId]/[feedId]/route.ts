@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createAdminClient } from "@/lib/supabase"
+import { createAdminClient } from "@/lib/server-only"
 import { generateRssFeedAsync, type ContentItem } from "@/lib/feed-generator"
 
 export async function GET(

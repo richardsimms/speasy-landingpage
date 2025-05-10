@@ -21,11 +21,14 @@ export default function LoginPage() {
     setLoading(true)
     setMessage(null)
 
+    const allowedDomains = process.env.NEXT_PUBLIC_ALLOWED_EMAIL_DOMAINS?.split(',') || ['speasy.app'];
+
     // Validate email domain
-    if (!email.endsWith("@speasy.app") && !email.endsWith("@gmail.com")) {
+    const emailDomain = email.split('@')[1];
+    if (!allowedDomains.includes(emailDomain)) {
       setMessage({
         type: "error",
-        text: "Please use a speasy.app email address to login",
+        text: `Please use an approved email domain to login`,
       })
       setLoading(false)
       return

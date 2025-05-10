@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
-import { createAdminClient } from '@/lib/supabase';
+import { createAdminClient } from '@/lib/server-only';
 import { cookies } from 'next/headers';
 
 export async function POST(request: Request) {
@@ -45,4 +45,4 @@ export async function POST(request: Request) {
     console.error('Error canceling subscription:', error);
     return NextResponse.json({ error: 'Error canceling subscription' }, { status: 500 });
   }
-} 
+}  

@@ -29,7 +29,7 @@ The application uses different Supabase clients for different contexts:
 
 3. **API Routes and Server Actions**:
    ```typescript
-   import { createAdminClient } from '@/lib/supabase'
+   import { createAdminClient } from '@/lib/server-only'
    
    // In your API route or server action
    const supabase = createAdminClient()
@@ -228,4 +228,4 @@ User is authenticated
 - [Supabase Authentication Documentation](https://supabase.com/docs/guides/auth)
 - [Magic Link Authentication Guide](https://supabase.com/docs/guides/auth/passwordless-login/auth-magic-link)
 - [Row Level Security Guide](https://supabase.com/docs/guides/auth/row-level-security)
-- [Next.js Authentication Documentation](https://nextjs.org/docs/authentication) 
+- [Next.js Authentication Documentation](https://nextjs.org/docs/authentication)  
