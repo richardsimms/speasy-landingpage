@@ -202,11 +202,11 @@ export default function OnboardingPageClient() {
           await supabase.from("user_category_subscriptions").delete().eq("category_id", id);
         }
       }
-      // Save other preferences as before (PATCH /api/preferences)
       await fetch('/api/preferences', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          categoryPreferences, // Include category preferences in the request
           listening_context: listeningContext,
           session_length: sessionLength,
           preferred_tone: preferredTone,
@@ -257,4 +257,4 @@ export default function OnboardingPageClient() {
       </div>
     </div>
   );
-} 
+}  

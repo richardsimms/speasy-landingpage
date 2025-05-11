@@ -2,6 +2,29 @@ import { cookies } from 'next/headers';
 import { supabase } from '@/utils/supabase';
 import OnboardingPageClient from './OnboardingPageClient';
 
+async function getUserPreferences(userId: string) {
+  const { data: categoryRows } = await supabase
+    .from('user_category_subscriptions')
+    .select('category_id')
+    .eq('user_id', userId);
+  
+  const categoryPreferences = categoryRows?.map(row => row.category_id) || [];
+  
+  const { data: meta } = await supabase
+    .from('user_onboarding_metadata')
+    .select('listening_context, session_length, preferred_tone, exclusions')
+    .eq('user_id', userId)
+    .single();
+  
+  return {
+    categoryPreferences,
+    listening_context: meta?.listening_context || '',
+    session_length: meta?.session_length || '',
+    preferred_tone: meta?.preferred_tone || '',
+    exclusions: meta?.exclusions || '',
+  };
+}
+
 export default async function OnboardingPage() {
   // Get user session from cookies
   const cookieStore = await cookies();
@@ -17,13 +40,8 @@ export default async function OnboardingPage() {
     if (typeof window !== 'undefined') window.location.href = '/auth/login';
     return null;
   }
-  const { data: userData } = await supabase.from('users').select('categoryPreferences').eq('id', user.id).single();
-  const prefs = userData?.categoryPreferences;
-  if (prefs && prefs !== 'all' && Array.isArray(prefs) && prefs.length > 0) {
-    // Already onboarded, redirect to main feed
-    if (typeof window !== 'undefined') window.location.href = '/';
-    return null;
-  }
+  
+  // Get user preferences
   const preferences = await getUserPreferences(user.id);
   const needsOnboarding =
     !preferences?.categoryPreferences ||
@@ -37,4 +55,4 @@ export default async function OnboardingPage() {
     if (typeof window !== 'undefined') window.location.href = '/';
     return null;
   }
-} 
+}  
