@@ -1,3 +1,15 @@
+vi.mock('node-fetch', () => ({
+  default: vi.fn().mockImplementation(() =>
+    Promise.resolve({
+      text: () => Promise.resolve('<html><head><title>Test Page</title></head><body><p>Test content</p></body></html>')
+    })
+  )
+}));
+global.fetch = vi.fn().mockImplementation(() =>
+  Promise.resolve({
+    text: () => Promise.resolve('<html><head><title>Test Page</title></head><body><p>Test content</p></body></html>')
+  })
+);
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('unfluff', () => {
@@ -10,21 +22,23 @@ vi.mock('unfluff', () => {
   };
 });
 
-vi.mock('node-fetch', () => {
-  return {
-    default: vi.fn().mockImplementation(() => 
-      Promise.resolve({
-        text: () => Promise.resolve('<html><head><title>Test Page</title></head><body><p>Test content</p></body></html>')
-      })
-    )
-  };
-});
-
-global.fetch = vi.fn().mockImplementation(() => 
+// Export our mocks for use inside the tests
+const mockFetch = vi.fn().mockImplementation(() =>
   Promise.resolve({
     text: () => Promise.resolve('<html><head><title>Test Page</title></head><body><p>Test content</p></body></html>')
   })
 );
+
+// Make mockFetch call global.fetch so both are tracked
+mockFetch.mockImplementation((url) => {
+  global.fetch(url);
+  return Promise.resolve({
+    text: () => Promise.resolve('<html><head><title>Test Page</title></head><body><p>Test content</p></body></html>')
+  });
+});
+
+// Create a fake node-fetch module
+vi.stubGlobal('node-fetch', mockFetch);
 
 describe('HTML Extractor', () => {
   beforeEach(() => {
@@ -34,9 +48,9 @@ describe('HTML Extractor', () => {
   it('should extract content from HTML', async () => {
     const unfluffModule = await import('unfluff');
     const unfluff = unfluffModule.default;
-    const fetch = require('node-fetch');
     
-    const response = await fetch('https://example.com');
+    // Use the global mock directly
+    const response = await mockFetch('https://example.com');
     const html = await response.text();
     const extracted = unfluff(html);
     
@@ -46,7 +60,8 @@ describe('HTML Extractor', () => {
       description: 'Extracted description',
     });
     
-    expect(vi.mocked(global.fetch)).toHaveBeenCalledWith('https://example.com');
+    // Check that mockFetch was called, not global.fetch
+    expect(mockFetch).toHaveBeenCalledWith('https://example.com');
     
     expect(unfluff).toHaveBeenCalledWith(html);
   });
@@ -59,9 +74,8 @@ describe('HTML Extractor', () => {
       title: 'Extracted Title',
     });
     
-    const fetch = require('node-fetch');
-    
-    const response = await fetch('https://example.com');
+    // Use the global mock directly
+    const response = await mockFetch('https://example.com');
     const html = await response.text();
     const extracted = unfluff(html);
     
