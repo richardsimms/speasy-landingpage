@@ -19,11 +19,11 @@ jobs:
         node-version: '18'
         cache: 'pnpm'
     
-    - name: Install pnpm
-      uses: pnpm/action-setup@v2
-      with:
-        version: 8
-        run_install: false
+    - name: Install pnpm using npm
+      run: npm install -g pnpm@8
+    
+    - name: Verify pnpm installation
+      run: pnpm --version
     
     - name: Install dependencies
       run: pnpm install --no-frozen-lockfile
