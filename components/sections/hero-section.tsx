@@ -9,6 +9,8 @@ import AudioWaveform from "@/components/audio-waveform"
 import { Button } from "@/components/ui/button"
 import { redirectToStripeCheckout } from "@/utils/stripe"
 import Image from "next/image"
+import useSWR from 'swr';
+import CountUp from 'react-countup';
 
 export default function HeroSection() {
   const [isPlaying, setIsPlaying] = useState(false)
@@ -63,6 +65,11 @@ export default function HeroSection() {
     }
   }
 
+  const fetcher = (url: string) => fetch(url).then(res => res.json());
+  const { data, error } = useSWR('/api/stats/articles-converted', fetcher, { refreshInterval: 300000 });
+  const liveCount = data && typeof data.count === 'number' ? data.count : 1000;
+  const isApiError = !!error || (data && data.count == null);
+
   return (
     <section className="w-full py-20 md:py-32 bg-gradient-to-b from-primary/5 to-background">
       <div className="container px-4 md:px-6">
@@ -97,7 +104,9 @@ export default function HeroSection() {
                   Start listening - $5/month
                 </Button>
                 <p className="text-sm text-muted-foreground mt-3">
-                  Over <span className="text-primary font-bold">1,000</span> articles turned into audio this month
+                  Over <span className="text-primary font-bold">
+                    {isApiError ? '1,123' : <CountUp end={liveCount} duration={1.2} separator="," />}
+                  </span> articles turned into audio this month
                 </p> 
               </div>
             </motion.div>

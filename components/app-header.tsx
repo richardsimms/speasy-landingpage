@@ -74,6 +74,9 @@ export function AppHeader() {
               <DropdownMenuItem asChild>
                 <Link href="/settings/podcast">Podcast Settings</Link>
               </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/settings/preferences">Preferences</Link>
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleSignOut}>Sign out</DropdownMenuItem>
             </DropdownMenuContent>
