@@ -1,4 +1,4 @@
-name: CI
+name: CI/CD Pipeline
 
 on:
   push:
@@ -7,6 +7,59 @@ on:
     branches: [ main ]
 
 jobs:
+  lint-test-build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    # Install pnpm FIRST using the official action
+    - name: Install pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: 8
+        run_install: false
+    
+    # THEN setup Node.js with pnpm cache
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'pnpm'
+    
+    # Verify pnpm is working
+    - name: Verify pnpm installation
+      run: pnpm --version
+    
+    - name: Install dependencies
+      run: pnpm install --no-frozen-lockfile
+    
+    - name: Lint
+      run: pnpm run lint
+    
+    - name: Type check
+      run: pnpm run typecheck
+    
+    - name: Run tests
+      run: pnpm run test
+      env:
+        NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+        STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY || 'sk_test_dummy_key_for_tests' }}
+        STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET || 'whsec_dummy_key_for_tests' }}
+        NEXT_PUBLIC_BUILD_MODE: 'true'
+    
+    - name: Build
+      run: pnpm run build
+      env:
+        NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+        NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || 'pk_test_dummy_key_for_build' }}
+        STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY || 'sk_test_dummy_key_for_build' }}
+        STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET || 'whsec_dummy_key_for_build' }}
+        NEXT_PUBLIC_BUILD_MODE: 'true'
+        ERROR_NOTIFICATION_WEBHOOK_URL: ${{ secrets.ERROR_NOTIFICATION_WEBHOOK_URL }}
+
   test:
     runs-on: ubuntu-latest
 
