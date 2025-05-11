@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 import { createAdminClient } from '@/lib/server-only';
 import { headers } from 'next/headers';
+import { logError } from '@/lib/error-logger';
 
 // Stripe webhook handler
 export async function POST(request: Request) {
@@ -26,7 +27,12 @@ export async function POST(request: Request) {
       process.env.STRIPE_WEBHOOK_SECRET!
     );
   } catch (error: any) {
-    console.error(`Webhook signature verification failed: ${error.message}`);
+    logError(
+      'stripe-webhook',
+      `Webhook signature verification failed: ${error.message}`,
+      error,
+      'error'
+    );
     return NextResponse.json({ error: error.message }, { status: 400 });
   }
 
@@ -42,7 +48,7 @@ export async function POST(request: Request) {
       await handleSubscriptionUpdated(subscription, supabase);
       break;
     default:
-      console.log(`Unhandled event type: ${event.type}`);
+      logError('stripe-webhook', `Unhandled event type: ${event.type}`, { eventType: event.type }, 'info');
   }
 
   return NextResponse.json({ received: true });
@@ -67,7 +73,12 @@ async function handleCheckoutSessionCompleted(session: any, supabase: any) {
         );
 
       if (error) {
-        console.error('Error saving user to Supabase:', error);
+        logError(
+          'stripe-webhook',
+          'Error saving user to Supabase',
+          error,
+          'error'
+        );
         return;
       }
 
@@ -77,11 +88,21 @@ async function handleCheckoutSessionCompleted(session: any, supabase: any) {
       });
 
       if (inviteError) {
-        console.error('Error sending invite email:', inviteError);
+        logError(
+          'stripe-webhook',
+          'Error sending invite email',
+          inviteError,
+          'error'
+        );
       }
     }
   } catch (error) {
-    console.error('Error handling checkout session:', error);
+    logError(
+      'stripe-webhook',
+      'Error handling checkout session',
+      error,
+      'error'
+    );
   }
 }
 
@@ -102,10 +123,20 @@ async function handleSubscriptionUpdated(subscription: any, supabase: any) {
         .eq('stripe_customer_id', customerId);
 
       if (error) {
-        console.error('Error updating subscription status:', error);
+        logError(
+          'stripe-webhook',
+          'Error updating subscription status',
+          error,
+          'error'
+        );
       }
     }
   } catch (error) {
-    console.error('Error handling subscription update:', error);
+    logError(
+      'stripe-webhook',
+      'Error handling subscription update',
+      error,
+      'error'
+    );
   }
-}  
+}                  
