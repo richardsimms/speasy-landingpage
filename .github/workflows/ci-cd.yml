@@ -13,15 +13,21 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     
+    # Install pnpm FIRST using the official action
+    - name: Install pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: 8
+        run_install: false
+    
+    # THEN setup Node.js with pnpm cache
     - name: Setup Node.js
       uses: actions/setup-node@v3
       with:
         node-version: '18'
         cache: 'pnpm'
     
-    - name: Install pnpm using npm
-      run: npm install -g pnpm@8
-    
+    # Verify pnpm is working
     - name: Verify pnpm installation
       run: pnpm --version
     
@@ -60,16 +66,18 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     
-    - name: Setup Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '18'
-    
+    # Same fix applied here - install pnpm first
     - name: Install pnpm
       uses: pnpm/action-setup@v2
       with:
         version: 8
         run_install: false
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'pnpm'
     
     - name: Install Vercel CLI
       run: pnpm add -g vercel@latest
@@ -100,16 +108,18 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     
-    - name: Setup Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '18'
-    
+    # Same fix applied here - install pnpm first
     - name: Install pnpm
       uses: pnpm/action-setup@v2
       with:
         version: 8
         run_install: false
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'pnpm'
     
     - name: Install Vercel CLI
       run: pnpm add -g vercel@latest
