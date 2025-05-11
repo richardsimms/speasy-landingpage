@@ -66,23 +66,41 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     
+    # Install pnpm FIRST using the official action
+    - name: Install pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: 8
+        run_install: false
+    
+    # THEN setup Node.js with pnpm cache
     - name: Setup Node.js
       uses: actions/setup-node@v3
       with:
         node-version: '18'
-        cache: 'npm'
+        cache: 'pnpm'
+    
+    # Verify pnpm is working
+    - name: Verify pnpm installation
+      run: pnpm --version
     
     - name: Install dependencies
-      run: npm install --legacy-peer-deps
+      run: pnpm install --no-frozen-lockfile
     
     - name: Lint
-      run: npm run lint
+      run: pnpm run lint
     
     - name: Type check
-      run: npm run typecheck
+      run: pnpm run typecheck
     
     - name: Run tests
-      run: npm run test
+      run: pnpm run test
+      env:
+        NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+        STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY || 'sk_test_dummy_key_for_tests' }}
+        STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET || 'whsec_dummy_key_for_tests' }}
+        NEXT_PUBLIC_BUILD_MODE: 'true'
     
     - name: Upload coverage reports
       uses: codecov/codecov-action@v3

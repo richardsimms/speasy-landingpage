@@ -30,7 +30,7 @@ const createStripeClient = () => {
       subscriptions: {
         create: () => Promise.resolve({ id: 'sub_mock' }),
         update: () => Promise.resolve({}),
-        del: () => Promise.resolve({}),
+        cancel: () => Promise.resolve({}),
       },
       checkout: {
         sessions: {
