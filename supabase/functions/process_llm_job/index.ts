@@ -1,6 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { logError } from './error-logger.ts'
-
+// @ts-ignore
 // Create a Supabase client with the service role key
 const supabaseUrl = Deno.env.get('SUPABASE_URL') || 'https://lmmobnqmxkcdwdhhpwwd.supabase.co'
 const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''

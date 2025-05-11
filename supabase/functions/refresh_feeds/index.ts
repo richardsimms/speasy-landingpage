@@ -1,6 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { logError } from './error-logger.ts'
-
+// @ts-ignore
 // Create a Supabase client with the service role key
 const supabaseUrl = Deno.env.get('SUPABASE_URL') || 'https://lmmobnqmxkcdwdhhpwwd.supabase.co'
 const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
@@ -34,12 +34,21 @@ async function parseRSS(feedUrl) {
     
     return items
   } catch (error) {
-    logError(
-      'refresh-feeds',
-      `Error parsing RSS feed: ${error.message}`,
-      error,
-      'error'
-    )
+    if (error instanceof Error) {
+      logError(
+        'refresh-feeds',
+        `Error parsing RSS feed: ${error.message}`,
+        error,
+        'error'
+      )
+    } else {
+      logError(
+        'refresh-feeds',
+        `Error parsing RSS feed: ${String(error)}`,
+        error,
+        'error'
+      )
+    }
     return []
   }
 }
@@ -91,12 +100,21 @@ async function processContentSource(source) {
         .single()
       
       if (error) {
-        logError(
-          'refresh-feeds',
-          `Error inserting content item: ${error.message}`,
-          error,
-          'error'
-        )
+        if (error instanceof Error) {
+          logError(
+            'refresh-feeds',
+            `Error inserting content item: ${error.message}`,
+            error,
+            'error'
+          )
+        } else {
+          logError(
+            'refresh-feeds',
+            `Error inserting content item: ${String(error)}`,
+            error,
+            'error'
+          )
+        }
         continue
       }
       
@@ -108,12 +126,21 @@ async function processContentSource(source) {
     
     return { success: true, newItems: newItemsCount }
   } catch (error) {
-    logError(
-      'refresh-feeds',
-      `Error processing content source: ${error.message}`,
-      error,
-      'error'
-    )
+    if (error instanceof Error) {
+      logError(
+        'refresh-feeds',
+        `Error processing content source: ${error.message}`,
+        error,
+        'error'
+      )
+    } else {
+      logError(
+        'refresh-feeds',
+        `Error processing content source: ${String(error)}`,
+        error,
+        'error'
+      )
+    }
     return { success: false, error: error.message }
   }
 }
@@ -129,12 +156,21 @@ async function refreshFeeds() {
     .not('feed_url', 'is', null)
   
   if (error) {
-    logError(
-      'refresh-feeds',
-      `Error fetching content sources: ${error.message}`,
-      error,
-      'error'
-    )
+    if (error instanceof Error) {
+      logError(
+        'refresh-feeds',
+        `Error fetching content sources: ${error.message}`,
+        error,
+        'error'
+      )
+    } else {
+      logError(
+        'refresh-feeds',
+        `Error fetching content sources: ${String(error)}`,
+        error,
+        'error'
+      )
+    }
     return { success: false, error: error.message }
   }
   
@@ -173,12 +209,21 @@ async function refreshFeeds() {
       console.log('Successfully triggered process_llm_job function')
     }
   } catch (error) {
-    logError(
-      'refresh-feeds',
-      `Error triggering process_llm_job: ${error.message}`,
-      error,
-      'warning'
-    )
+    if (error instanceof Error) {
+      logError(
+        'refresh-feeds',
+        `Error triggering process_llm_job: ${error.message}`,
+        error,
+        'warning'
+      )
+    } else {
+      logError(
+        'refresh-feeds',
+        `Error triggering process_llm_job: ${String(error)}`,
+        error,
+        'warning'
+      )
+    }
   }
   
   return {
@@ -218,15 +263,28 @@ Deno.serve(async (req) => {
       status: result.success ? 200 : 500,
     })
   } catch (error) {
-    logError(
-      'refresh-feeds',
-      `Unhandled error: ${error.message}`,
-      error,
-      'critical'
-    )
+    if (error instanceof Error) {
+      logError(
+        'refresh-feeds',
+        `Unhandled error: ${error.message}`,
+        error,
+        'critical'
+      )
+    } else {
+      logError(
+        'refresh-feeds',
+        `Unhandled error: ${String(error)}`,
+        error,
+        'critical'
+      )
+    }
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { 'Content-Type': 'application/json' },
       status: 500,
     })
   }
 })
+
+async function updateJobStatus(jobId: string, status: string) {
+  // TODO: implement
+}
