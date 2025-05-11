@@ -1,5 +1,7 @@
-// Mock the Stripe module with a factory function
-// IMPORTANT: Don't reference external variables in vi.mock factories!
+// Mock all modules with COMPLETELY self-contained factory functions
+// NO references to external variables are allowed in any vi.mock calls!
+
+// Mock the Stripe module
 vi.mock('stripe', () => {
   return function() {
     return {
@@ -23,29 +25,7 @@ vi.mock('stripe', () => {
   };
 });
 
-// Create a mock admin client for consistent testing
-const mockAdminClient = {
-  from: vi.fn().mockReturnValue({
-    upsert: vi.fn().mockResolvedValue({
-      data: { id: 'test-user-id' },
-      error: null
-    }),
-    update: vi.fn().mockResolvedValue({
-      data: { id: 'test-user-id' },
-      error: null
-    })
-  }),
-  auth: {
-    admin: {
-      inviteUserByEmail: vi.fn().mockResolvedValue({
-        data: {},
-        error: null
-      })
-    }
-  }
-};
-
-// Mock the lib/stripe module with same mock pattern
+// Mock the lib/stripe module
 vi.mock('@/lib/stripe', () => {
   return {
     stripe: {
@@ -72,7 +52,26 @@ vi.mock('@/lib/stripe', () => {
 // Mock the server-only module
 vi.mock('@/lib/server-only', () => {
   return {
-    createAdminClient: vi.fn().mockReturnValue(mockAdminClient)
+    createAdminClient: vi.fn().mockReturnValue({
+      from: vi.fn().mockReturnValue({
+        upsert: vi.fn().mockResolvedValue({
+          data: { id: 'test-user-id' },
+          error: null
+        }),
+        update: vi.fn().mockResolvedValue({
+          data: { id: 'test-user-id' },
+          error: null
+        })
+      }),
+      auth: {
+        admin: {
+          inviteUserByEmail: vi.fn().mockResolvedValue({
+            data: {},
+            error: null
+          })
+        }
+      }
+    })
   };
 });
 
@@ -89,9 +88,14 @@ import { createAdminClient } from '@/lib/server-only';
 
 describe('Stripe Webhook Handler', () => {
   let mockRequest: Request;
+  // Get admin client reference for test assertions with explicit type
+  let mockAdminClient: any;
   
   beforeEach(() => {
     vi.clearAllMocks();
+    
+    // Create a reference to the mock for our tests
+    mockAdminClient = createAdminClient();
     
     mockRequest = new Request('https://speasy.app/api/webhooks/stripe', {
       method: 'POST',
@@ -124,10 +128,8 @@ describe('Stripe Webhook Handler', () => {
     // Verify our spy was called
     expect(constructEventSpy).toHaveBeenCalled();
     
-    // Just verify the function was called - don't try to call it ourselves
+    // Verify admin client was used correctly
     expect(createAdminClient).toHaveBeenCalled();
-    
-    // And directly check our mockAdminClient was accessed correctly
     expect(mockAdminClient.from).toHaveBeenCalledWith('users');
     expect(mockAdminClient.from().upsert).toHaveBeenCalledWith(
       expect.objectContaining({
