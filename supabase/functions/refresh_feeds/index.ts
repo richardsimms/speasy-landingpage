@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { logError } from './error-logger.ts'
 
 // Create a Supabase client with the service role key
 const supabaseUrl = Deno.env.get('SUPABASE_URL') || 'https://lmmobnqmxkcdwdhhpwwd.supabase.co'
@@ -33,7 +34,12 @@ async function parseRSS(feedUrl) {
     
     return items
   } catch (error) {
-    console.error(`Error parsing RSS feed: ${error.message}`)
+    logError(
+      'refresh-feeds',
+      `Error parsing RSS feed: ${error.message}`,
+      error,
+      'error'
+    )
     return []
   }
 }
@@ -85,7 +91,12 @@ async function processContentSource(source) {
         .single()
       
       if (error) {
-        console.error(`Error inserting content item: ${error.message}`)
+        logError(
+          'refresh-feeds',
+          `Error inserting content item: ${error.message}`,
+          error,
+          'error'
+        )
         continue
       }
       
@@ -97,7 +108,12 @@ async function processContentSource(source) {
     
     return { success: true, newItems: newItemsCount }
   } catch (error) {
-    console.error(`Error processing content source: ${error.message}`)
+    logError(
+      'refresh-feeds',
+      `Error processing content source: ${error.message}`,
+      error,
+      'error'
+    )
     return { success: false, error: error.message }
   }
 }
@@ -113,7 +129,12 @@ async function refreshFeeds() {
     .not('feed_url', 'is', null)
   
   if (error) {
-    console.error(`Error fetching content sources: ${error.message}`)
+    logError(
+      'refresh-feeds',
+      `Error fetching content sources: ${error.message}`,
+      error,
+      'error'
+    )
     return { success: false, error: error.message }
   }
   
@@ -152,7 +173,12 @@ async function refreshFeeds() {
       console.log('Successfully triggered process_llm_job function')
     }
   } catch (error) {
-    console.warn(`Warning: Error triggering process_llm_job: ${error.message}`)
+    logError(
+      'refresh-feeds',
+      `Error triggering process_llm_job: ${error.message}`,
+      error,
+      'warning'
+    )
   }
   
   return {
@@ -192,7 +218,12 @@ Deno.serve(async (req) => {
       status: result.success ? 200 : 500,
     })
   } catch (error) {
-    console.error(`Unhandled error: ${error.message}`)
+    logError(
+      'refresh-feeds',
+      `Unhandled error: ${error.message}`,
+      error,
+      'critical'
+    )
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { 'Content-Type': 'application/json' },
       status: 500,

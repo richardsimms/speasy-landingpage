@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { logError } from './error-logger.ts'
 
 // Create a Supabase client with the service role key
 const supabaseUrl = Deno.env.get('SUPABASE_URL') || 'https://lmmobnqmxkcdwdhhpwwd.supabase.co'
@@ -13,7 +14,12 @@ async function updateJobStatus(jobId, status) {
     .eq('id', jobId)
   
   if (error) {
-    console.error(`Error updating job status: ${error.message}`)
+    logError(
+      'process-llm-job',
+      `Error updating job status: ${error.message}`,
+      error,
+      'error'
+    )
     return false
   }
   return true
@@ -31,7 +37,12 @@ async function processLLMJobs() {
     .limit(1)
   
   if (error) {
-    console.error(`Error fetching pending jobs: ${error.message}`)
+    logError(
+      'process-llm-job',
+      `Error fetching pending jobs: ${error.message}`,
+      error,
+      'error'
+    )
     return { success: false, error: error.message }
   }
   
@@ -58,7 +69,12 @@ async function processLLMJobs() {
       .single()
     
     if (contentError || !contentItem) {
-      console.error(`Error fetching content item: ${contentError?.message || 'Content not found'}`)
+      logError(
+        'process-llm-job',
+        `Error fetching content item: ${contentError?.message || 'Content not found'}`,
+        contentError || { message: 'Content not found' },
+        'error'
+      )
       await updateJobStatus(job.id, 'error')
       return { success: false, error: contentError?.message || 'Content not found' }
     }
@@ -88,7 +104,12 @@ async function processLLMJobs() {
         })
       
       if (audioError) {
-        console.error(`Error creating audio file: ${audioError.message}`)
+        logError(
+          'process-llm-job',
+          `Error creating audio file: ${audioError.message}`,
+          audioError,
+          'error'
+        )
         await updateJobStatus(job.id, 'error')
         return { success: false, error: audioError.message }
       }
@@ -99,9 +120,15 @@ async function processLLMJobs() {
     
     return { success: true, processed: 1, jobId: job.id }
   } catch (err) {
-    console.error(`Error processing job: ${err.message}`)
+    const errorMessage = err instanceof Error ? err.message : String(err);
+    logError(
+      'process-llm-job',
+      `Error processing job: ${errorMessage}`,
+      err,
+      'error'
+    )
     await updateJobStatus(job.id, 'error')
-    return { success: false, error: err.message }
+    return { success: false, error: errorMessage }
   }
 }
 
@@ -135,8 +162,14 @@ Deno.serve(async (req) => {
       status: result.success ? 200 : 500,
     })
   } catch (error) {
-    console.error(`Unhandled error: ${error.message}`)
-    return new Response(JSON.stringify({ error: error.message }), {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logError(
+      'process-llm-job',
+      `Unhandled error: ${errorMessage}`,
+      error,
+      'critical'
+    )
+    return new Response(JSON.stringify({ error: errorMessage }), {
       headers: { 'Content-Type': 'application/json' },
       status: 500,
     })

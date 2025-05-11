@@ -96,14 +96,21 @@ STRIPE_SECRET_KEY=test_key
 STRIPE_WEBHOOK_SECRET=test_webhook_secret
 ```
 
-### CI Pipeline
+### CI/CD Pipeline
 
-The project uses GitHub Actions for continuous integration. The CI pipeline runs:
+The project uses GitHub Actions for continuous integration and deployment:
+
+#### CI Pipeline
 - Linting
 - Type checking
 - Tests
+- Build verification
 
-The CI configuration is located in `.github/workflows/ci.yml`.
+#### CD Pipeline
+- Automatic deployment to Vercel on merge to main
+- Preview deployments for pull requests
+
+The CI/CD configuration is located in `.github/workflows/ci-cd.yml`.
 
 ### Vercel Deployment
 
@@ -114,9 +121,51 @@ NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 STRIPE_SECRET_KEY=your_stripe_secret_key
 STRIPE_WEBHOOK_SECRET=your_stripe_webhook_secret
+VERCEL_TOKEN=your_vercel_token
+ERROR_NOTIFICATION_WEBHOOK_URL=your_slack_webhook_url
 ```
 
 You can also update the build command in Vercel project settings to include tests:
 ```
 npm run lint && npm run typecheck && npm run test && next build
-```    
+```
+
+## Error Observability
+
+The application includes comprehensive error logging and observability:
+
+### Error Logging
+
+- Enhanced error logging in critical components:
+  - Stripe webhook handler
+  - RSS feed fetch (Deno edge function)
+  - LLM summarization job (Deno edge function)
+
+- Error levels:
+  - `info`: Informational messages
+  - `warning`: Potential issues that don't affect functionality
+  - `error`: Issues that affect functionality
+  - `critical`: Severe issues requiring immediate attention
+
+### Notification Channels
+
+Errors are automatically sent to configured notification channels:
+
+1. **Slack Integration**:
+   - Set `ERROR_NOTIFICATION_WEBHOOK_URL` environment variable to your Slack webhook URL
+   - Errors are formatted with details and sent to the configured Slack channel
+   - Different error levels are color-coded for visibility
+
+2. **Console Logging**:
+   - All errors are logged to the console with appropriate log levels
+   - Includes detailed error information for debugging
+
+### Configuration
+
+To enable error notifications, add the following environment variable:
+
+```
+ERROR_NOTIFICATION_WEBHOOK_URL=your_slack_webhook_url
+```
+
+This will send all warnings, errors, and critical issues to the configured Slack channel.       
