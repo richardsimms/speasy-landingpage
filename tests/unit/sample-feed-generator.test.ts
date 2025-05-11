@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import type { ContentItem, FeedInfo } from '../../lib/feed-generator';
 
-const generateFeed = (items, feedInfo) => {
+const generateFeed = (items: ContentItem[], feedInfo: FeedInfo) => {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0">
   <channel>
@@ -17,8 +18,8 @@ const generateFeed = (items, feedInfo) => {
 };
 
 describe('Sample Feed Generator', () => {
-  let mockItems;
-  let mockFeedInfo;
+  let mockItems: ContentItem[];
+  let mockFeedInfo: FeedInfo;
 
   beforeEach(() => {
     mockItems = [
@@ -31,7 +32,9 @@ describe('Sample Feed Generator', () => {
 
     mockFeedInfo = {
       title: 'Test Feed',
-      description: 'This is a test feed'
+      description: 'This is a test feed',
+      userId: 'test-user',
+      feedId: 'test-feed'
     };
   });
 
