@@ -43,7 +43,11 @@ function SettingsNavLink({ href, children }: { href: string; children: React.Rea
   const isActive = pathname === href
 
   return (
-    <Button variant={isActive ? "secondary" : "ghost"} className="justify-start" asChild>
+    <Button
+      variant={isActive ? "ghost" : "ghost"}
+      className={`justify-start${isActive ? " bg-accent/40" : ""}`}
+      asChild
+    >
       <Link href={href}>{children}</Link>
     </Button>
   )

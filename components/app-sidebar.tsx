@@ -148,7 +148,7 @@ export function AppSidebar() {
           </Button>
         </div>
       </div>
-      <AddContentDialog open={isAddContentOpen} onOpenChange={setIsAddContentOpen} />
+      {/* <AddContentDialog open={isAddContentOpen} onOpenChange={setIsAddContentOpen} /> */}
 
     </>
   )
