@@ -1,19 +1,43 @@
 import { NextResponse } from 'next/server';
-import { createAdminClient } from '@/lib/server-only';
-import { cookies } from 'next/headers';
+import { createClient } from '@supabase/supabase-js';
 
 export async function POST(request: Request) {
   try {
-    const supabase = createAdminClient();
-    const cookieStore = cookies();
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
-    if (userError || !user) {
+    // Create a direct Supabase client with admin privileges
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
+    );
+    
+    // Parse Authorization header
+    const authHeader = request.headers.get('Authorization');
+    let token = null;
+    
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.substring(7);
+    }
+    
+    // Use the token to get the user
+    let userId;
+    
+    if (token) {
+      // Try to use the token if available
+      const { data, error } = await supabase.auth.getUser(token);
+      if (!error && data?.user) {
+        userId = data.user.id;
+      }
+    }
+    
+    if (!userId) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
-    const userId = user.id;
+    
     // Delete user from Supabase Auth
     const { error: deleteError } = await supabase.auth.admin.deleteUser(userId);
     if (deleteError) {

@@ -1,14 +1,25 @@
 import { NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
-import { createAdminClient } from '@/lib/server-only';
+import { createClient } from '@supabase/supabase-js';
 import { headers } from 'next/headers';
 import { logError } from '@/lib/error-logger';
+
+// Initialize Supabase client directly
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  }
+);
 
 // Stripe webhook handler
 export async function POST(request: Request) {
   const body = await request.text();
   const signatureHeader = request.headers.get('stripe-signature');
-  const supabase = createAdminClient();
   
   if (!signatureHeader) {
     return NextResponse.json(
@@ -40,12 +51,12 @@ export async function POST(request: Request) {
   switch (event.type) {
     case 'checkout.session.completed':
       const session = event.data.object;
-      await handleCheckoutSessionCompleted(session, supabase);
+      await handleCheckoutSessionCompleted(session);
       break;
     case 'customer.subscription.created':
     case 'customer.subscription.updated':
       const subscription = event.data.object;
-      await handleSubscriptionUpdated(subscription, supabase);
+      await handleSubscriptionUpdated(subscription);
       break;
     default:
       logError('stripe-webhook', `Unhandled event type: ${event.type}`, { eventType: event.type }, 'info');
@@ -55,7 +66,7 @@ export async function POST(request: Request) {
 }
 
 // Handle completed checkout sessions
-async function handleCheckoutSessionCompleted(session: any, supabase: any) {
+async function handleCheckoutSessionCompleted(session: any) {
   try {
     const { customer_email } = session;
     
@@ -107,7 +118,7 @@ async function handleCheckoutSessionCompleted(session: any, supabase: any) {
 }
 
 // Handle subscription updates
-async function handleSubscriptionUpdated(subscription: any, supabase: any) {
+async function handleSubscriptionUpdated(subscription: any) {
   try {
     const customerId = subscription.customer;
     const status = subscription.status;
