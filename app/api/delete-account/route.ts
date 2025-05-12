@@ -3,10 +3,11 @@ import { createClient } from '@supabase/supabase-js';
 
 export async function POST(request: Request) {
   try {
-    // Create a direct Supabase client with admin privileges
+    // IMPORTANT: Only initialize the client inside the function
+    // This ensures it's not evaluated during build time
     const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+      process.env.SUPABASE_SERVICE_ROLE_KEY || '',
       {
         auth: {
           autoRefreshToken: false,

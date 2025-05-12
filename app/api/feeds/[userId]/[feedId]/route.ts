@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createAdminClient } from "@/lib/server-only"
+import { createClient } from "@supabase/supabase-js"
 import { generateRssFeedAsync, type ContentItem } from "@/lib/feed-generator"
 
 export async function GET(
@@ -9,10 +9,19 @@ export async function GET(
   const userId = context.params.userId
   const feedId = context.params.feedId
 
-
   console.log("userId", userId)
   try {
-    const supabase = createAdminClient()
+    // Initialize Supabase client inside the function
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+      process.env.SUPABASE_SERVICE_ROLE_KEY || '',
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
+    )
 
     // Find feed with `feed_url = 'default'` for this user
     const { data: feed, error: feedError } = await supabase

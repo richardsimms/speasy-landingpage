@@ -1,10 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/utils/supabase';
+import { createClient } from '@supabase/supabase-js';
 
 // Helper to get user id from Supabase session (using cookies/JWT)
 async function getUserId(req: NextRequest): Promise<string | null> {
   const token = req.headers.get('Authorization')?.replace('Bearer ', '') || req.cookies.get('sb-access-token')?.value;
   if (!token) return null;
+  
+  // Initialize Supabase client inside the function
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+  );
+  
   const { data, error } = await supabase.auth.getUser(token);
   if (error || !data?.user?.id) return null;
   return data.user.id;
@@ -16,6 +23,13 @@ export async function GET(req: NextRequest) {
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    
+    // Initialize Supabase client inside the function
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+    );
+    
     // Fetch category subscriptions
     const { data: categoryRows } = await supabase
       .from('user_category_subscriptions')
@@ -52,6 +66,13 @@ export async function PATCH(req: NextRequest) {
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    
+    // Initialize Supabase client inside the function
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+    );
+    
     const body = await req.json();
     const {
       categoryPreferences,

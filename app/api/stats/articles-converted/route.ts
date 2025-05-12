@@ -1,10 +1,16 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/utils/supabase';
+import { createClient } from '@supabase/supabase-js';
 
 export const dynamic = 'force-dynamic'; // Ensure this route is always dynamic
 
 export async function GET() {
   try {
+    // Initialize Supabase client inside the function
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+    );
+    
     // Call the new RPC function
     const { data, error } = await supabase.rpc('articles_converted_last_30_days');
     console.log('RPC data:', data, 'error:', error);
