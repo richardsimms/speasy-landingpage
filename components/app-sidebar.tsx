@@ -99,7 +99,11 @@ export function AppSidebar() {
             className="absolute right-2 top-3 opacity-0 transition-opacity group-hover:opacity-100"
             onClick={toggleSidebar}
           >
-            {isCollapsed ? <ChevronRight className="h-4 w-4 text-muted" /> : <ChevronLeft className="h-4 w-4 text-muted" />}
+            {isCollapsed ? (
+              <ChevronRight className="h-4 w-4 text-primary dark:text-primary" />
+            ) : (
+              <ChevronLeft className="h-4 w-4 text-primary dark:text-primary" />
+            )}
           </Button>
         </div>
 
@@ -108,8 +112,12 @@ export function AppSidebar() {
             {routes.map((route) => (
               <Button
                 key={route.href}
-                variant={route.active ? "secondary" : "ghost"}
-                className={cn("w-full justify-start", isCollapsed ? "px-2" : "px-4")}
+                variant="ghost"
+                className={cn(
+                  "w-full justify-start",
+                  isCollapsed ? "px-2" : "px-4",
+                  route.active && "bg-accent/40"
+                )}
                 asChild
               >
                 <Link href={route.href}>
@@ -140,8 +148,8 @@ export function AppSidebar() {
           </Button>
         </div>
       </div>
-
       <AddContentDialog open={isAddContentOpen} onOpenChange={setIsAddContentOpen} />
+
     </>
   )
 }
