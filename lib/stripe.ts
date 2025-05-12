@@ -13,8 +13,10 @@ export const getStripe = () => {
 // For server-side operations with build-time safety
 const createStripeClient = () => {
   // During build time or if no API key is available, return a mock
-  if (process.env.NEXT_PUBLIC_BUILD_MODE === 'true' || !process.env.STRIPE_SECRET_KEY) {
-    console.log('Using mock Stripe client for build or missing API key');
+  if (process.env.NEXT_PUBLIC_BUILD_MODE === 'true' || 
+      !process.env.STRIPE_SECRET_KEY || 
+      process.env.NODE_ENV === 'test') {
+    console.log('Using mock Stripe client (build mode, missing API key, or test environment)');
     return {
       webhooks: {
         constructEvent: () => ({
