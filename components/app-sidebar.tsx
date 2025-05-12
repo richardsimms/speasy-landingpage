@@ -59,13 +59,16 @@ export function AppSidebar() {
   if (isMobile) {
     return (
       <>
-        <div className="fixed bottom-0 left-0 right-0 z-50 border-t backdrop-blur supports-[backdrop-filter]:bg-accent/40">
+        <div className="fixed bottom-0 left-0 right-0 z-50 border-t backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <div className="grid h-16 grid-cols-4">
             {routes.map((route) => (
               <Button
                 key={route.href}
-                variant={route.active ? "secondary" : "ghost"}
-                className="h-full flex-col gap-1 rounded-none"
+                variant="ghost"
+                className={cn(
+                  "h-full flex-col gap-1 rounded-none",
+                  route.active && "bg-accent/40"
+                )}
                 asChild
               >
                 <Link href={route.href}>
