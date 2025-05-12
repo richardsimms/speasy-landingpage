@@ -24,11 +24,21 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
 }
 
 export async function generateStaticParams() {
-  const posts = await getBlogPosts()
-
-  return posts.map((post) => ({
-    slug: post.slug,
-  }))
+  try {
+    const posts = await getBlogPosts();
+    
+    if (!posts || !Array.isArray(posts) || posts.length === 0) {
+      console.log('No blog posts found for generating static params');
+      return [];
+    }
+    
+    return posts.map((post) => ({
+      slug: post.slug,
+    }));
+  } catch (error) {
+    console.error('Error generating static params for blog posts:', error);
+    return [];
+  }
 }
 
 export default async function BlogPostPage({ params }: BlogPostPageProps) {

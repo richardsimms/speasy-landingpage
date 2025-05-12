@@ -36,47 +36,67 @@ const MOCK_BLOG_POSTS: BlogPost[] = [
 ];
 
 export async function getBlogPosts(): Promise<BlogPost[]> {
-  const supabase = createServerSafeClient();
-  
-  // Handle build time specially to return mock data immediately
-  if (process.env.NEXT_PUBLIC_BUILD_MODE === 'true') {
-    return MOCK_BLOG_POSTS;
-  }
-  
-  const { data, error } = await supabase
-    .from("blog_posts")
-    .select("*")
-    .eq("is_published", true)
-    .order("published_at", { ascending: false })
+  try {
+    // Handle build time specially to return mock data immediately
+    if (process.env.NEXT_PUBLIC_BUILD_MODE === 'true') {
+      return MOCK_BLOG_POSTS;
+    }
+    
+    const supabase = await createServerSafeClient();
+    
+    const { data, error } = await supabase
+      .from("blog_posts")
+      .select("*")
+      .eq("is_published", true)
+      .order("published_at", { ascending: false });
 
-  if (error) {
-    console.error("Error fetching blog posts:", error)
-    return []
-  }
+    if (error) {
+      console.error("Error fetching blog posts:", error);
+      return [];
+    }
 
-  return data as BlogPost[]
+    if (!data || !Array.isArray(data)) {
+      console.error("No blog posts data returned or data is not an array");
+      return [];
+    }
+
+    return data as BlogPost[];
+  } catch (error) {
+    console.error("Exception fetching blog posts:", error);
+    return [];
+  }
 }
 
 export async function getBlogPostBySlug(slug: string): Promise<BlogPost> {
-  const supabase = createServerSafeClient();
-  
-  // Handle build time specially to return mock data immediately
-  if (process.env.NEXT_PUBLIC_BUILD_MODE === 'true') {
-    const post = MOCK_BLOG_POSTS.find(post => post.slug === slug) || MOCK_BLOG_POSTS[0];
-    return post;
-  }
-  
-  const { data, error } = await supabase
-    .from("blog_posts")
-    .select("*")
-    .eq("slug", slug)
-    .eq("is_published", true)
-    .single()
+  try {
+    // Handle build time specially to return mock data immediately
+    if (process.env.NEXT_PUBLIC_BUILD_MODE === 'true') {
+      const post = MOCK_BLOG_POSTS.find(post => post.slug === slug) || MOCK_BLOG_POSTS[0];
+      return post;
+    }
+    
+    const supabase = await createServerSafeClient();
+    
+    const { data, error } = await supabase
+      .from("blog_posts")
+      .select("*")
+      .eq("slug", slug)
+      .eq("is_published", true)
+      .single();
 
-  if (error || !data) {
-    console.error("Error fetching blog post:", error)
-    notFound()
-  }
+    if (error) {
+      console.error(`Error fetching blog post with slug "${slug}":`, error);
+      notFound();
+    }
 
-  return data as BlogPost
+    if (!data) {
+      console.error(`Blog post with slug "${slug}" not found`);
+      notFound();
+    }
+
+    return data as BlogPost;
+  } catch (error) {
+    console.error(`Exception fetching blog post with slug "${slug}":`, error);
+    notFound();
+  }
 }

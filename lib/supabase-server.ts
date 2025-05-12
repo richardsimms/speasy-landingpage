@@ -88,7 +88,7 @@ const createMockSupabaseClient = () => {
 /**
  * Creates a Supabase client for use in server components that works during build
  */
-export function createServerSafeClient() {
+export async function createServerSafeClient() {
   // During build time or if environment variables are missing, return a mock client
   if (process.env.NEXT_PUBLIC_BUILD_MODE === 'true' || 
       !process.env.NEXT_PUBLIC_SUPABASE_URL || 
@@ -101,7 +101,8 @@ export function createServerSafeClient() {
     // Next.js has improved error handling for context-dependent APIs like cookies()
     // Try-catch prevents errors during static site generation or outside request context
     try {
-      return createServerComponentClient({ cookies });
+      const cookieStore = cookies();
+      return createServerComponentClient({ cookies: () => cookieStore });
     } catch (cookieError) {
       console.warn('Called cookies() outside request context, falling back to mock client');
       return createMockSupabaseClient();
