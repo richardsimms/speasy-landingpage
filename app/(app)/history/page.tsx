@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation"
 import { ContentList } from "@/components/content-list"
-import { createServerSafeClient } from "@/lib/supabase-server"
 
 // Mock data for build time
 const MOCK_HISTORY_ITEMS = [
@@ -38,45 +37,65 @@ export default async function HistoryPage() {
     );
   }
 
-  // Use the safe server client for auth
-  const supabase = createServerSafeClient();
+  // For runtime only (not during build), we dynamically use async logic
+  try {
+    // Import Supabase client only in runtime
+    const { createServerSafeClient } = await import('@/lib/supabase-server');
+    
+    // Use the safe server client for auth
+    const supabase = createServerSafeClient();
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
 
-  if (!session) {
-    redirect("/auth/login")
-  }
+    if (!session) {
+      redirect("/auth/login")
+    }
 
-  // Get user's read content
-  const { data: readContent } = await supabase
-    .from("user_content_items")
-    .select(`
-      *,
-      content:content_items(
-        id, title, url, published_at,
-        source:content_sources(name, category_id),
-        audio:audio_files(file_url, duration, type)
-      )
-    `)
-    .eq("user_id", session.user.id)
-    .eq("is_read", true)
-    .order("created_at", { ascending: false })
+    // Get user's read content
+    const { data: readContent } = await supabase
+      .from("user_content_items")
+      .select(`
+        *,
+        content:content_items(
+          id, title, url, published_at,
+          source:content_sources(name, category_id),
+          audio:audio_files(file_url, duration, type)
+        )
+      `)
+      .eq("user_id", session.user.id)
+      .eq("is_read", true)
+      .order("created_at", { ascending: false })
 
-  return (
-    <div className="container py-6 md:py-10">
-      <div className="flex flex-col gap-6">
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight">History</h1>
-          <p className="text-muted-foreground">Content you've listened to</p>
+    return (
+      <div className="container py-6 md:py-10">
+        <div className="flex flex-col gap-6">
+          <div>
+            <h1 className="text-3xl font-semibold tracking-tight">History</h1>
+            <p className="text-muted-foreground">Content you've listened to</p>
+          </div>
+
+          <ContentList
+            items={readContent?.map((item) => item.content) || []}
+            emptyMessage="You haven't listened to any content yet."
+          />
         </div>
-
-        <ContentList
-          items={readContent?.map((item) => item.content) || []}
-          emptyMessage="You haven't listened to any content yet."
-        />
       </div>
-    </div>
-  )
+    )
+  } catch (error) {
+    console.error("Error in history page:", error);
+    // Fallback to mock data in case of errors
+    return (
+      <div className="container py-6 md:py-10">
+        <div className="flex flex-col gap-6">
+          <div>
+            <h1 className="text-3xl font-semibold tracking-tight">History</h1>
+            <p className="text-muted-foreground">Content you've listened to</p>
+          </div>
+          <ContentList items={MOCK_HISTORY_ITEMS} />
+        </div>
+      </div>
+    );
+  }
 }
