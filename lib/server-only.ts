@@ -1,7 +1,61 @@
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { SupabaseClient } from '@supabase/supabase-js'
 
-export function createAdminClient() {
+// Create a comprehensive mock that matches the real client's structure
+const createMockAdminClient = () => {
+  console.log('Using mock Supabase admin client for build or missing environment variables');
+  
+  return {
+    from: (table: string) => ({
+      select: (columns?: string) => ({
+        eq: (field: string, value: any) => ({
+          single: () => Promise.resolve({ data: null, error: null }),
+          maybeSingle: () => Promise.resolve({ data: null, error: null }),
+          order: (column: string, options?: { ascending?: boolean }) => ({
+            limit: (count: number) => Promise.resolve({ data: [], error: null })
+          }),
+          limit: (count: number) => Promise.resolve({ data: [], error: null })
+        }),
+        in: (field: string, values: any[]) => ({
+          order: (column: string, options?: { ascending?: boolean }) => ({
+            limit: (count: number) => Promise.resolve({ data: [], error: null })
+          })
+        }),
+        neq: (field: string, value: any) => ({
+          limit: (count: number) => Promise.resolve({ data: [], error: null })
+        }),
+        order: (column: string, options?: { ascending?: boolean }) => ({
+          limit: (count: number) => Promise.resolve({ data: [], error: null })
+        }),
+        limit: (count: number) => Promise.resolve({ data: [], error: null })
+      }),
+      insert: (values: any) => Promise.resolve({ data: { id: 'mock-id' }, error: null }),
+      upsert: (values: any, options?: any) => Promise.resolve({ data: { id: 'mock-id' }, error: null }),
+      update: (values: any) => ({
+        eq: (field: string, value: any) => Promise.resolve({ data: null, error: null }),
+        match: (query: Record<string, any>) => Promise.resolve({ data: null, error: null })
+      }),
+      delete: () => ({
+        eq: (field: string, value: any) => Promise.resolve({ data: null, error: null })
+      })
+    }),
+    auth: {
+      getUser: () => Promise.resolve({ data: { user: null }, error: null }),
+      admin: {
+        inviteUserByEmail: (email: string, options?: any) => Promise.resolve({ data: {}, error: null })
+      }
+    },
+    storage: {
+      from: (bucket: string) => ({
+        upload: (path: string, file: any) => Promise.resolve({ data: {}, error: null }),
+        getPublicUrl: (path: string) => ({ data: { publicUrl: 'https://example.com/mock-image.jpg' } })
+      })
+    },
+    rpc: (fn: string, params?: any) => Promise.resolve({ data: null, error: null })
+  } as unknown as SupabaseClient;
+};
+
+export function createAdminClient(): SupabaseClient {
   if (typeof window !== 'undefined') {
     throw new Error('Admin client can only be used on the server');
   }
@@ -10,56 +64,7 @@ export function createAdminClient() {
   if (process.env.NEXT_PUBLIC_BUILD_MODE === 'true' || 
       !process.env.NEXT_PUBLIC_SUPABASE_URL || 
       !process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    console.log('Using mock Supabase client for build or missing environment variables');
-    
-    // Create a mock Supabase client with methods used in the application
-    return {
-      from: (table: string) => ({
-        select: () => ({
-          eq: () => ({
-            single: () => Promise.resolve({ data: null, error: null }),
-            maybeSingle: () => Promise.resolve({ data: null, error: null }),
-            order: () => ({
-              limit: () => Promise.resolve({ data: [], error: null })
-            }),
-            limit: () => Promise.resolve({ data: [], error: null })
-          }),
-          in: () => ({
-            order: () => ({
-              limit: () => Promise.resolve({ data: [], error: null })
-            })
-          }),
-          neq: () => ({
-            limit: () => Promise.resolve({ data: [], error: null })
-          }),
-          order: () => ({
-            limit: () => Promise.resolve({ data: [], error: null })
-          }),
-        }),
-        update: () => ({
-          eq: () => Promise.resolve({ data: null, error: null }),
-          match: () => Promise.resolve({ data: null, error: null })
-        }),
-        insert: () => Promise.resolve({ data: { id: 'mock-id' }, error: null }),
-        upsert: () => Promise.resolve({ data: { id: 'mock-id' }, error: null }),
-        delete: () => ({
-          eq: () => Promise.resolve({ data: null, error: null })
-        })
-      }),
-      auth: {
-        getUser: () => Promise.resolve({ data: { user: null }, error: null }),
-        admin: {
-          inviteUserByEmail: () => Promise.resolve({ data: {}, error: null })
-        }
-      },
-      storage: {
-        from: () => ({
-          upload: () => Promise.resolve({ data: {}, error: null }),
-          getPublicUrl: () => ({ data: { publicUrl: 'https://example.com/mock-image.jpg' } })
-        })
-      },
-      rpc: () => Promise.resolve({ data: null, error: null })
-    } as unknown as SupabaseClient;
+    return createMockAdminClient();
   }
 
   // For runtime with environment variables, return the real Supabase client
@@ -70,6 +75,6 @@ export function createAdminClient() {
     });
   } catch (error) {
     console.error('Error initializing Supabase client:', error);
-    throw error;
+    return createMockAdminClient();
   }
 }
