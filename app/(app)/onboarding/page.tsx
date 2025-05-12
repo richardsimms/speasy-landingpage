@@ -1,4 +1,3 @@
-import { cookies } from 'next/headers';
 import OnboardingPageClient from './OnboardingPageClient';
 
 // Sample mock data for build time
@@ -23,7 +22,8 @@ export default function OnboardingPage() {
   // We have to use a dynamic import hack to defer the async logic
   const runtime = async () => {
     try {
-      // Import Supabase client only in runtime
+      // Import dependencies only in runtime
+      const { cookies } = await import('next/headers');
       const { createServerSafeClient } = await import('@/lib/supabase-server');
       
       // Define the getUserPreferences function inside runtime context
@@ -53,7 +53,7 @@ export default function OnboardingPage() {
       };
       
       // Get user session from cookies
-      const cookieStore = await cookies();
+      const cookieStore = cookies();
       const accessToken = cookieStore.get('sb-access-token')?.value;
       
       if (!accessToken) {
