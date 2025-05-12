@@ -38,6 +38,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [...staticRoutes, ...blogRoutes]
 }
 
+// This function already uses the direct Supabase client which doesn't rely on cookies
 async function fetchBlogPosts(): Promise<BlogPost[]> {
   try {
     const { data: posts, error } = await supabase
@@ -51,7 +52,6 @@ async function fetchBlogPosts(): Promise<BlogPost[]> {
       return []
     }
 
-    console.log('Fetched posts:', posts) // Debug log
     return posts || []
   } catch (e) {
     console.error('Exception in fetchBlogPosts:', e)
