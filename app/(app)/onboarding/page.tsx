@@ -53,7 +53,7 @@ export default function OnboardingPage() {
       };
       
       // Get user session from cookies
-      const cookieStore = cookies();
+      const cookieStore = await cookies();
       const accessToken = cookieStore.get('sb-access-token')?.value;
       
       if (!accessToken) {
