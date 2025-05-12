@@ -96,7 +96,7 @@ export function AppSidebar() {
           <Button
             variant="ghost"
             size="icon"
-            className="absolute right-2 top-3 opacity-0 transition-opacity group-hover:opacity-100"
+            className="absolute right-2 top-3 transition-opacity group-hover:opacity-100"
             onClick={toggleSidebar}
           >
             {isCollapsed ? (
@@ -128,7 +128,7 @@ export function AppSidebar() {
             ))}
           </div>
 
-          <div className="mt-4 px-2">
+{/*           <div className="mt-4 px-2">
             <Button
               className={cn("w-full justify-start", isCollapsed ? "px-2" : "px-4")}
               onClick={() => setIsAddContentOpen(true)}
@@ -136,9 +136,7 @@ export function AppSidebar() {
               <PlusCircle className="h-5 w-5" />
               {!isCollapsed && <span className="ml-2">Add Content</span>}
             </Button>
-          </div>
-        </ScrollArea>
-
+          </div> */}
         <div className="mt-auto border-t p-2">
           <Button variant="ghost" className={cn("w-full justify-start", isCollapsed ? "px-2" : "px-4")} asChild>
             <Link href="/settings/profile">
@@ -147,6 +145,8 @@ export function AppSidebar() {
             </Link>
           </Button>
         </div>
+        </ScrollArea>
+
       </div>
       {/* <AddContentDialog open={isAddContentOpen} onOpenChange={setIsAddContentOpen} /> */}
 
