@@ -2,10 +2,11 @@ import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
 import { cookies } from "next/headers"
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
+import { isTestEnvironment } from "@/utils/environment"
 
 export async function GET(request: NextRequest) {
   // Skip in test environment
-  if (process.env.NODE_ENV === 'test') {
+  if (isTestEnvironment()) {
     console.log('Test environment - skipping auth callback processing');
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }

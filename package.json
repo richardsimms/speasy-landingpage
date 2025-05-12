@@ -7,12 +7,13 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "NODE_ENV=test vitest run",
-    "test:watch": "NODE_ENV=test vitest",
-    "test:coverage": "NODE_ENV=test vitest run --coverage",
-    "test:ui": "NODE_ENV=test vitest --ui",
+    "test": "NODE_ENV=test VITEST=true vitest run",
+    "test:watch": "NODE_ENV=test VITEST=true vitest",
+    "test:coverage": "NODE_ENV=test VITEST=true vitest run --coverage",
+    "test:ui": "NODE_ENV=test VITEST=true vitest --ui",
     "typecheck": "tsc --noEmit",
-    "vercel-build": "./scripts/vercel-build.sh"
+    "vercel-build": "./scripts/vercel-build.sh",
+    "prod:build": "NODE_ENV=production next build"
   },
   "dependencies": {
     "@emotion/is-prop-valid": "^1.2.1",

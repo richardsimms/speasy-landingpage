@@ -1,10 +1,11 @@
 import { createMiddlewareClient } from "@supabase/auth-helpers-nextjs"
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
+import { isTestEnvironment } from "@/utils/environment"
 
 export async function middleware(req: NextRequest) {
   // Skip auth checks during testing to prevent test/production conflicts
-  if (process.env.NODE_ENV === 'test') {
+  if (isTestEnvironment()) {
     console.log('Skipping auth checks in middleware for test environment');
     return NextResponse.next();
   }

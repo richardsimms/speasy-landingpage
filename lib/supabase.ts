@@ -1,5 +1,6 @@
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { SupabaseClient } from "@supabase/supabase-js"
+import { isTestEnvironment, isBuildTime } from "@/utils/environment"
 
 // Mock client for test and build environments
 const createMockClient = () => {
@@ -37,8 +38,8 @@ const createMockClient = () => {
 
 // Export createClient for client components
 export function createClient() {
-  // If we're in test environment, use a mock client
-  if (typeof window !== 'undefined' && process.env.NODE_ENV === 'test') {
+  // If we're in test environment or during build, use a mock client
+  if (isTestEnvironment() || isBuildTime()) {
     return createMockClient();
   }
   

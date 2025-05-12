@@ -1,5 +1,6 @@
 import { Stripe as StripeClient, loadStripe } from '@stripe/stripe-js';
 import Stripe from 'stripe';
+import { isTestEnvironment, isBuildTime } from '@/utils/environment';
 
 // Loading Stripe on the client side
 let stripePromise: Promise<StripeClient | null>;
@@ -13,9 +14,9 @@ export const getStripe = () => {
 // For server-side operations with build-time safety
 const createStripeClient = () => {
   // During build time or if no API key is available, return a mock
-  if (process.env.NEXT_PUBLIC_BUILD_MODE === 'true' || 
+  if (isBuildTime() || 
       !process.env.STRIPE_SECRET_KEY || 
-      process.env.NODE_ENV === 'test') {
+      isTestEnvironment()) {
     console.log('Using mock Stripe client (build mode, missing API key, or test environment)');
     return {
       webhooks: {

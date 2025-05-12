@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { createClient } from '@/lib/supabase'
+import { isTestEnvironment } from '@/utils/environment'
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -21,7 +22,7 @@ export default function LoginPage() {
     const checkSession = async () => {
       try {
         // Skip in test environments to avoid redirects during tests
-        if (process.env.NODE_ENV === 'test') {
+        if (isTestEnvironment()) {
           return;
         }
         
@@ -45,7 +46,7 @@ export default function LoginPage() {
     setMessage(null)
 
     // Skip actual login in test environment
-    if (process.env.NODE_ENV === 'test') {
+    if (isTestEnvironment()) {
       console.log('Test environment - skipping actual login');
       setMessage({
         type: "success",

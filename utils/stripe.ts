@@ -1,8 +1,10 @@
+import { isTestEnvironment } from "@/utils/environment";
+
 // Function to create a Stripe checkout session
 export const createCheckoutSession = async (email?: string) => {
   try {
     // Mock session for tests
-    if (process.env.NODE_ENV === 'test') {
+    if (isTestEnvironment()) {
       console.log('Test environment - mocking checkout session');
       return { sessionUrl: 'https://checkout.stripe.com/mock-session' };
     }
@@ -44,7 +46,7 @@ const ensureMetaTags = () => {
 export const redirectToStripeCheckout = async () => {
   try {
     // Skip actual redirect in test environment
-    if (process.env.NODE_ENV === 'test') {
+    if (isTestEnvironment()) {
       console.log('Test environment - skipping redirect to Stripe');
       return;
     }
