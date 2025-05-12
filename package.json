@@ -11,7 +11,8 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:ui": "vitest --ui",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "vercel-build": "./scripts/vercel-build.sh"
   },
   "dependencies": {
     "@emotion/is-prop-valid": "^1.2.1",

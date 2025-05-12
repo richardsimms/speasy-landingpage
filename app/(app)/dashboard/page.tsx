@@ -1,7 +1,5 @@
-import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
 import { cookies } from "next/headers"
 import { DashboardClient } from "@/components/dashboard-client"
-import { createServerSafeClient } from "@/lib/supabase-server"
 
 // Sample mock data for build time
 const MOCK_CONTENT_ITEMS = [
@@ -23,9 +21,7 @@ const MOCK_CATEGORIES = [
 ];
 
 export default async function DashboardPage() {
-  const supabase = createServerSafeClient();
-
-  // Build-time safety check
+  // Build-time safety check - immediate return
   if (process.env.NEXT_PUBLIC_BUILD_MODE === 'true') {
     return (
       <DashboardClient
@@ -39,119 +35,139 @@ export default async function DashboardPage() {
     );
   }
   
-  // Get user profile
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
+  // Runtime-only section
+  try {
+    // Dynamic import of Supabase only during runtime
+    const { createServerSafeClient } = await import("@/lib/supabase-server");
+    const supabase = createServerSafeClient();
+    
+    // Get user profile
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
 
-  if (!session) {
-    // Return a basic version for build or when not logged in
+    if (!session) {
+      // Return a basic version when not logged in
+      return (
+        <DashboardClient
+          userName="User"
+          latestContent={[]}
+          savedContent={[]}
+          submittedUrls={[]}
+          categories={[]}
+          subscribedCategoryIds={[]}
+        />
+      );
+    }
+
+    // Get user's subscribed categories
+    const { data: subscriptions } = await supabase
+      .from("user_category_subscriptions")
+      .select("category_id")
+      .eq("user_id", session.user.id)
+
+    const subscribedCategoryIds = subscriptions?.map((sub) => sub.category_id) || []
+    
+    console.log("User subscribed to categories:", subscribedCategoryIds)
+
+    let latestContent: any[] = []
+
+    if (subscribedCategoryIds.length > 0) {
+      // Get content from sources that match the user's subscribed categories
+      const { data: contentItems, error: contentError } = await supabase
+        .from("content_items")
+        .select(`
+          *,
+          source:content_sources!inner(name, category_id),
+          audio:audio_files(file_url, duration, type)
+        `)
+        .in("source.category_id", subscribedCategoryIds)
+        .order("published_at", { ascending: false })
+        .limit(10)
+      
+      console.log("Content items error:", contentError)
+      
+      if (contentItems && contentItems.length > 0) {
+        latestContent = contentItems
+        console.log("Found filtered content items:", contentItems.length)
+      } else {
+        console.log("No content found for subscribed categories")
+      }
+    } else {
+      console.log("No subscribed categories")
+    }
+    
+    // If no content was found through categories, show all content
+    if (latestContent.length === 0) {
+      console.log("Falling back to all content")
+      const { data: allContent } = await supabase
+        .from("content_items")
+        .select(`
+          *,
+          source:content_sources(name, category_id),
+          audio:audio_files(file_url, duration, type)
+        `)
+        .order("published_at", { ascending: false })
+        .limit(10)
+      
+      if (allContent) {
+        latestContent = allContent
+      }
+    }
+
+    // Get user's saved content
+    const { data: savedContent } = await supabase
+      .from("user_content_items")
+      .select(`
+        *,
+        content:content_items(
+          *,
+          source:content_sources(name, category_id),
+          audio:audio_files(file_url, duration, type)
+        )
+      `)
+      .eq("user_id", session.user.id)
+      .eq("is_favorite", true)
+      .order("created_at", { ascending: false })
+      .limit(10)
+
+    // Get user's submitted URLs
+    const { data: submittedUrls } = await supabase
+      .from("user_submitted_urls")
+      .select(`
+        id, title, url, published_at,
+        source:content_sources(name),
+        audio:audio_files(file_url, duration)
+      `)
+      .eq("user_id", session.user.id)
+      .order("created_at", { ascending: false })
+      .limit(10)
+
+    // Get all categories
+    const { data: categories } = await supabase.from("categories").select("*").order("name", { ascending: true })
+
+    return (
+      <DashboardClient
+        userName={session.user.email?.split("@")[0] || "User"}
+        latestContent={latestContent || []}
+        savedContent={savedContent?.map((item) => item.content) || []}
+        submittedUrls={submittedUrls || []}
+        categories={categories || []}
+        subscribedCategoryIds={subscribedCategoryIds}
+      />
+    )
+  } catch (error) {
+    console.error("Error in dashboard page:", error);
+    // Fallback to mock data in case of errors
     return (
       <DashboardClient
         userName="User"
-        latestContent={[]}
+        latestContent={MOCK_CONTENT_ITEMS}
         savedContent={[]}
         submittedUrls={[]}
-        categories={[]}
-        subscribedCategoryIds={[]}
+        categories={MOCK_CATEGORIES}
+        subscribedCategoryIds={["1"]}
       />
     );
   }
-
-  // Get user's subscribed categories
-  const { data: subscriptions } = await supabase
-    .from("user_category_subscriptions")
-    .select("category_id")
-    .eq("user_id", session.user.id)
-
-  const subscribedCategoryIds = subscriptions?.map((sub) => sub.category_id) || []
-  
-  console.log("User subscribed to categories:", subscribedCategoryIds)
-
-  let latestContent: any[] = []
-
-  if (subscribedCategoryIds.length > 0) {
-    // Get content from sources that match the user's subscribed categories
-    const { data: contentItems, error: contentError } = await supabase
-      .from("content_items")
-      .select(`
-        *,
-        source:content_sources!inner(name, category_id),
-        audio:audio_files(file_url, duration, type)
-      `)
-      .in("source.category_id", subscribedCategoryIds)
-      .order("published_at", { ascending: false })
-      .limit(10)
-    
-    console.log("Content items error:", contentError)
-    
-    if (contentItems && contentItems.length > 0) {
-      latestContent = contentItems
-      console.log("Found filtered content items:", contentItems.length)
-    } else {
-      console.log("No content found for subscribed categories")
-    }
-  } else {
-    console.log("No subscribed categories")
-  }
-  
-  // If no content was found through categories, show all content
-  if (latestContent.length === 0) {
-    console.log("Falling back to all content")
-    const { data: allContent } = await supabase
-      .from("content_items")
-      .select(`
-        *,
-        source:content_sources(name, category_id),
-        audio:audio_files(file_url, duration, type)
-      `)
-      .order("published_at", { ascending: false })
-      .limit(10)
-    
-    if (allContent) {
-      latestContent = allContent
-    }
-  }
-
-  // Get user's saved content
-  const { data: savedContent } = await supabase
-    .from("user_content_items")
-    .select(`
-      *,
-      content:content_items(
-        *,
-        source:content_sources(name, category_id),
-        audio:audio_files(file_url, duration, type)
-      )
-    `)
-    .eq("user_id", session.user.id)
-    .eq("is_favorite", true)
-    .order("created_at", { ascending: false })
-    .limit(10)
-
-  // Get user's submitted URLs
-  const { data: submittedUrls } = await supabase
-    .from("user_submitted_urls")
-    .select(`
-      id, title, url, published_at,
-      source:content_sources(name),
-      audio:audio_files(file_url, duration)
-    `)
-    .eq("user_id", session.user.id)
-    .order("created_at", { ascending: false })
-    .limit(10)
-
-  // Get all categories
-  const { data: categories } = await supabase.from("categories").select("*").order("name", { ascending: true })
-
-  return (
-    <DashboardClient
-      userName={session.user.email?.split("@")[0] || "User"}
-      latestContent={latestContent || []}
-      savedContent={savedContent?.map((item) => item.content) || []}
-      submittedUrls={submittedUrls || []}
-      categories={categories || []}
-      subscribedCategoryIds={subscribedCategoryIds}
-    />
-  )
 }

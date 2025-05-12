@@ -1,5 +1,4 @@
 import { MetadataRoute } from 'next'
-import { supabase } from '@/utils/supabase'
 
 interface BlogPost {
   slug: string
@@ -58,6 +57,9 @@ async function fetchBlogPosts(): Promise<BlogPost[]> {
   }
   
   try {
+    // Dynamically import Supabase client only during runtime
+    const { supabase } = await import('@/utils/supabase');
+    
     const { data: posts, error } = await supabase
       .from('blog_posts')
       .select('slug, updated_at')

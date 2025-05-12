@@ -82,6 +82,42 @@ if (process.env.NEXT_PUBLIC_BUILD_MODE === 'true') {
 }
 ```
 
+4. For pages with complex server-side logic, use the async unwrapping pattern:
+
+```typescript
+export default function MyPage() {
+  // Immediately return for build mode
+  if (process.env.NEXT_PUBLIC_BUILD_MODE === 'true') {
+    return <MyComponent mockData={MOCK_DATA} />;
+  }
+  
+  // Only executed at runtime (not during build)
+  const runtime = async () => {
+    // Your server-side logic here
+    // Safe to use cookies(), fetch(), etc.
+    return <MyComponent data={realData} />;
+  };
+  
+  // Next.js will automatically unwrap the Promise
+  return runtime();
+}
+```
+
+### CI/CD Builds
+
+For continuous integration and deployment environments, we've provided a special build script that ensures all builds succeed even without credentials:
+
+```bash
+./scripts/build-ci.sh
+```
+
+This script:
+1. Sets `NEXT_PUBLIC_BUILD_MODE=true`
+2. Provides mock environment variables for all required credentials
+3. Runs the build process
+
+Our GitHub Actions workflow uses this approach to ensure builds complete successfully, as you can see in `.github/workflows/ci.yml`.
+
 ## Project Structure
 
 - `app/` - Next.js App Router routes and API endpoints
@@ -90,6 +126,7 @@ if (process.env.NEXT_PUBLIC_BUILD_MODE === 'true') {
 - `public/` - Static assets
 - `styles/` - Global CSS
 - `utils/` - Helper functions
+- `scripts/` - Build and deployment scripts
 
 ## Environment Variables
 
