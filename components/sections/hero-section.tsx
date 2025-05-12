@@ -67,8 +67,6 @@ export default function HeroSection() {
 
   const fetcher = (url: string) => fetch(url).then(res => res.json());
   const { data, error } = useSWR('/api/stats/articles-converted', fetcher, { refreshInterval: 300000 });
-
-  // Only show the real database number if available, otherwise fall back to 1000
   const liveCount = data && typeof data.count === 'number' ? data.count : 1000;
   const isApiError = !!error || (data && data.count == null);
 
@@ -84,10 +82,10 @@ export default function HeroSection() {
               transition={{ duration: 0.5 }}
             >
               <h1 className="text-4xl font-bold tracking-tight sm:text-6xl xl:text-7xl/none">
-              Turn newsletters into <span className="text-primary">Podcast.</span> - Listen, don't read.
+                Turn your inbox into a <span className="text-primary">Podcast.</span> Start listening today. 
               </h1>
               <p className="max-w-[600px] text-muted-foreground text-xl">
-              Speasy instantly converts your favourite newsletters into short, high-quality audio summaries. No setup, no clutter-just subscribe, press play, and catch up on the go.
+                Speasy transforms popular newsletters into podcast-style summaries you can listen to on the go. No inbox setup required—just subscribe, press play, and reclaim your time.
               </p>
             </motion.div>
             <motion.div
@@ -191,7 +189,7 @@ export default function HeroSection() {
                       </div>
                       <span className="font-medium">Podcast app</span>
                     </div>
-                    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-primary-foreground dark:text-primary">
+                    <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
                       <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2">
                         <circle cx="12" cy="12" r="10" />
                         <path d="M12 8v8" />

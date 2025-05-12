@@ -16,18 +16,26 @@ export async function GET(req: NextRequest) {
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    // Fetch category subscriptions
+    // Fetch category subscriptions and join with categories to get names
     const { data: categoryRows } = await supabase
       .from('user_category_subscriptions')
-      .select('category_id')
+      .select('category_id, categories(name)')
       .eq('user_id', userId);
 
-    const categoryPreferences = categoryRows?.map(row => row.category_id) || [];
+    const categoryPreferences = categoryRows?.map(row => row.categories.name) || [];
 
-    // Fetch preferences from user_onboarding_metadata
+    // Fetch preferences from users and user_onboarding_metadata
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('categoryPreferences')
+      .eq('id', userId)
+      .single();
+    if (userError) {
+      return NextResponse.json({ error: userError.message }, { status: 500 });
+    }
     const { data: meta, error: metaError } = await supabase
       .from('user_onboarding_metadata')
-      .select('listening_context, session_length, preferred_tone, exclusions, otherCategory')
+      .select('listening_context, session_length, preferred_tone, exclusions')
       .eq('user_id', userId)
       .single();
     if (metaError && metaError.code !== 'PGRST116') { // PGRST116: No rows found
@@ -39,7 +47,6 @@ export async function GET(req: NextRequest) {
       session_length: meta?.session_length || '',
       preferred_tone: meta?.preferred_tone || '',
       exclusions: meta?.exclusions || '',
-      otherCategory: meta?.otherCategory || '',
     });
   } catch (err: any) {
     return NextResponse.json({ error: err.message || 'Unknown error' }, { status: 500 });
@@ -59,10 +66,13 @@ export async function PATCH(req: NextRequest) {
       session_length,
       preferred_tone,
       exclusions,
-      otherCategory,
     } = body;
 
-    // Validate fields (optional, but must be string or empty)
+    // Validate categoryPreferences (required, array of strings)
+    if (!Array.isArray(categoryPreferences) || categoryPreferences.length === 0 || !categoryPreferences.every((v: any) => typeof v === 'string')) {
+      return NextResponse.json({ error: 'categoryPreferences is required and must be an array of strings' }, { status: 400 });
+    }
+    // Validate other fields (optional, but must be string or empty)
     if (listening_context && typeof listening_context !== 'string') {
       return NextResponse.json({ error: 'listening_context must be a string' }, { status: 400 });
     }
@@ -75,8 +85,14 @@ export async function PATCH(req: NextRequest) {
     if (exclusions && typeof exclusions !== 'string') {
       return NextResponse.json({ error: 'exclusions must be a string' }, { status: 400 });
     }
-    if (otherCategory && typeof otherCategory !== 'string') {
-      return NextResponse.json({ error: 'otherCategory must be a string' }, { status: 400 });
+
+    // Update users table
+    const { error: userError } = await supabase
+      .from('users')
+      .update({ categoryPreferences })
+      .eq('id', userId);
+    if (userError) {
+      return NextResponse.json({ error: userError.message }, { status: 500 });
     }
 
     // Upsert onboarding metadata
@@ -88,21 +104,19 @@ export async function PATCH(req: NextRequest) {
         session_length: session_length || null,
         preferred_tone: preferred_tone || null,
         exclusions: exclusions || null,
-        otherCategory: otherCategory || null,
       });
     if (metaError) {
       return NextResponse.json({ error: metaError.message }, { status: 500 });
     }
 
     return NextResponse.json({
-      categoryPreferences: categoryPreferences || [],
-      listening_context: listening_context || '',
-      session_length: session_length || '',
-      preferred_tone: preferred_tone || '',
-      exclusions: exclusions || '',
-      otherCategory: otherCategory || '',
+      categoryPreferences,
+      listening_context,
+      session_length,
+      preferred_tone,
+      exclusions,
     });
   } catch (err: any) {
     return NextResponse.json({ error: err.message || 'Unknown error' }, { status: 500 });
   }
-}  
+} 

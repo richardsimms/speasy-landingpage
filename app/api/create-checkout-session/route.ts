@@ -8,10 +8,6 @@ export async function POST(request: Request) {
     const body = await request.json().catch(() => ({}));
     const { email } = body;
 
-    // Get the site URL or use a fallback based on the request
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 
-      (request.headers.get('origin') || request.headers.get('referer') || 'https://speasy.co');
-
     // Set up checkout session parameters
     const checkoutParams: any = {
       payment_method_types: ['card'],
@@ -23,8 +19,8 @@ export async function POST(request: Request) {
           quantity: 1,
         },
       ],
-      success_url: `${siteUrl}/success${email ? `?email=${email}` : ''}`,
-      cancel_url: `${siteUrl}`,
+      success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/success${email ? `?email=${email}` : ''}`,
+      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}`,
     };
 
     // Add customer email if provided
