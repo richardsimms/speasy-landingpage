@@ -30,9 +30,17 @@ const MOCK_CATEGORIES = [
   }
 ];
 
+// Function to check if we're in build mode
+function isBuildMode() {
+  return process.env.NEXT_PUBLIC_BUILD_MODE === 'true' || 
+         !process.env.NEXT_PUBLIC_SUPABASE_URL || 
+         !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+}
+
 export default async function SubscriptionsPage() {
   // Build-time safety check - return mock data during build
-  if (process.env.NEXT_PUBLIC_BUILD_MODE === 'true') {
+  if (isBuildMode()) {
+    console.log("Using mock data in subscriptions page due to build mode or missing credentials");
     return (
       <div className="space-y-6">
         <div>

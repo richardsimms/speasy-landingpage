@@ -1,4 +1,3 @@
-import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 import { AudioPlayer } from "@/components/audio-player"
 
@@ -13,6 +12,13 @@ const MOCK_CONTENT_ITEM = {
   audio: [{ file_url: 'https://example.com/audio.mp3', duration: 300, type: 'mp3' }]
 }
 
+// Function to check if we're in build mode
+function isBuildMode() {
+  return process.env.NEXT_PUBLIC_BUILD_MODE === 'true' || 
+         !process.env.NEXT_PUBLIC_SUPABASE_URL || 
+         !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+}
+
 interface PlayerPageProps {
   searchParams: {
     id?: string
@@ -21,7 +27,8 @@ interface PlayerPageProps {
 
 export default async function PlayerPage({ searchParams }: PlayerPageProps) {
   // Build-time safety check - return a placeholder during build
-  if (process.env.NEXT_PUBLIC_BUILD_MODE === 'true') {
+  if (isBuildMode()) {
+    console.log("Using mock data in player page due to build mode or missing credentials");
     return (
       <div className="container py-6 md:py-10">
         <AudioPlayer contentItem={MOCK_CONTENT_ITEM} relatedContent={[]} />

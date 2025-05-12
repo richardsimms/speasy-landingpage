@@ -82,10 +82,10 @@ export default function HeroSection() {
               transition={{ duration: 0.5 }}
             >
               <h1 className="text-4xl font-bold tracking-tight sm:text-6xl xl:text-7xl/none">
-                Turn your inbox into a <span className="text-primary">Podcast.</span> Start listening today. 
+              Turn newsletters into <span className="text-primary">Podcast.</span> -Listen, don't read. 
               </h1>
               <p className="max-w-[600px] text-muted-foreground text-xl">
-                Speasy transforms popular newsletters into podcast-style summaries you can listen to on the go. No inbox setup required—just subscribe, press play, and reclaim your time.
+              Speasy instantly converts your favourite newsletters into short, high-quality audio summaries. No setup, no clutter-just subscribe, press play, and catch up on the go.
               </p>
             </motion.div>
             <motion.div

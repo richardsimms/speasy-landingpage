@@ -21,9 +21,17 @@ const MOCK_HISTORY_ITEMS = [
   }
 ];
 
+// Function to check if we're in build mode
+function isBuildMode() {
+  return process.env.NEXT_PUBLIC_BUILD_MODE === 'true' || 
+         !process.env.NEXT_PUBLIC_SUPABASE_URL || 
+         !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+}
+
 export default async function HistoryPage() {
   // Build-time safety check - return mock data during build
-  if (process.env.NEXT_PUBLIC_BUILD_MODE === 'true') {
+  if (isBuildMode()) {
+    console.log("Using mock data in history page due to build mode or missing credentials");
     return (
       <div className="container py-6 md:py-10">
         <div className="flex flex-col gap-6">
