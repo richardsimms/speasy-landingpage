@@ -20,9 +20,17 @@ const MOCK_CATEGORIES = [
   { id: "3", name: "Business" }
 ];
 
+// Function to check if we're in build mode
+function isBuildMode() {
+  return process.env.NEXT_PUBLIC_BUILD_MODE === 'true' || 
+         !process.env.NEXT_PUBLIC_SUPABASE_URL || 
+         !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+}
+
 export default async function DashboardPage() {
   // Build-time safety check - immediate return
-  if (process.env.NEXT_PUBLIC_BUILD_MODE === 'true') {
+  if (isBuildMode()) {
+    console.log("Using mock data in dashboard page due to build mode or missing credentials");
     return (
       <DashboardClient
         userName="User"
