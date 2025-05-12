@@ -1,6 +1,5 @@
 // Remove the top-level import
 // import { createServerSafeClient } from "@/lib/supabase-server"
-import PodcastSettingsClient from "./PodcastSettingsClient"
 
 // Function to check if we're in build mode
 function isBuildMode() {
@@ -10,6 +9,9 @@ function isBuildMode() {
 }
 
 export default async function PodcastSettingsPage() {
+  // Dynamic import to avoid importing client components at the top level
+  const PodcastSettingsClient = (await import("./PodcastSettingsClient")).default;
+
   // Build-time safety check - return the client component during build
   if (isBuildMode()) {
     console.log("Using mock data in podcast settings page due to build mode or missing credentials");

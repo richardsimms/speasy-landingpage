@@ -9,6 +9,14 @@ on:
 jobs:
   lint-test-build:
     runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_BUILD_MODE: 'true'
+      NEXT_PUBLIC_SUPABASE_URL: 'https://example.supabase.co'
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: 'mock-anon-key'
+      SUPABASE_SERVICE_ROLE_KEY: 'mock-service-role-key'
+      STRIPE_SECRET_KEY: 'sk_test_mock'
+      STRIPE_WEBHOOK_SECRET: 'whsec_mock'
+      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: 'pk_test_mock'
     
     steps:
     - uses: actions/checkout@v3
@@ -42,27 +50,11 @@ jobs:
     
     - name: Run tests
       run: pnpm run test
-      env:
-        NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-        SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoic2VydmljZV9yb2xlIn0.mock-key-for-build' }}
-        STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY || 'sk_test_dummy_key_for_tests' }}
-        STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET || 'whsec_dummy_key_for_tests' }}
-        NEXT_PUBLIC_BUILD_MODE: 'true'
     
     - name: Build
       run: |
         chmod +x ./scripts/build-ci.sh
-        NEXT_PUBLIC_BUILD_MODE=true ./scripts/build-ci.sh
-      env:
-        ERROR_NOTIFICATION_WEBHOOK_URL: ${{ secrets.ERROR_NOTIFICATION_WEBHOOK_URL }}
-        NEXT_PUBLIC_BUILD_MODE: 'true'
-        NEXT_PUBLIC_SUPABASE_URL: 'https://example.supabase.co'
-        NEXT_PUBLIC_SUPABASE_ANON_KEY: 'mock-anon-key'
-        SUPABASE_SERVICE_ROLE_KEY: 'mock-service-role-key'
-        STRIPE_SECRET_KEY: 'sk_test_mock'
-        STRIPE_WEBHOOK_SECRET: 'whsec_mock'
-        NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: 'pk_test_mock'
+        ./scripts/build-ci.sh
     
     - name: Upload coverage reports
       uses: codecov/codecov-action@v3
@@ -73,6 +65,10 @@ jobs:
     needs: lint-test-build
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_BUILD_MODE: 'true'
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
     
     steps:
     - uses: actions/checkout@v3
@@ -96,28 +92,23 @@ jobs:
     
     - name: Pull Vercel Environment Information
       run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-      env:
-        VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-        VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
     
     - name: Build Project Artifacts
       run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
       env:
-        VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-        VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
         VERCEL_BUILD_COMMAND: "pnpm run vercel-build"
-        NEXT_PUBLIC_BUILD_MODE: 'true'
     
     - name: Deploy Project Artifacts to Vercel
       run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
-      env:
-        VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-        VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
 
   preview-deploy:
     needs: lint-test-build
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_BUILD_MODE: 'true'
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
     
     steps:
     - uses: actions/checkout@v3
@@ -141,24 +132,15 @@ jobs:
     
     - name: Pull Vercel Environment Information
       run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
-      env:
-        VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-        VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
     
     - name: Build Project Artifacts
       run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
       env:
-        VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-        VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
         VERCEL_BUILD_COMMAND: "pnpm run vercel-build"
-        NEXT_PUBLIC_BUILD_MODE: 'true'
     
     - name: Deploy Project Artifacts to Vercel
       id: deploy
       run: echo "url=$(vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }})" >> $GITHUB_OUTPUT
-      env:
-        VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-        VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
     
     - name: Comment Preview URL
       uses: actions/github-script@v6

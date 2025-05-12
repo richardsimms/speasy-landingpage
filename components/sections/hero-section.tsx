@@ -189,7 +189,7 @@ export default function HeroSection() {
                       </div>
                       <span className="font-medium">Podcast app</span>
                     </div>
-                    <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground">
                       <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2">
                         <circle cx="12" cy="12" r="10" />
                         <path d="M12 8v8" />
