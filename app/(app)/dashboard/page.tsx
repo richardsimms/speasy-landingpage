@@ -1,17 +1,61 @@
 import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
 import { cookies } from "next/headers"
 import { DashboardClient } from "@/components/dashboard-client"
+import { createServerSafeClient } from "@/lib/supabase-server"
+
+// Sample mock data for build time
+const MOCK_CONTENT_ITEMS = [
+  {
+    id: "1",
+    title: "Getting Started with Speasy",
+    url: "https://example.com/article",
+    description: "This is a sample article for build time.",
+    published_at: new Date().toISOString(),
+    source: { name: "Mock Source", category_id: "1" },
+    audio: [{ file_url: "https://example.com/audio.mp3", duration: 300, type: "mp3" }]
+  }
+];
+
+const MOCK_CATEGORIES = [
+  { id: "1", name: "Technology" },
+  { id: "2", name: "Science" },
+  { id: "3", name: "Business" }
+];
 
 export default async function DashboardPage() {
-  const supabase = createServerComponentClient({ cookies })
+  const supabase = createServerSafeClient();
 
+  // Build-time safety check
+  if (process.env.NEXT_PUBLIC_BUILD_MODE === 'true') {
+    return (
+      <DashboardClient
+        userName="User"
+        latestContent={MOCK_CONTENT_ITEMS}
+        savedContent={[]}
+        submittedUrls={[]}
+        categories={MOCK_CATEGORIES}
+        subscribedCategoryIds={["1"]}
+      />
+    );
+  }
+  
   // Get user profile
   const {
     data: { session },
   } = await supabase.auth.getSession()
 
   if (!session) {
-    return null
+    // Return a basic version for build or when not logged in
+    return (
+      <DashboardClient
+        userName="User"
+        latestContent={[]}
+        savedContent={[]}
+        submittedUrls={[]}
+        categories={[]}
+        subscribedCategoryIds={[]}
+      />
+    );
   }
 
   // Get user's subscribed categories

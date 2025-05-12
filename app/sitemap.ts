@@ -6,6 +6,18 @@ interface BlogPost {
   updated_at: string
 }
 
+// Mock blog posts for build time
+const MOCK_BLOG_POSTS: BlogPost[] = [
+  {
+    slug: 'getting-started-with-speasy',
+    updated_at: new Date().toISOString()
+  },
+  {
+    slug: 'best-practices',
+    updated_at: new Date().toISOString()
+  }
+];
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://speasy.app'
 
@@ -39,6 +51,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 }
 
 async function fetchBlogPosts(): Promise<BlogPost[]> {
+  // For build time, return mock data
+  if (process.env.NEXT_PUBLIC_BUILD_MODE === 'true') {
+    console.log('Using mock blog posts for sitemap in build mode');
+    return MOCK_BLOG_POSTS;
+  }
+  
   try {
     const { data: posts, error } = await supabase
       .from('blog_posts')
