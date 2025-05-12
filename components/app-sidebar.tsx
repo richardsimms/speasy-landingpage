@@ -69,7 +69,7 @@ export function AppSidebar() {
                 asChild
               >
                 <Link href={route.href}>
-                  <route.icon className={cn("h-5 w-5", route.active ? "text-primary" : "text-muted-foreground")} />
+                  <route.icon className={cn("h-5 w-5", route.active ? "text-accent" : "text-muted")} />
                   <span className="text-xs">{route.label}</span>
                 </Link>
               </Button>
