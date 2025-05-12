@@ -1,5 +1,4 @@
 import { cookies } from 'next/headers';
-import { supabase } from '@/utils/supabase';
 import OnboardingPageClient from './OnboardingPageClient';
 import { createServerSafeClient } from '@/lib/supabase-server';
 
@@ -13,8 +12,8 @@ const MOCK_PREFERENCES = {
 };
 
 async function getUserPreferences(userId: string) {
-  // Use the safe client for build time
-  const client = supabase;
+  // Always use the safe server client
+  const client = createServerSafeClient();
   
   const { data: categoryRows } = await client
     .from('user_category_subscriptions')
@@ -39,40 +38,49 @@ async function getUserPreferences(userId: string) {
 }
 
 export default async function OnboardingPage() {
-  // Build-time safety
+  // Build-time safety - immediately return client component with no server-side logic
   if (process.env.NEXT_PUBLIC_BUILD_MODE === 'true') {
+    console.log('Rendering onboarding page in build mode');
     return <OnboardingPageClient />;
   }
   
-  // Get user session from cookies
-  const cookieStore = await cookies();
-  const accessToken = cookieStore.get('sb-access-token')?.value;
-  if (!accessToken) {
-    // Return the component for build time
-    return <OnboardingPageClient />;
-  }
-  
-  // Use safe server client for auth
-  const serverClient = createServerSafeClient();
-  
-  // Fetch user and preferences
-  const { data: { user } } = await serverClient.auth.getUser(accessToken);
-  if (!user) {
-    return <OnboardingPageClient />;
-  }
-  
-  // Get user preferences
-  const preferences = await getUserPreferences(user.id);
-  const needsOnboarding =
-    !preferences?.categoryPreferences ||
-    preferences.categoryPreferences.length === 0;
+  // For non-build environments, we can safely use cookies and server-side logic
+  try {
+    // Get user session from cookies
+    const cookieStore = await cookies();
+    const accessToken = cookieStore.get('sb-access-token')?.value;
+    
+    if (!accessToken) {
+      // No token found
+      return <OnboardingPageClient />;
+    }
+    
+    // Use safe server client for auth
+    const serverClient = createServerSafeClient();
+    
+    // Fetch user and preferences
+    const { data: { user } } = await serverClient.auth.getUser(accessToken);
+    if (!user) {
+      return <OnboardingPageClient />;
+    }
+    
+    // Get user preferences
+    const preferences = await getUserPreferences(user.id);
+    const needsOnboarding =
+      !preferences?.categoryPreferences ||
+      preferences.categoryPreferences.length === 0;
 
-  if (needsOnboarding) {
-    // Show onboarding
+    if (needsOnboarding) {
+      // Show onboarding
+      return <OnboardingPageClient />;
+    } else {
+      // For server components, we can't redirect directly
+      // We'll show the component and handle redirect on the client side
+      return <OnboardingPageClient redirectToDashboard={true} />;
+    }
+  } catch (error) {
+    console.error('Error in onboarding page:', error);
+    // Fallback to basic client component in case of errors
     return <OnboardingPageClient />;
-  } else {
-    // For server components, we can't redirect directly
-    // We'll show the component and handle redirect on the client side
-    return <OnboardingPageClient redirectToDashboard={true} />;
   }
 }  
