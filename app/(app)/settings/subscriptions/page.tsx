@@ -1,3 +1,6 @@
+// Add to the top of the file
+export const dynamic = 'force-dynamic';
+
 // Import our custom safe server client during runtime
 // import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
 import { cookies } from "next/headers"

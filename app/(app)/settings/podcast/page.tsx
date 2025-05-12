@@ -1,3 +1,6 @@
+// Add to the top of the file
+export const dynamic = 'force-dynamic';
+
 // Remove the top-level import
 // import { createServerSafeClient } from "@/lib/supabase-server"
 

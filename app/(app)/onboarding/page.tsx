@@ -1,5 +1,8 @@
 import OnboardingPageClient from './OnboardingPageClient';
 
+// Mark this route as dynamic to skip static generation
+export const dynamic = 'force-dynamic';
+
 // Sample mock data for build time
 const MOCK_PREFERENCES = {
   categoryPreferences: ['1', '2'],

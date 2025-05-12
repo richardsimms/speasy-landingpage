@@ -6,6 +6,8 @@ import { AppSidebar } from "@/components/app-sidebar"
 import { Analytics } from "@vercel/analytics/react"
 // import { createServerSafeClient } from "@/lib/supabase-server"
 
+export const dynamic = 'force-dynamic';
+
 interface AppLayoutWrapperProps {
   children: React.ReactNode
 }

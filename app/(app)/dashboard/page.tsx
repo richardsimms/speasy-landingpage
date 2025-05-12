@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { cookies } from "next/headers"
 import { DashboardClient } from "@/components/dashboard-client"
 
