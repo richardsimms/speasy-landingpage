@@ -59,7 +59,7 @@ export function AppSidebar() {
   if (isMobile) {
     return (
       <>
-        <div className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="fixed bottom-0 left-0 right-0 z-50 border-t backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <div className="grid h-16 grid-cols-4">
             {routes.map((route) => (
               <Button
@@ -69,7 +69,7 @@ export function AppSidebar() {
                 asChild
               >
                 <Link href={route.href}>
-                  <route.icon className={cn("h-5 w-5", route.active ? "text-accent" : "text-muted")} />
+                  <route.icon className={cn("h-5 w-5", route.active ? "text-primary" : "text-primary/80")} />
                   <span className="text-xs">{route.label}</span>
                 </Link>
               </Button>
@@ -96,7 +96,7 @@ export function AppSidebar() {
             className="absolute right-2 top-3 opacity-0 transition-opacity group-hover:opacity-100"
             onClick={toggleSidebar}
           >
-            {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+            {isCollapsed ? <ChevronRight className="h-4 w-4 text-muted" /> : <ChevronLeft className="h-4 w-4 text-muted" />}
           </Button>
         </div>
 
