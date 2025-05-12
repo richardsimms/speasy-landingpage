@@ -57,7 +57,7 @@
     "node-fetch": "2",
     "react": "^19",
     "react-countup": "^6.5.3",
-    "react-day-picker": "8.10.1",
+    "react-day-picker": "9.6.7",
     "react-dom": "^19",
     "react-hook-form": "^7.54.1",
     "react-markdown": "^9.0.1",
