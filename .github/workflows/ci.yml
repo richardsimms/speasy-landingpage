@@ -53,12 +53,16 @@ jobs:
     - name: Build
       run: |
         chmod +x ./scripts/build-ci.sh
-        ./scripts/build-ci.sh
+        NEXT_PUBLIC_BUILD_MODE=true ./scripts/build-ci.sh
       env:
         ERROR_NOTIFICATION_WEBHOOK_URL: ${{ secrets.ERROR_NOTIFICATION_WEBHOOK_URL }}
         NEXT_PUBLIC_BUILD_MODE: 'true'
         NEXT_PUBLIC_SUPABASE_URL: 'https://example.supabase.co'
         NEXT_PUBLIC_SUPABASE_ANON_KEY: 'mock-anon-key'
+        SUPABASE_SERVICE_ROLE_KEY: 'mock-service-role-key'
+        STRIPE_SECRET_KEY: 'sk_test_mock'
+        STRIPE_WEBHOOK_SECRET: 'whsec_mock'
+        NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: 'pk_test_mock'
     
     - name: Upload coverage reports
       uses: codecov/codecov-action@v3
