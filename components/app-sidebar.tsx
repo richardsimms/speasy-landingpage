@@ -59,7 +59,7 @@ export function AppSidebar() {
   if (isMobile) {
     return (
       <>
-        <div className="fixed bottom-0 left-0 right-0 z-50 border-t backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="fixed bottom-0 left-0 right-0 z-50 border-t backdrop-blur supports-[backdrop-filter]:bg-accent/40">
           <div className="grid h-16 grid-cols-4">
             {routes.map((route) => (
               <Button
