@@ -5,7 +5,7 @@ import { cookies } from 'next/headers';
 export async function POST(request: Request) {
   try {
     const supabase = createAdminClient();
-    const cookieStore = await cookies();
+    const cookieStore = cookies();
     const {
       data: { user },
       error: userError,

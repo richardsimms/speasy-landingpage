@@ -10,9 +10,6 @@ export default defineConfig({
     },
     globals: true,
     setupFiles: ['./tests/setup.ts'],
-    env: {
-      NODE_ENV: 'test'
-    }
   },
   resolve: {
     alias: {

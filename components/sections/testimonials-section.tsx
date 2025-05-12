@@ -3,7 +3,6 @@
 import { motion } from "framer-motion"
 import { Card, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import Image from "next/image"
 
 const testimonials = [
   {
@@ -13,7 +12,7 @@ const testimonials = [
     avatar: "/optimized/air-conditioner-unit.webp",
   },
   {
-    quote: "I listen while cooking dinner. It's become my learning hour.",
+    quote: "I listen while cooking dinner. It’s become my learning hour.",
     name: "Sarah Johnson",
     role: "Startup Founder",
     avatar: "/optimized/stylized-initials.webp",
@@ -84,13 +83,11 @@ export default function TestimonialsSection() {
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
           >
-            <Image
+            <img
               src="/optimized/walk.webp"
               alt="Person listening while walking"
-              className="object-cover"
-              fill
-              sizes="(max-width: 768px) 100vw, 50vw"
-              priority
+              className="object-cover w-full h-full"
+              width={640} height={360}
             />
           </motion.div>
 
@@ -101,13 +98,11 @@ export default function TestimonialsSection() {
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.1 }}
           >
-            <Image
+            <img
               src="/optimized/commute.webp"
               alt="Person commuting with headphones"
-              className="object-cover"
-              fill
-              sizes="(max-width: 768px) 100vw, 50vw"
-              priority
+              className="object-cover w-full h-full"
+              width={640} height={360}
             />
           </motion.div>
         </div>

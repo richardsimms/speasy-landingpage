@@ -1,14 +1,6 @@
-import { isTestEnvironment } from "@/utils/environment";
-
 // Function to create a Stripe checkout session
 export const createCheckoutSession = async (email?: string) => {
   try {
-    // Mock session for tests
-    if (isTestEnvironment()) {
-      console.log('Test environment - mocking checkout session');
-      return { sessionUrl: 'https://checkout.stripe.com/mock-session' };
-    }
-    
     // Call our API route to create a checkout session
     const response = await fetch('/api/create-checkout-session', {
       method: 'POST',
@@ -45,12 +37,6 @@ const ensureMetaTags = () => {
 // Function to redirect to Stripe Checkout
 export const redirectToStripeCheckout = async () => {
   try {
-    // Skip actual redirect in test environment
-    if (isTestEnvironment()) {
-      console.log('Test environment - skipping redirect to Stripe');
-      return;
-    }
-    
     // Ensure required meta tags exist
     if (typeof document !== 'undefined') {
       ensureMetaTags();
@@ -58,20 +44,12 @@ export const redirectToStripeCheckout = async () => {
     
     // Create a checkout session and redirect to it
     const { sessionUrl } = await createCheckoutSession();
-    
-    // If we're in a browser environment, redirect
-    if (typeof window !== 'undefined') {
-      window.location.href = sessionUrl;
-    }
+    window.location.href = sessionUrl;
   } catch (error) {
     console.error('Error redirecting to Stripe checkout:', error);
     // Fallback to direct URL if the dynamic checkout fails
     const stripeCheckoutUrl = 'https://buy.stripe.com/5kA7tT6Ly86m3Ru003';
-    
-    // Only redirect in browser environment
-    if (typeof window !== 'undefined') {
-      window.location.href = stripeCheckoutUrl;
-    }
+    window.location.href = stripeCheckoutUrl;
   }
 };
 

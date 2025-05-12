@@ -152,7 +152,7 @@ function StepExclusions({ value, onChange }: any) {
   );
 }
 
-export default function OnboardingPageClient({ redirectToDashboard = false }: { redirectToDashboard?: boolean }) {
+export default function OnboardingPageClient() {
   const [step, setStep] = useState(0);
   const [categoryPreferences, setCategoryPreferences] = useState<string[]>([]);
   const [otherCategory, setOtherCategory] = useState('');
@@ -163,13 +163,6 @@ export default function OnboardingPageClient({ redirectToDashboard = false }: { 
   const [loading, setLoading] = useState(false);
   const [complete, setComplete] = useState(false);
   const router = useRouter();
-
-  // Handle redirect if needed
-  useEffect(() => {
-    if (redirectToDashboard) {
-      router.push('/dashboard');
-    }
-  }, [redirectToDashboard, router]);
 
   // Fetch initial subscriptions on mount
   useEffect(() => {

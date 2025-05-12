@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Headphones } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -9,61 +9,33 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { createClient } from '@/lib/supabase'
-import { isTestEnvironment } from '@/utils/environment'
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
   const router = useRouter()
-  
-  // Check for existing session on load
-  useEffect(() => {
-    const checkSession = async () => {
-      try {
-        // Skip in test environments to avoid redirects during tests
-        if (isTestEnvironment()) {
-          return;
-        }
-        
-        const supabase = createClient();
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (session) {
-          router.push('/dashboard');
-        }
-      } catch (error) {
-        console.error('Error checking session:', error);
-      }
-    };
-    
-    checkSession();
-  }, [router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setMessage(null)
 
-    // Skip actual login in test environment
-    if (isTestEnvironment()) {
-      console.log('Test environment - skipping actual login');
-      setMessage({
-        type: "success",
-        text: "This is a test environment. No actual login is performed."
-      });
-      setLoading(false);
-      return;
-    }
+    // const allowedDomains = process.env.NEXT_PUBLIC_ALLOWED_EMAIL_DOMAINS?.split(',') || ['speasy.app'];
+
+    // // Validate email domain
+    // const emailDomain = email.split('@')[1];
+    // if (!allowedDomains.includes(emailDomain)) {
+    //   setMessage({
+    //     type: "error",
+    //     text: `Please use an approved email domain to login`,
+    //   })
+    //   setLoading(false)
+    //   return
+    // }
 
     try {
       const supabase = createClient()
-      
-      // Check that we have a valid Supabase client
-      if (!supabase || !supabase.auth) {
-        throw new Error("Auth service is not available at the moment.");
-      }
-      
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {

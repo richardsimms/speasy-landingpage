@@ -6,7 +6,7 @@ import { cookies } from 'next/headers';
 export async function POST(request: Request) {
   try {
     const supabase = createAdminClient();
-    const cookieStore = await cookies();
+    const cookieStore = cookies();
     const {
       data: { user },
       error: userError,
@@ -34,7 +34,7 @@ export async function POST(request: Request) {
     }
     const subscriptionId = subscriptions.data[0].id;
     // Cancel the subscription
-    await stripe.subscriptions.cancel(subscriptionId);
+    await stripe.subscriptions.del(subscriptionId);
     // Update user's subscription status in DB
     await supabase
       .from('users')
