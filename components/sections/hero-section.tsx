@@ -67,6 +67,8 @@ export default function HeroSection() {
 
   const fetcher = (url: string) => fetch(url).then(res => res.json());
   const { data, error } = useSWR('/api/stats/articles-converted', fetcher, { refreshInterval: 300000 });
+
+  // Only show the real database number if available, otherwise fall back to 1000
   const liveCount = data && typeof data.count === 'number' ? data.count : 1000;
   const isApiError = !!error || (data && data.count == null);
 
