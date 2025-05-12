@@ -1,8 +1,18 @@
-import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
 import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 import { AudioPlayer } from "@/components/audio-player"
 import { createServerSafeClient } from "@/lib/supabase-server"
+
+// Mock data for build time
+const MOCK_CONTENT_ITEM = {
+  id: 'mock-id',
+  title: 'Mock Audio Content',
+  url: 'https://example.com/article',
+  description: 'This is a mock audio content used during build time.',
+  published_at: new Date().toISOString(),
+  source: { name: 'Mock Source' },
+  audio: [{ file_url: 'https://example.com/audio.mp3', duration: 300, type: 'mp3' }]
+}
 
 interface PlayerPageProps {
   searchParams: {
@@ -11,26 +21,17 @@ interface PlayerPageProps {
 }
 
 export default async function PlayerPage({ searchParams }: PlayerPageProps) {
-  const supabase = createServerSafeClient()
-
   // Build-time safety check - return a placeholder during build
   if (process.env.NEXT_PUBLIC_BUILD_MODE === 'true') {
-    const mockContentItem = {
-      id: 'mock-id',
-      title: 'Mock Audio Content',
-      url: 'https://example.com/article',
-      description: 'This is a mock audio content used during build time.',
-      published_at: new Date().toISOString(),
-      source: { name: 'Mock Source' },
-      audio: [{ file_url: 'https://example.com/audio.mp3', duration: 300, type: 'mp3' }]
-    }
-    
     return (
       <div className="container py-6 md:py-10">
-        <AudioPlayer contentItem={mockContentItem} relatedContent={[]} />
+        <AudioPlayer contentItem={MOCK_CONTENT_ITEM} relatedContent={[]} />
       </div>
     )
   }
+
+  // Initialize Supabase with safe client
+  const supabase = createServerSafeClient()
 
   const {
     data: { session },

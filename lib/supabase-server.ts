@@ -98,7 +98,14 @@ export function createServerSafeClient() {
 
   // For runtime with environment variables, return the real client
   try {
-    return createServerComponentClient({ cookies });
+    // Next.js has improved error handling for context-dependent APIs like cookies()
+    // Try-catch prevents errors during static site generation or outside request context
+    try {
+      return createServerComponentClient({ cookies });
+    } catch (cookieError) {
+      console.warn('Called cookies() outside request context, falling back to mock client');
+      return createMockSupabaseClient();
+    }
   } catch (error) {
     console.error('Error creating Supabase server component client:', error);
     return createMockSupabaseClient();
