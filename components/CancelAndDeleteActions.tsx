@@ -4,11 +4,13 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/use-toast"
 import { AlertTriangle } from 'lucide-react'
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 
 export default function CancelAndDeleteActions() {
   const [loading, setLoading] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const { toast } = useToast()
+  const supabase = createClientComponentClient()
 
   async function handleCancelSubscription() {
     setLoading(true)
@@ -38,6 +40,11 @@ export default function CancelAndDeleteActions() {
           title: "Thank you!",
           description: "Your account has been closed. We appreciate your time with us.",
         })
+        
+        // Sign out the user client-side before redirecting
+        await supabase.auth.signOut()
+        
+        // Redirect to home page
         window.location.href = "/"
       } else {
         alert(data.error || "Failed to delete account.")
