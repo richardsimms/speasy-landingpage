@@ -55,8 +55,8 @@ export default function CancelAndDeleteActions() {
     <div className="w-full max-w-full mx-auto mt-12">
       <div className="border border-red-700 bg-background rounded-xl p-8 w-full shadow-lg">
 
-        <div className="text-xl font-semibold text-primary mb-2">Delete Account</div>
-        <div className="text-base text-secondary mb-6 max-w-md">
+        <div className="text-xl font-semibold text-foreground mb-2">Delete Account</div>
+        <div className="text-base text-foreground mb-6 max-w-md">
           The account will be <span className="text-red-400 font-bold">permanently deleted</span>, including all your data. <br />
           <span className="text-red-400">This action is irreversible and cannot be undone.</span>
         </div>
