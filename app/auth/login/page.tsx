@@ -36,6 +36,29 @@ export default function LoginPage() {
 
     try {
       const supabase = createClient()
+      
+      // Check if the email exists in the users table
+      const { data: existingUsers, error: usersError } = await supabase
+        .from('users')
+        .select('email')
+        .eq('email', email)
+        .limit(1)
+      
+      if (usersError) {
+        throw usersError
+      }
+      
+      // If email doesn't exist in our users table, show error
+      if (!existingUsers || existingUsers.length === 0) {
+        setMessage({
+          type: "error",
+          text: "This email is not registered. Please contact support if you believe this is an error."
+        })
+        setLoading(false)
+        return
+      }
+      
+      // Email exists, proceed with sending magic link
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
