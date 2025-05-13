@@ -20,6 +20,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
     const userId = user.id;
+    const userEmail = user.email;
+
+    if (!userEmail) {
+      return NextResponse.json({ error: 'User email not found' }, { status: 400 });
+    }
 
     // Get user's Stripe customer info
     const { data: userData, error: userDataError } = await adminClient
@@ -49,7 +54,7 @@ export async function POST(request: Request) {
       }
     }
 
-    // IMPORTANT: Delete from database BEFORE deleting auth user
+    // Delete from database BEFORE deleting auth user
     try {
       await adminClient
         .from('users')
@@ -60,11 +65,46 @@ export async function POST(request: Request) {
       // Continue anyway to ensure auth user gets deleted
     }
     
-    // Delete user from Supabase Auth (LAST step)
-    const { error: deleteError } = await adminClient.auth.admin.deleteUser(userId);
-    if (deleteError) {
-      console.error('Error deleting auth user:', deleteError);
-      return NextResponse.json({ error: 'Error deleting user from auth' }, { status: 500 });
+    // Delete all related data
+    try {
+      // Delete user category subscriptions
+      await adminClient
+        .from('user_category_subscriptions')
+        .delete()
+        .eq('user_id', userId);
+      
+      // Add any other tables that contain user data here
+    } catch (dataError) {
+      console.error('Error deleting related user data:', dataError);
+    }
+    
+    // Delete user from Supabase Auth using both ID and email to ensure complete removal
+    try {
+      // First try by ID
+      const { error: deleteByIdError } = await adminClient.auth.admin.deleteUser(userId);
+      if (deleteByIdError) {
+        console.warn('Error deleting auth user by ID:', deleteByIdError);
+        
+        // Then try by email (as a backup method)
+        const { data: usersByEmail, error: getUsersError } = await adminClient.auth.admin.listUsers({
+          page: 1,
+          perPage: 100
+        });
+        
+        if (!getUsersError && usersByEmail?.users) {
+          // Find and delete users with matching email
+          const matchingUsers = usersByEmail.users.filter(u => u.email === userEmail);
+          for (const foundUser of matchingUsers) {
+            await adminClient.auth.admin.deleteUser(foundUser.id);
+            console.log(`Deleted auth user with email ${userEmail} and ID ${foundUser.id}`);
+          }
+        }
+      } else {
+        console.log(`Successfully deleted auth user ${userId}`);
+      }
+    } catch (authError) {
+      console.error('Error deleting auth user:', authError);
+      return NextResponse.json({ error: 'Error deleting user authentication' }, { status: 500 });
     }
     
     return NextResponse.json({ success: true });
