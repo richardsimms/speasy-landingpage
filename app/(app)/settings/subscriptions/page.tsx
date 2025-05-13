@@ -29,13 +29,11 @@ export default async function SubscriptionsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-medium">Newsletter Subscriptions</h3>
+        <h3 className="text-lg font-medium">Subscriptions</h3>
         <p className="text-sm text-muted-foreground">
-          Subscribe to categories to receive audio content from these sources.
+          You are subscribed to Speasy.
         </p>
       </div>
-
-      <CategoryList categories={categories || []} subscribedIds={subscribedCategoryIds} /> 
       <CancelAndDeleteActions />
     </div>
   )
