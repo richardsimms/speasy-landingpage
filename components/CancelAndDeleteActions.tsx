@@ -53,7 +53,7 @@ export default function CancelAndDeleteActions() {
 
   return (
     <div className="w-full max-w-2xl mx-auto mt-12">
-      <div className="border border-red-700 bg-[#181314] rounded-xl p-8 w-full shadow-lg">
+      <div className="border border-red-700 bg-background rounded-xl p-8 w-full shadow-lg">
 
         <div className="text-xl font-semibold text-white mb-2">Delete Account</div>
         <div className="text-base text-gray-300 mb-6 max-w-md">

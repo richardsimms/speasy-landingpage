@@ -105,11 +105,18 @@ export default function HeroSection() {
                 >
                   Start listening - $5/month
                 </Button>
-                <p className="text-sm text-muted-foreground mt-3">
-                  Over <span className="text-primary font-bold">
-                    {isApiError ? '1,123' : <CountUp end={liveCount} duration={1.2} separator="," />}
-                  </span> articles turned into audio this month
-                </p> 
+                {typeof data === "undefined" ? (
+                  // While loading, show nothing (or a spinner if you want)
+                  <p className="text-sm text-muted-foreground mt-3">&nbsp;</p>
+                ) : (
+                  <p className="text-sm text-muted-foreground mt-3">
+                    Over <span className="text-primary font-bold">
+                      {isApiError
+                        ? '1,123'
+                        : <CountUp end={liveCount} duration={1.2} separator="," />}
+                    </span> articles turned into audio this month
+                  </p>
+                )}
               </div>
             </motion.div>
           </div>

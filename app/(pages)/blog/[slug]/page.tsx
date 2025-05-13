@@ -1,5 +1,5 @@
 import { PageHeader } from "@/components/page-header"
-import { getBlogPostBySlug, getBlogPosts } from "@/lib/blog"
+import { getBlogPostBySlug, getBlogPostsForStaticGeneration } from "@/lib/blog"
 import { formatDate } from "@/lib/utils"
 import { Markdown } from "@/components/markdown"
 import { Badge } from "@/components/ui/badge"
@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
 }
 
 export async function generateStaticParams() {
-  const posts = await getBlogPosts()
+  const posts = await getBlogPostsForStaticGeneration()
 
   return posts.map((post) => ({
     slug: post.slug,
