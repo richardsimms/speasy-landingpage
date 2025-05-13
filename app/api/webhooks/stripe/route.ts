@@ -54,6 +54,9 @@ async function handleCheckoutSessionCompleted(session: any, supabase: any) {
     const { customer_email } = session;
     
     if (customer_email) {
+      // First ensure user exists in Supabase Auth
+      await ensureUserInAuth(customer_email, supabase);
+      
       // Save user to Supabase or update existing user
       const { data, error } = await supabase
         .from('users')
@@ -68,20 +71,52 @@ async function handleCheckoutSessionCompleted(session: any, supabase: any) {
 
       if (error) {
         console.error('Error saving user to Supabase:', error);
-        return;
-      }
-
-      // Send invite email to the user using admin client
-      const { error: inviteError } = await supabase.auth.admin.inviteUserByEmail(customer_email, {
-        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}dashboard`
-      });
-
-      if (inviteError) {
-        console.error('Error sending invite email:', inviteError);
       }
     }
   } catch (error) {
     console.error('Error handling checkout session:', error);
+  }
+}
+
+// Ensure user exists in Supabase Auth
+async function ensureUserInAuth(email: string, supabase: any) {
+  try {
+    const normalizedEmail = email.toLowerCase().trim();
+    
+    // Check if user exists in auth system
+    const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers({
+      page: 1,
+      perPage: 1000, 
+    });
+    
+    if (authError) {
+      console.error('Error checking user auth:', authError);
+      return;
+    }
+    
+    // Check if user with this email exists
+    const userExists = authUsers?.users.some((user: { email?: string }) => 
+      user.email?.toLowerCase() === normalizedEmail
+    );
+    
+    if (!userExists) {
+      // Create user in Supabase Auth
+      const { error: createError } = await supabase.auth.admin.createUser({
+        email: normalizedEmail,
+        email_confirm: true, // Auto-confirm the email since it was verified by Stripe
+        user_metadata: {
+          is_subscriber: true,
+        }
+      });
+      
+      if (createError) {
+        console.error('Error creating user in auth:', createError);
+      } else {
+        console.log(`Created new subscriber account for ${normalizedEmail} via webhook`);
+      }
+    }
+  } catch (error) {
+    console.error('Error ensuring user in auth:', error);
   }
 }
 
@@ -95,6 +130,11 @@ async function handleSubscriptionUpdated(subscription: any, supabase: any) {
     const customer = await stripe.customers.retrieve(customerId);
     
     if ('email' in customer) {
+      const customerEmail = customer.email;
+      
+      // Ensure user exists in auth
+      await ensureUserInAuth(customerEmail, supabase);
+      
       // Update subscription status in Supabase
       const { error } = await supabase
         .from('users')
