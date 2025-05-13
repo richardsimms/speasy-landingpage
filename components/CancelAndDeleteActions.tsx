@@ -38,9 +38,7 @@ export default function CancelAndDeleteActions() {
           title: "Thank you!",
           description: "Your account has been closed. We appreciate your time with us.",
         })
-        setTimeout(() => {
-          window.location.href = "/"
-        }, 2000)
+        window.location.href = "/"
       } else {
         alert(data.error || "Failed to delete account.")
       }
