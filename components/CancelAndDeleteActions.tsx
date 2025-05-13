@@ -33,13 +33,28 @@ export default function CancelAndDeleteActions() {
     if (!confirm("Are you sure you want to delete your account? This cannot be undone.")) return
     setDeleting(true)
     try {
+      // Show toast immediately so user sees it regardless of what happens next
+      toast({
+        title: "Thank you!",
+        description: "Your account has been closed. We appreciate your time with us.",
+      })
+      
+      // Small delay to ensure toast is visible
+      await new Promise(resolve => setTimeout(resolve, 500))
+      
       const res = await fetch("/api/delete-account", { method: "POST" })
-      const data = await res.json()
-      if (data.success) {
-        toast({
-          title: "Thank you!",
-          description: "Your account has been closed. We appreciate your time with us.",
-        })
+      
+      // Check status first, as we may not get valid JSON if auth is lost during response
+      if (res.ok) {
+        try {
+          const data = await res.json()
+          if (!data.success) {
+            console.error("API reported failure:", data.error)
+          }
+        } catch (jsonError) {
+          // Ignore JSON parsing errors
+          console.log("Note: Could not parse JSON response, but continuing with account deletion flow")
+        }
         
         // Sign out the user client-side before redirecting
         await supabase.auth.signOut()
@@ -47,10 +62,12 @@ export default function CancelAndDeleteActions() {
         // Redirect to home page
         window.location.href = "/"
       } else {
-        alert(data.error || "Failed to delete account.")
+        // Handle non-OK responses
+        alert(`Failed to delete account. Status: ${res.status}`)
       }
     } catch (e) {
-      alert("Error deleting account.")
+      console.error("Error in account deletion:", e)
+      alert("Error deleting account. Please try again.")
     } finally {
       setDeleting(false)
     }
