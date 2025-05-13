@@ -36,44 +36,39 @@ export default function LoginPage() {
 
     try {
       const supabase = createClient()
+      const normalizedEmail = email.toLowerCase().trim()
       
-      // Check if the email exists in the users table first
-      const { data: existingUsers, error: usersError } = await supabase
-        .from('users')
-        .select('email')
-        .eq('email', email.toLowerCase().trim())
-        .limit(1)
+      console.log("Checking email:", normalizedEmail)
       
-      if (usersError) {
-        throw usersError
-      }
-      
-      // If email doesn't exist in our users table, show error and prevent login
-      if (!existingUsers || existingUsers.length === 0) {
-        setMessage({
-          type: "error",
-          text: "This email is not registered in our system. Please contact support if you believe this is an error."
-        })
-        setLoading(false)
-        return
-      }
-      
-      // Email exists in users table, proceed with sending magic link
+      // Try directly sending magic link without checking users table first
+      // This approach relies on Supabase's built-in validation
       const { error } = await supabase.auth.signInWithOtp({
-        email: email.toLowerCase().trim(),
+        email: normalizedEmail,
         options: {
           emailRedirectTo: `${window.location.origin}/auth/callback`,
         },
       })
 
       if (error) {
-        throw error
+        // If there's an error from Supabase auth, it might mean the user doesn't exist
+        console.error("Supabase auth error:", error)
+        
+        if (error.message.includes("Email not confirmed") || 
+            error.message.includes("User not found") || 
+            error.message.includes("Invalid login credentials")) {
+          setMessage({
+            type: "error",
+            text: "This email is not registered in our system. Please contact support if you believe this is an error."
+          })
+        } else {
+          throw error
+        }
+      } else {
+        setMessage({
+          type: "success",
+          text: "Check your email for the magic link! After clicking the link, you'll be automatically redirected to your dashboard. If you're not redirected, please contact support.",
+        })
       }
-
-      setMessage({
-        type: "success",
-        text: "Check your email for the magic link! After clicking the link, you'll be automatically redirected to your dashboard. If you're not redirected, please contact support.",
-      })
     } catch (error: any) {
       console.error("Login error:", error)
       setMessage({
