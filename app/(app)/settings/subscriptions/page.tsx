@@ -8,10 +8,10 @@ export default async function SubscriptionsPage() {
   const supabase = createServerComponentClient({ cookies })
 
   const {
-    data: { session },
-  } = await supabase.auth.getSession()
+    data: { user },
+  } = await supabase.auth.getUser()
 
-  if (!session) {
+  if (!user) {
     redirect("/auth/login")
   }
 
@@ -19,7 +19,7 @@ export default async function SubscriptionsPage() {
   const { data: subscriptions } = await supabase
     .from("user_category_subscriptions")
     .select("category_id")
-    .eq("user_id", session.user.id)
+    .eq("user_id", user.id)
 
   const subscribedCategoryIds = subscriptions?.map((sub) => sub.category_id) || []
 

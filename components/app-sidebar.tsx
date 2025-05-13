@@ -122,7 +122,11 @@ export function AppSidebar() {
               >
                 <Link href={route.href}>
                   <route.icon className={cn("h-5 w-5", route.active ? "text-primary" : "text-muted-foreground")} />
-                  {!isCollapsed && <span className="ml-2">{route.label}</span>}
+                  {!isCollapsed && (
+                    <span className="ml-2 transition-colors hover:text-foreground">
+                      {route.label}
+                    </span>
+                  )}
                 </Link>
               </Button>
             ))}
