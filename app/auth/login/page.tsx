@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { createClient } from '@/lib/supabase'
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -21,59 +20,36 @@ export default function LoginPage() {
     setLoading(true)
     setMessage(null)
 
-    // const allowedDomains = process.env.NEXT_PUBLIC_ALLOWED_EMAIL_DOMAINS?.split(',') || ['speasy.app'];
-
-    // // Validate email domain
-    // const emailDomain = email.split('@')[1];
-    // if (!allowedDomains.includes(emailDomain)) {
-    //   setMessage({
-    //     type: "error",
-    //     text: `Please use an approved email domain to login`,
-    //   })
-    //   setLoading(false)
-    //   return
-    // }
-
     try {
-      const supabase = createClient()
       const normalizedEmail = email.toLowerCase().trim()
       
-      console.log("Checking email:", normalizedEmail)
+      // Use server-side API to handle login securely
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: normalizedEmail })
+      });
       
-      // Try directly sending magic link without checking users table first
-      // This approach relies on Supabase's built-in validation
-      const { error } = await supabase.auth.signInWithOtp({
-        email: normalizedEmail,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-        },
-      })
-
-      if (error) {
-        // If there's an error from Supabase auth, it might mean the user doesn't exist
-        console.error("Supabase auth error:", error)
-        
-        if (error.message.includes("Email not confirmed") || 
-            error.message.includes("User not found") || 
-            error.message.includes("Invalid login credentials")) {
-          setMessage({
-            type: "error",
-            text: "This email is not registered in our system. Please contact support if you believe this is an error."
-          })
-        } else {
-          throw error
-        }
-      } else {
+      const data = await response.json();
+      
+      if (!response.ok) {
         setMessage({
-          type: "success",
-          text: "Check your email for the magic link! After clicking the link, you'll be automatically redirected to your dashboard. If you're not redirected, please contact support.",
-        })
+          type: "error",
+          text: data.error || "An error occurred during login. Please try again."
+        });
+        return;
       }
+      
+      // Success - magic link sent
+      setMessage({
+        type: "success",
+        text: "Check your email for the magic link! After clicking the link, you'll be automatically redirected to your dashboard. If you're not redirected, please contact support.",
+      })
     } catch (error: any) {
       console.error("Login error:", error)
       setMessage({
         type: "error",
-        text: error.message || "An error occurred during login. Please try again.",
+        text: "An error occurred during login. Please try again."
       })
     } finally {
       setLoading(false)
