@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Headphones, CheckCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -10,7 +10,8 @@ import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
-export default function SuccessPage() {
+// Create a client component that uses useSearchParams
+function SuccessPageClient() {
   const searchParams = useSearchParams()
   const emailFromQuery = searchParams.get("email") || ""
   
@@ -136,5 +137,32 @@ export default function SuccessPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+// Loading fallback component
+function SuccessLoading() {
+  return (
+    <div className="flex min-h-screen flex-col items-center justify-center bg-muted/40 p-4">
+      <div className="w-full max-w-md space-y-8 text-center">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="flex items-center gap-2">
+            <Headphones className="h-6 w-6 text-primary" />
+            <span className="text-2xl font-medium tracking-tight">Speasy</span>
+          </div>
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+          <p>Loading subscription details...</p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Main page component with Suspense
+export default function SuccessPage() {
+  return (
+    <Suspense fallback={<SuccessLoading />}>
+      <SuccessPageClient />
+    </Suspense>
   )
 } 
