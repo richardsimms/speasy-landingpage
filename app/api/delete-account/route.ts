@@ -2,28 +2,33 @@ import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/server-only';
 import { cookies } from 'next/headers';
 import { stripe } from '@/lib/stripe';
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 
 export async function POST(request: Request) {
   try {
-    const supabase = createAdminClient();
-    const cookieStore = cookies();
+    // Use both auth clients for different purposes
+    const authClient = createRouteHandlerClient({ cookies });
+    const adminClient = createAdminClient();
+    
+    // Fetch authenticated user
     const {
       data: { user },
       error: userError,
-    } = await supabase.auth.getUser();
+    } = await authClient.auth.getUser();
+    
     if (userError || !user) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
     const userId = user.id;
 
     // Get user's Stripe customer info
-    const { data: userData, error: userDataError } = await supabase
+    const { data: userData, error: userDataError } = await adminClient
       .from('users')
       .select('stripe_customer_id, subscription_status')
       .eq('id', userId)
       .single();
 
-    if (!userDataError && userData && userData.stripe_customer_id) {
+    if (userData?.stripe_customer_id) {
       try {
         // Find the active subscription for this customer
         const subscriptions = await stripe.subscriptions.list({ 
@@ -44,14 +49,23 @@ export async function POST(request: Request) {
       }
     }
 
-    // Delete user from Supabase Auth
-    const { error: deleteError } = await supabase.auth.admin.deleteUser(userId);
-    if (deleteError) {
-      return NextResponse.json({ error: 'Error deleting user from auth' }, { status: 500 });
+    // IMPORTANT: Delete from database BEFORE deleting auth user
+    try {
+      await adminClient
+        .from('users')
+        .delete()
+        .eq('id', userId);
+    } catch (dbError) {
+      console.error('Error deleting user from database:', dbError);
+      // Continue anyway to ensure auth user gets deleted
     }
     
-    // Delete user from users table
-    await supabase.from('users').delete().eq('id', userId);
+    // Delete user from Supabase Auth (LAST step)
+    const { error: deleteError } = await adminClient.auth.admin.deleteUser(userId);
+    if (deleteError) {
+      console.error('Error deleting auth user:', deleteError);
+      return NextResponse.json({ error: 'Error deleting user from auth' }, { status: 500 });
+    }
     
     return NextResponse.json({ success: true });
   } catch (error) {
