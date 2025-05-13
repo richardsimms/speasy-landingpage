@@ -3,11 +3,11 @@
 import type React from "react"
 import { useState, useEffect, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { Headphones, CheckCircle } from "lucide-react"
+import { Headphones, CheckCircle, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
 // Create a client component that uses useSearchParams
@@ -17,11 +17,11 @@ function SuccessPageClient() {
   
   const [email, setEmail] = useState(emailFromQuery)
   const [loading, setLoading] = useState(false)
-  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
+  const [message, setMessage] = useState<{ type: "success" | "error"; text: string, title?: string } | null>(null)
   const router = useRouter()
 
   useEffect(() => {
-    // If email is provided in URL and valid, automatically register and send magic link
+    // If email is provided in URL and valid, automatically try to send magic link
     if (emailFromQuery && validateEmail(emailFromQuery)) {
       handleSubscriberLogin(null, true);
     }
@@ -53,22 +53,34 @@ function SuccessPageClient() {
       const data = await response.json();
       
       if (!response.ok) {
-        setMessage({
-          type: "error",
-          text: data.error || "An error occurred during login. Please try again."
-        });
+        // Special handling for non-existent users
+        if (response.status === 403 && data.userExists === false) {
+          setMessage({
+            type: "error",
+            title: "Email not found",
+            text: "Please use the same email address you used during checkout. If you're having trouble, please contact support."
+          });
+        } else {
+          setMessage({
+            type: "error",
+            title: "Error",
+            text: data.error || "An error occurred during login. Please try again."
+          });
+        }
         return;
       }
       
       // Success - magic link sent
       setMessage({
         type: "success",
+        title: "Magic link sent!",
         text: "Check your email for the magic link! After clicking the link, you'll be automatically redirected to your dashboard. If you're not redirected, please contact support.",
       })
     } catch (error: any) {
       console.error("Login error:", error)
       setMessage({
         type: "error",
+        title: "Error",
         text: "An error occurred during login. Please try again."
       })
     } finally {
@@ -97,7 +109,7 @@ function SuccessPageClient() {
             </CardHeader>
             <CardContent>
               <p className="text-center mb-4">
-                To access your account, please log in using the form below.
+                To access your account, please enter the same email address you used during checkout.
                 We'll send you a magic link to verify your email.
               </p>
             </CardContent>
@@ -131,6 +143,15 @@ function SuccessPageClient() {
 
           {message && (
             <Alert variant={message.type === "error" ? "destructive" : "default"}>
+              {message.title && (
+                <div className="flex items-center gap-2">
+                  {message.type === "error" ? 
+                    <AlertCircle className="h-4 w-4" /> : 
+                    <CheckCircle className="h-4 w-4" />
+                  }
+                  <AlertTitle>{message.title}</AlertTitle>
+                </div>
+              )}
               <AlertDescription>{message.text}</AlertDescription>
             </Alert>
           )}

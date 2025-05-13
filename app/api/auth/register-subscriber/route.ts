@@ -30,24 +30,14 @@ export async function POST(request: Request) {
     );
     
     if (!userExists) {
-      // Create user in Supabase Auth
-      const { error: createError } = await supabase.auth.admin.createUser({
-        email: normalizedEmail,
-        email_confirm: true, // Auto-confirm the email since it was verified by Stripe
-        user_metadata: {
-          is_subscriber: true,
-        }
-      });
-      
-      if (createError) {
-        console.error('Error creating user in auth:', createError);
-        return NextResponse.json({ error: createError.message }, { status: 500 });
-      }
-      
-      console.log(`Created new subscriber account for ${normalizedEmail}`);
+      console.log(`Login attempt on success page with non-existent email: ${normalizedEmail}`);
+      return NextResponse.json({ 
+        error: 'This email is not registered in our system. Please contact support if you believe this is an error.',
+        userExists: false
+      }, { status: 403 });
     }
     
-    // Generate and send a magic link
+    // User exists, send magic link
     const { error } = await supabase.auth.admin.generateLink({
       type: 'magiclink',
       email: normalizedEmail,
