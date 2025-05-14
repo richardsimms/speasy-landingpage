@@ -30,8 +30,8 @@ export default function ListeningContextStep({ userId, onSelect }: ListeningCont
     setError("")
     const supabase = createClientComponentClient()
     const { error: dbError } = await supabase
-      .from("users")
-      .update({ listeningContext: selectedContext })
+      .from("profiles")
+      .update({ listening_context: selectedContext })
       .eq("id", userId)
     setLoading(false)
     if (dbError) {
@@ -60,8 +60,9 @@ export default function ListeningContextStep({ userId, onSelect }: ListeningCont
       </RadioGroup>
 
       <div className="space-y-2">
-        <Button onClick={handleContinue} className="w-full" disabled={!selectedContext}>
-          Continue
+        {error && <p className="text-sm text-red-500">{error}</p>}
+        <Button onClick={handleContinue} className="w-full" disabled={!selectedContext || loading}>
+          {loading ? "Saving..." : "Continue"}
         </Button>
         <Button variant="ghost" onClick={() => onSelect("")} className="w-full">
           Skip this step

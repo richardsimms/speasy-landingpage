@@ -20,7 +20,7 @@ export default function ExclusionsStep({ userId, onSubmit }: ExclusionsStepProps
     setError("")
     const supabase = createClientComponentClient()
     const { error: dbError } = await supabase
-      .from("users")
+      .from("profiles")
       .update({ exclusions: value })
       .eq("id", userId)
     setLoading(false)
@@ -46,8 +46,9 @@ export default function ExclusionsStep({ userId, onSubmit }: ExclusionsStepProps
       />
 
       <div className="space-y-2">
-        <Button onClick={() => handleContinue(exclusions)} className="w-full">
-          Continue
+        {error && <p className="text-sm text-red-500">{error}</p>}
+        <Button onClick={() => handleContinue(exclusions)} className="w-full" disabled={loading}>
+          {loading ? "Saving..." : "Continue"}
         </Button>
         <Button variant="ghost" onClick={() => handleContinue("")} className="w-full">
           Skip this step

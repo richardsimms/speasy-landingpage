@@ -29,8 +29,8 @@ export default function SessionLengthStep({ userId, onSelect }: SessionLengthSte
     setError("")
     const supabase = createClientComponentClient()
     const { error: dbError } = await supabase
-      .from("users")
-      .update({ sessionLength: selectedLength })
+      .from("profiles")
+      .update({ session_length: selectedLength })
       .eq("id", userId)
     setLoading(false)
     if (dbError) {
@@ -59,8 +59,9 @@ export default function SessionLengthStep({ userId, onSelect }: SessionLengthSte
       </RadioGroup>
 
       <div className="space-y-2">
-        <Button onClick={handleContinue} className="w-full" disabled={!selectedLength}>
-          Continue
+        {error && <p className="text-sm text-red-500">{error}</p>}
+        <Button onClick={handleContinue} className="w-full" disabled={!selectedLength || loading}>
+          {loading ? "Saving..." : "Continue"}
         </Button>
         <Button variant="ghost" onClick={() => onSelect("")} className="w-full">
           Skip this step

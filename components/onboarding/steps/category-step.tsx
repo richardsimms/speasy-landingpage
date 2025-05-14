@@ -105,7 +105,7 @@ export default function CategoryStep({ userId, onSelect }: CategoryStepProps) {
             </Label>
           </div>
         ))}
-        {/* Other option */}
+        {/* Other option 
         <div className="flex items-center space-x-3">
           <Checkbox
             id="Other"
@@ -125,7 +125,7 @@ export default function CategoryStep({ userId, onSelect }: CategoryStepProps) {
               className="w-full"
             />
           </div>
-        )}
+        )}*/}
         {error && <p className="text-sm text-red-500">{error}</p>}
       </div>
 

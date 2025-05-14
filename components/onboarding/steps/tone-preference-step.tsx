@@ -28,8 +28,8 @@ export default function TonePreferenceStep({ userId, onSelect }: TonePreferenceS
     setError("")
     const supabase = createClientComponentClient()
     const { error: dbError } = await supabase
-      .from("users")
-      .update({ preferredTone: selectedTone })
+      .from("profiles")
+      .update({ preferred_tone: selectedTone })
       .eq("id", userId)
     setLoading(false)
     if (dbError) {
@@ -58,8 +58,9 @@ export default function TonePreferenceStep({ userId, onSelect }: TonePreferenceS
       </RadioGroup>
 
       <div className="space-y-2">
-        <Button onClick={handleContinue} className="w-full" disabled={!selectedTone}>
-          Continue
+        {error && <p className="text-sm text-red-500">{error}</p>}
+        <Button onClick={handleContinue} className="w-full" disabled={!selectedTone || loading}>
+          {loading ? "Saving..." : "Continue"}
         </Button>
         <Button variant="ghost" onClick={() => onSelect("")} className="w-full">
           Skip this step
