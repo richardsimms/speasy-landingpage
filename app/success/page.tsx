@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { createClient } from '@/lib/supabase'
 
 // Create a client component that uses useSearchParams
 function SuccessPageClient() {
@@ -36,41 +37,26 @@ function SuccessPageClient() {
     if (e) {
       e.preventDefault()
     }
-    
     setLoading(true)
     setMessage(null)
-
     try {
+      const supabase = createClient()
       const normalizedEmail = email.toLowerCase().trim()
-      
-      // Use the subscriber registration endpoint
-      const response = await fetch('/api/auth/register-subscriber', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: normalizedEmail })
-      });
-      
-      const data = await response.json();
-      
-      if (!response.ok) {
-        // Special handling for non-existent users
-        if (response.status === 403 && data.userExists === false) {
-          setMessage({
-            type: "error",
-            title: "Email not found",
-            text: "Please use the same email address you used during checkout. If you're having trouble, please contact support."
-          });
-        } else {
-          setMessage({
-            type: "error",
-            title: "Error",
-            text: data.error || "An error occurred during login. Please try again."
-          });
-        }
-        return;
+      const { error } = await supabase.auth.signInWithOtp({
+        email: normalizedEmail,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
+      })
+      if (error) {
+        setMessage({
+          type: "error",
+          title: "Error",
+          text: error.message || "An error occurred during login. Please try again.",
+        })
+        setLoading(false)
+        return
       }
-      
-      // Success - magic link sent
       setMessage({
         type: "success",
         title: "Magic link sent!",
@@ -81,7 +67,7 @@ function SuccessPageClient() {
       setMessage({
         type: "error",
         title: "Error",
-        text: "An error occurred during login. Please try again."
+        text: error.message || "An error occurred during login. Please try again."
       })
     } finally {
       setLoading(false)
