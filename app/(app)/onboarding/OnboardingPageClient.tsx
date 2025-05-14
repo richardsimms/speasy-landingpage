@@ -38,12 +38,6 @@ function StepCategory({ value, onChange, otherValue, setOtherValue }: any) {
   };
   return (
     <div className="bg-white dark:bg-zinc-900 rounded-xl shadow border border-zinc-200 dark:border-zinc-800 p-8 max-w-xl mx-auto">
-      <div className="mb-4">
-        <div className="text-sm text-gray-500 dark:text-gray-400 mb-2">Step 1 of 5</div>
-        <div className="w-full h-2 bg-gray-200 dark:bg-zinc-800 rounded">
-          <div className="h-2 bg-black dark:bg-white rounded" style={{ width: "20%" }} />
-        </div>
-      </div>
       <h2 className="text-2xl font-bold text-center dark:text-white mb-1">What do you want to hear more about?</h2>
       <p className="text-center text-gray-500 dark:text-gray-400 mb-4">Select all that interest you</p>
       <div className="flex flex-col gap-3">
@@ -241,7 +235,7 @@ export default function OnboardingPageClient() {
 
   const handleBack = () => setStep(s => (s > 0 ? s - 1 : s));
 
-  if (complete) return <div className="flex flex-col items-center justify-center h-full gap-6"><h2 className="text-2xl font-bold">You're all set!</h2><p className="text-center">We'll tune your feed based on what matters to you.</p><button className="bg-blue-600 text-white px-6 py-2 rounded-full" onClick={() => router.push('/')}>Preview my feed</button></div>;
+  if (complete) return <div className="flex flex-col items-center justify-center h-full gap-6"><h2 className="text-2xl font-bold">You're all set!</h2><p className="text-center">We'll tune your feed based on what matters to you.</p><button className="bg-blue-600 text-white px-6 py-2 rounded-full" onClick={() => router.push('/dashboard')}>Preview my feed</button></div>;
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-white dark:bg-zinc-900 px-4 py-8">
@@ -253,7 +247,7 @@ export default function OnboardingPageClient() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -50 }}
             transition={{ duration: 0.3 }}
-            className="bg-white rounded-xl shadow-lg p-8 min-h-[400px] flex flex-col justify-between dark:bg-zinc-900"
+            className="bg-white rounded-xl p-8 min-h-[400px] flex flex-col justify-between dark:bg-zinc-900"
           >
             {/* Progress Bar */}
             <div className="mb-6">
