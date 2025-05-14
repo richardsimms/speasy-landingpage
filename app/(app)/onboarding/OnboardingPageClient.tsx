@@ -37,7 +37,7 @@ function StepCategory({ value, onChange, otherValue, setOtherValue }: any) {
     }
   };
   return (
-    <div className="bg-white dark:bg-zinc-900 rounded-xl shadow border border-zinc-200 dark:border-zinc-800 p-8 max-w-xl mx-auto">
+    <div className="flex flex-col gap-6">
       <h2 className="text-2xl font-bold text-center dark:text-white mb-1">What do you want to hear more about?</h2>
       <p className="text-center text-gray-500 dark:text-gray-400 mb-4">Select all that interest you</p>
       <div className="flex flex-col gap-3">
@@ -158,6 +158,7 @@ export default function OnboardingPageClient() {
   const [exclusions, setExclusions] = useState('');
   const [loading, setLoading] = useState(false);
   const [complete, setComplete] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   // Fetch initial subscriptions on mount
@@ -176,58 +177,66 @@ export default function OnboardingPageClient() {
   const handleCategory = (ids: string[]) => setCategoryPreferences(ids);
 
   const handleNext = async () => {
+    setError(null);
     if (step === 0 && categoryPreferences.length === 0 && !otherCategory) return; // Require at least one
     if (step === steps.length - 1) {
       setLoading(true);
-      const supabase = createClientComponentClient();
-      // Get user session for user_id
-      const { data: { session } } = await supabase.auth.getSession();
-      const userId = session?.user?.id;
-      if (!userId) {
-        setLoading(false);
-        return;
-      }
-      // 1. Save all onboarding fields to the user profile first
-      await supabase.from('profiles').update({
-        category_preferences: categoryPreferences,
-        other_category: otherCategory,
-        listening_context: listeningContext,
-        session_length: sessionLength,
-        preferred_tone: preferredTone,
-        exclusions,
-      }).eq('id', userId);
-      // 2. Fetch current subscriptions
-      const { data: currentSubs } = await supabase
-        .from("user_category_subscriptions")
-        .select("category_id")
-        .eq("user_id", userId);
-      const currentIds = currentSubs ? currentSubs.map((s: any) => s.category_id) : [];
-      // 3. Add new subscriptions
-      for (const id of categoryPreferences) {
-        if (!currentIds.includes(id)) {
-          await supabase.from("user_category_subscriptions").insert({ user_id: userId, category_id: id });
-        }
-      }
-      // 4. Remove unselected subscriptions
-      for (const id of currentIds) {
-        if (!categoryPreferences.includes(id)) {
-          await supabase.from("user_category_subscriptions").delete().eq("user_id", userId).eq("category_id", id);
-        }
-      }
-      // 5. Save other preferences as before (PATCH /api/preferences)
-      await fetch('/api/preferences', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          otherCategory: otherCategory || '',
+      try {
+        const supabase = createClientComponentClient();
+        // Get user session for user_id
+        const { data: { session } } = await supabase.auth.getSession();
+        const userId = session?.user?.id;
+        if (!userId) throw new Error('User not found');
+        // 1. Save all onboarding fields to the user profile first
+        const { error: profileError } = await supabase.from('profiles').update({
+          category_preferences: categoryPreferences,
+          other_category: otherCategory,
           listening_context: listeningContext,
           session_length: sessionLength,
           preferred_tone: preferredTone,
           exclusions,
-        }),
-      });
-      setLoading(false);
-      setComplete(true);
+        }).eq('id', userId);
+        if (profileError) throw profileError;
+        // 2. Fetch current subscriptions
+        const { data: currentSubs, error: subError } = await supabase
+          .from("user_category_subscriptions")
+          .select("category_id")
+          .eq("user_id", userId);
+        if (subError) throw subError;
+        const currentIds = currentSubs ? currentSubs.map((s: any) => s.category_id) : [];
+        // 3. Add new subscriptions
+        for (const id of categoryPreferences) {
+          if (!currentIds.includes(id)) {
+            const { error: insertError } = await supabase.from("user_category_subscriptions").insert({ user_id: userId, category_id: id });
+            if (insertError) throw insertError;
+          }
+        }
+        // 4. Remove unselected subscriptions
+        for (const id of currentIds) {
+          if (!categoryPreferences.includes(id)) {
+            const { error: deleteError } = await supabase.from("user_category_subscriptions").delete().eq("user_id", userId).eq("category_id", id);
+            if (deleteError) throw deleteError;
+          }
+        }
+        // 5. Save other preferences as before (PATCH /api/preferences)
+        const apiRes = await fetch('/api/preferences', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            categoryPreferences,
+            listening_context: listeningContext,
+            session_length: sessionLength,
+            preferred_tone: preferredTone,
+            exclusions,
+          }),
+        });
+        if (!apiRes.ok) throw new Error('Failed to update preferences');
+        setLoading(false);
+        setComplete(true);
+      } catch (err: any) {
+        setError(err.message || 'Something went wrong. Please try again.');
+        setLoading(false);
+      }
     } else {
       setStep(s => s + 1);
     }
@@ -235,7 +244,13 @@ export default function OnboardingPageClient() {
 
   const handleBack = () => setStep(s => (s > 0 ? s - 1 : s));
 
-  if (complete) return <div className="flex flex-col items-center justify-center h-full gap-6"><h2 className="text-2xl font-bold">You're all set!</h2><p className="text-center">We'll tune your feed based on what matters to you.</p><button className="bg-blue-600 text-white px-6 py-2 rounded-full" onClick={() => router.push('/dashboard')}>Preview my feed</button></div>;
+  if (complete) return (
+    <div className="flex flex-col items-center justify-center h-full gap-6">
+      <h2 className="text-2xl font-bold">You're all set!</h2>
+      <p className="text-center">We'll tune your feed based on what matters to you.</p>
+      <button className="bg-blue-600 text-white px-6 py-2 rounded-full" onClick={() => { window.location.href = '/dashboard'; }}>Preview my feed</button>
+    </div>
+  );
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-white dark:bg-zinc-900 px-4 py-8">
@@ -267,6 +282,7 @@ export default function OnboardingPageClient() {
             {step === 4 && <StepExclusions value={exclusions} onChange={setExclusions} />}
             {/* Navigation Buttons */}
             <div className="flex flex-col gap-2 mt-8">
+              {error && <div className="text-red-600 text-center mb-2">{error}</div>}
               <button
                 className="bg-black text-white px-6 py-2 rounded-full disabled:opacity-50 mb-2"
                 onClick={handleNext}
