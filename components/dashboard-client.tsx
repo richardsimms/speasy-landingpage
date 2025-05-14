@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ContentList } from "@/components/content-list"
 import { CategoryList } from "@/components/category-list"
+import OnboardingPageClient from "@/app/(app)/onboarding/OnboardingPageClient"
 
 interface DashboardClientProps {
   userName: string
@@ -24,6 +25,10 @@ export function DashboardClient({
   categories,
   subscribedCategoryIds,
 }: DashboardClientProps) {
+  if (!subscribedCategoryIds || subscribedCategoryIds.length === 0) {
+    return <OnboardingPageClient />;
+  }
+
   return (
     <div className="container py-6 md:py-10">
       <div className="flex flex-col gap-6">
