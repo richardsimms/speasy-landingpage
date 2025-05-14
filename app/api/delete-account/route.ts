@@ -48,9 +48,12 @@ export async function POST(request: Request) {
           await stripe.subscriptions.del(subscriptionId);
           console.log(`Canceled subscription ${subscriptionId} for user ${userId}`);
         }
+        // Delete the Stripe customer
+        await stripe.customers.del(userData.stripe_customer_id);
+        console.log(`Deleted Stripe customer ${userData.stripe_customer_id} for user ${userId}`);
       } catch (stripeError) {
-        console.error('Error canceling Stripe subscription:', stripeError);
-        // Continue with account deletion even if subscription cancellation fails
+        console.error('Error canceling Stripe subscription or deleting customer:', stripeError);
+        // Continue with account deletion even if Stripe deletion fails
       }
     }
 
