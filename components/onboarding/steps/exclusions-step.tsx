@@ -3,13 +3,33 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 
 interface ExclusionsStepProps {
+  userId: string
   onSubmit: (exclusions: string) => void
 }
 
-export default function ExclusionsStep({ onSubmit }: ExclusionsStepProps) {
+export default function ExclusionsStep({ userId, onSubmit }: ExclusionsStepProps) {
   const [exclusions, setExclusions] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
+
+  const handleContinue = async (value: string) => {
+    setLoading(true)
+    setError("")
+    const supabase = createClientComponentClient()
+    const { error: dbError } = await supabase
+      .from("users")
+      .update({ exclusions: value })
+      .eq("id", userId)
+    setLoading(false)
+    if (dbError) {
+      setError("Failed to save exclusions")
+      return
+    }
+    onSubmit(value)
+  }
 
   return (
     <div className="space-y-6">
@@ -26,10 +46,10 @@ export default function ExclusionsStep({ onSubmit }: ExclusionsStepProps) {
       />
 
       <div className="space-y-2">
-        <Button onClick={() => onSubmit(exclusions)} className="w-full">
+        <Button onClick={() => handleContinue(exclusions)} className="w-full">
           Continue
         </Button>
-        <Button variant="ghost" onClick={() => onSubmit("")} className="w-full">
+        <Button variant="ghost" onClick={() => handleContinue("")} className="w-full">
           Skip this step
         </Button>
       </div>

@@ -4,13 +4,17 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 
 interface ListeningContextStepProps {
+  userId: string
   onSelect: (context: string) => void
 }
 
-export default function ListeningContextStep({ onSelect }: ListeningContextStepProps) {
+export default function ListeningContextStep({ userId, onSelect }: ListeningContextStepProps) {
   const [selectedContext, setSelectedContext] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
 
   const contexts = [
     { value: "commute", label: "During my commute" },
@@ -20,6 +24,22 @@ export default function ListeningContextStep({ onSelect }: ListeningContextStepP
     { value: "multitask", label: "While multitasking" },
     { value: "bedtime", label: "Before bed" },
   ]
+
+  const handleContinue = async () => {
+    setLoading(true)
+    setError("")
+    const supabase = createClientComponentClient()
+    const { error: dbError } = await supabase
+      .from("users")
+      .update({ listeningContext: selectedContext })
+      .eq("id", userId)
+    setLoading(false)
+    if (dbError) {
+      setError("Failed to save listening context")
+      return
+    }
+    onSelect(selectedContext)
+  }
 
   return (
     <div className="space-y-6">
@@ -40,7 +60,7 @@ export default function ListeningContextStep({ onSelect }: ListeningContextStepP
       </RadioGroup>
 
       <div className="space-y-2">
-        <Button onClick={() => onSelect(selectedContext)} className="w-full" disabled={!selectedContext}>
+        <Button onClick={handleContinue} className="w-full" disabled={!selectedContext}>
           Continue
         </Button>
         <Button variant="ghost" onClick={() => onSelect("")} className="w-full">

@@ -1,9 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useRouter } from "next/navigation"
-import { updateUserPreferencesAction } from "@/app/actions"
 import CategoryStep from "./steps/category-step"
 import ListeningContextStep from "./steps/listening-context-step"
 import SessionLengthStep from "./steps/session-length-step"
@@ -11,6 +10,7 @@ import TonePreferenceStep from "./steps/tone-preference-step"
 import ExclusionsStep from "./steps/exclusions-step"
 import CompletionStep from "./steps/completion-step"
 import ProgressBar from "./progress-bar"
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 
 interface OnboardingFlowProps {
   userId: string
@@ -26,18 +26,28 @@ export default function OnboardingFlow({ userId }: OnboardingFlowProps) {
     preferredTone: "",
     exclusions: "",
   })
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const totalSteps = 5
 
+  // Fetch user's current preferences on mount
+  useEffect(() => {
+    (async () => {
+      const supabase = createClientComponentClient();
+      const { data: userData } = await supabase
+        .from('users')
+        .select('categoryPreferences')
+        .eq('id', userId)
+        .single();
+      if (userData?.categoryPreferences) {
+        setPreferences((prev) => ({ ...prev, categoryPreferences: userData.categoryPreferences }))
+      }
+    })();
+  }, [userId])
+
   const handleCategorySelect = (categories: string[]) => {
-    // Update preferences state
     setPreferences((prev) => ({ ...prev, categoryPreferences: categories }))
-
-    // Use the server action to update the database
-    // We don't need to await this since we're not blocking the UI
-    updateUserPreferencesAction(userId, { categoryPreferences: categories })
-
-    // Move to next step
     setCurrentStep(1)
   }
 
@@ -57,31 +67,33 @@ export default function OnboardingFlow({ userId }: OnboardingFlowProps) {
   }
 
   const handleExclusionsSubmit = (exclusions: string) => {
-    const updatedPreferences = {
-      ...preferences,
-      exclusions,
-    }
-
-    // Update all preferences in database using the server action
-    updateUserPreferencesAction(userId, {
-      listeningContext: updatedPreferences.listeningContext,
-      sessionLength: updatedPreferences.sessionLength,
-      preferredTone: updatedPreferences.preferredTone,
-      exclusions,
-    })
-
-    setPreferences(updatedPreferences)
+    setPreferences((prev) => ({ ...prev, exclusions }))
     setCurrentStep(5)
   }
 
-  const handleComplete = () => {
-    router.push("/dashboard")
+  const handleComplete = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const supabase = createClientComponentClient();
+      // Update the users table with categoryPreferences
+      const { error: userError } = await supabase
+        .from('users')
+        .update({ categoryPreferences: preferences.categoryPreferences })
+        .eq('id', userId)
+      if (userError) throw userError
+      // Optionally, update other preferences here if you want
+      router.push("/dashboard")
+    } catch (err: any) {
+      setError(err.message || 'Something went wrong. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
     <div className="w-full max-w-md px-4 py-8">
       {currentStep < totalSteps && <ProgressBar currentStep={currentStep} totalSteps={totalSteps} />}
-
       <AnimatePresence mode="wait">
         <motion.div
           key={currentStep}
@@ -91,11 +103,12 @@ export default function OnboardingFlow({ userId }: OnboardingFlowProps) {
           transition={{ duration: 0.3 }}
           className="mt-8"
         >
-          {currentStep === 0 && <CategoryStep onSelect={handleCategorySelect} />}
-          {currentStep === 1 && <ListeningContextStep onSelect={handleListeningContextSelect} />}
-          {currentStep === 2 && <SessionLengthStep onSelect={handleSessionLengthSelect} />}
-          {currentStep === 3 && <TonePreferenceStep onSelect={handleTonePreferenceSelect} />}
-          {currentStep === 4 && <ExclusionsStep onSubmit={handleExclusionsSubmit} />}
+          {error && <div className="text-red-600 text-center mb-2">{error}</div>}
+          {currentStep === 0 && <CategoryStep userId={userId} onSelect={handleCategorySelect} />}
+          {currentStep === 1 && <ListeningContextStep userId={userId} onSelect={handleListeningContextSelect} />}
+          {currentStep === 2 && <SessionLengthStep userId={userId} onSelect={handleSessionLengthSelect} />}
+          {currentStep === 3 && <TonePreferenceStep userId={userId} onSelect={handleTonePreferenceSelect} />}
+          {currentStep === 4 && <ExclusionsStep userId={userId} onSubmit={handleExclusionsSubmit} />}
           {currentStep === 5 && <CompletionStep onComplete={handleComplete} />}
         </motion.div>
       </AnimatePresence>

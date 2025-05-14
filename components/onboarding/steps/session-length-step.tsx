@@ -4,13 +4,17 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 
 interface SessionLengthStepProps {
+  userId: string
   onSelect: (length: string) => void
 }
 
-export default function SessionLengthStep({ onSelect }: SessionLengthStepProps) {
+export default function SessionLengthStep({ userId, onSelect }: SessionLengthStepProps) {
   const [selectedLength, setSelectedLength] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
 
   const lengths = [
     { value: "5-10", label: "5–10 minutes" },
@@ -19,6 +23,22 @@ export default function SessionLengthStep({ onSelect }: SessionLengthStepProps) 
     { value: "30+", label: "30+ minutes" },
     { value: "varies", label: "It depends" },
   ]
+
+  const handleContinue = async () => {
+    setLoading(true)
+    setError("")
+    const supabase = createClientComponentClient()
+    const { error: dbError } = await supabase
+      .from("users")
+      .update({ sessionLength: selectedLength })
+      .eq("id", userId)
+    setLoading(false)
+    if (dbError) {
+      setError("Failed to save session length")
+      return
+    }
+    onSelect(selectedLength)
+  }
 
   return (
     <div className="space-y-6">
@@ -39,7 +59,7 @@ export default function SessionLengthStep({ onSelect }: SessionLengthStepProps) 
       </RadioGroup>
 
       <div className="space-y-2">
-        <Button onClick={() => onSelect(selectedLength)} className="w-full" disabled={!selectedLength}>
+        <Button onClick={handleContinue} className="w-full" disabled={!selectedLength}>
           Continue
         </Button>
         <Button variant="ghost" onClick={() => onSelect("")} className="w-full">

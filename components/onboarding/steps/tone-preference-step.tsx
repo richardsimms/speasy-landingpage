@@ -4,13 +4,17 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 
 interface TonePreferenceStepProps {
+  userId: string
   onSelect: (tone: string) => void
 }
 
-export default function TonePreferenceStep({ onSelect }: TonePreferenceStepProps) {
+export default function TonePreferenceStep({ userId, onSelect }: TonePreferenceStepProps) {
   const [selectedTone, setSelectedTone] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
 
   const tones = [
     { value: "professional", label: "Professional" },
@@ -18,6 +22,22 @@ export default function TonePreferenceStep({ onSelect }: TonePreferenceStepProps
     { value: "fast", label: "Fast-paced" },
     { value: "calm", label: "Calm" },
   ]
+
+  const handleContinue = async () => {
+    setLoading(true)
+    setError("")
+    const supabase = createClientComponentClient()
+    const { error: dbError } = await supabase
+      .from("users")
+      .update({ preferredTone: selectedTone })
+      .eq("id", userId)
+    setLoading(false)
+    if (dbError) {
+      setError("Failed to save tone preference")
+      return
+    }
+    onSelect(selectedTone)
+  }
 
   return (
     <div className="space-y-6">
@@ -38,7 +58,7 @@ export default function TonePreferenceStep({ onSelect }: TonePreferenceStepProps
       </RadioGroup>
 
       <div className="space-y-2">
-        <Button onClick={() => onSelect(selectedTone)} className="w-full" disabled={!selectedTone}>
+        <Button onClick={handleContinue} className="w-full" disabled={!selectedTone}>
           Continue
         </Button>
         <Button variant="ghost" onClick={() => onSelect("")} className="w-full">

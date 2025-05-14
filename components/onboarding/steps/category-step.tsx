@@ -5,16 +5,19 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 
 interface CategoryStepProps {
+  userId: string
   onSelect: (categories: string[]) => void
 }
 
-export default function CategoryStep({ onSelect }: CategoryStepProps) {
+export default function CategoryStep({ userId, onSelect }: CategoryStepProps) {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [otherCategory, setOtherCategory] = useState("")
   const [showOtherInput, setShowOtherInput] = useState(false)
   const [error, setError] = useState("")
+  const [loading, setLoading] = useState(false)
 
   const categories = [
     "Design & Creativity",
@@ -45,18 +48,27 @@ export default function CategoryStep({ onSelect }: CategoryStepProps) {
     })
   }
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     const finalCategories = [...selectedCategories]
-
     if (showOtherInput && otherCategory.trim()) {
       finalCategories.push(otherCategory.trim())
     }
-
     if (finalCategories.length === 0) {
       setError("Please select at least one category")
       return
     }
-
+    setLoading(true)
+    setError("")
+    const supabase = createClientComponentClient()
+    const { error: dbError } = await supabase
+      .from("users")
+      .update({ categoryPreferences: finalCategories })
+      .eq("id", userId)
+    setLoading(false)
+    if (dbError) {
+      setError("Failed to save categories")
+      return
+    }
     onSelect(finalCategories)
   }
 
@@ -95,8 +107,8 @@ export default function CategoryStep({ onSelect }: CategoryStepProps) {
         {error && <p className="text-sm text-red-500">{error}</p>}
       </div>
 
-      <Button onClick={handleContinue} className="w-full">
-        Continue
+      <Button onClick={handleContinue} className="w-full" disabled={loading}>
+        {loading ? "Saving..." : "Continue"}
       </Button>
     </div>
   )
