@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
@@ -18,17 +18,18 @@ export default function CategoryStep({ userId, onSelect }: CategoryStepProps) {
   const [showOtherInput, setShowOtherInput] = useState(false)
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+  const [categories, setCategories] = useState<string[]>([])
 
-  const categories = [
-    "Design & Creativity",
-    "Tech & AI",
-    "Business & Startups",
-    "Personal Growth",
-    "Global News",
-    "Productivity",
-    "Health & Wellness",
-    "Other",
-  ]
+  useEffect(() => {
+    (async () => {
+      const supabase = createClientComponentClient()
+      const { data, error } = await supabase.from("categories").select("name").order("name")
+      if (data) {
+        setCategories(data.map((cat: { name: string }) => cat.name))
+      }
+      // Optionally handle error
+    })()
+  }, [])
 
   const handleCategoryChange = (category: string, checked: boolean) => {
     if (category === "Other") {
