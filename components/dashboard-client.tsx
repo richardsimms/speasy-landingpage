@@ -15,6 +15,7 @@ interface DashboardClientProps {
   submittedUrls: any[]
   categories: any[]
   subscribedCategoryIds: string[]
+  isOnboarding?: boolean
 }
 
 export function DashboardClient({
@@ -24,8 +25,9 @@ export function DashboardClient({
   submittedUrls,
   categories,
   subscribedCategoryIds,
+  isOnboarding,
 }: DashboardClientProps) {
-  if (!subscribedCategoryIds || subscribedCategoryIds.length === 0) {
+  if (isOnboarding || !subscribedCategoryIds || subscribedCategoryIds.length === 0) {
     return <OnboardingPageClient />;
   }
 

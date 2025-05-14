@@ -21,11 +21,16 @@ export default async function AppLayout({
     redirect("/auth/login")
   }
 
+  // Hide sidebar if onboarding is active (look for a data-onboarding attribute on the child)
+  const isOnboarding =
+    (Array.isArray(children) && children.some((child: any) => child?.props?.isOnboarding)) ||
+    (typeof children === 'object' && (children as any)?.props?.isOnboarding);
+
   return (
     <div className="flex min-h-screen flex-col">
       <AppHeader />
       <div className="flex flex-1">
-        <AppSidebar />
+        {!isOnboarding && <AppSidebar />}
         <main className="flex-1 overflow-y-auto bg-muted/40 pb-16 md:pb-0">{children}</main>
       </div>
       <Analytics />

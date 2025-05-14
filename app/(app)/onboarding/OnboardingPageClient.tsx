@@ -17,6 +17,8 @@ const steps = [
   'Exclusions',
 ];
 
+const stepPercent = [20, 40, 60, 80, 100];
+
 function StepCategory({ value, onChange, otherValue, setOtherValue }: any) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [otherChecked, setOtherChecked] = useState(!!otherValue);
@@ -91,20 +93,20 @@ function StepContext({ value, onChange }: any) {
     "Before bed",
   ];
   return (
-    <div className="bg-white dark:bg-zinc-900 rounded-xl shadow border border-zinc-200 dark:border-zinc-800 p-8 max-w-xl mx-auto">
-      <h2 className="text-2xl font-bold mb-1 dark:text-white">Listening Context</h2>
-      <p className="text-gray-500 dark:text-gray-400 mb-6">When do you usually listen?</p>
+    <div className="flex flex-col gap-6">
+      <h2 className="text-2xl font-bold text-center">When do you usually listen?</h2>
+      <p className="text-center text-gray-500 mb-4">This helps us recommend the right content</p>
       <fieldset>
         <div className="flex flex-col gap-5">
           {options.map(opt => (
-            <label key={opt} className="flex items-center gap-3 text-lg font-medium dark:text-white">
+            <label key={opt} className="flex items-center gap-3 text-lg font-medium">
               <input
                 type="radio"
                 name="listening_context"
                 value={opt}
                 checked={value === opt}
                 onChange={() => onChange(opt)}
-                className="w-5 h-5 accent-black dark:accent-white"
+                className="w-5 h-5 accent-black"
               />
               {opt}
             </label>
@@ -235,22 +237,43 @@ export default function OnboardingPageClient() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -50 }}
             transition={{ duration: 0.3 }}
-            className="bg-white rounded-xl shadow-lg p-6 min-h-[400px] flex flex-col justify-between dark:bg-zinc-900"
+            className="bg-white rounded-xl shadow-lg p-8 min-h-[400px] flex flex-col justify-between dark:bg-zinc-900"
           >
+            {/* Progress Bar */}
+            <div className="mb-6">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-sm text-gray-500">Step {step + 1} of 5</span>
+                <span className="text-sm text-gray-500">{stepPercent[step]}%</span>
+              </div>
+              <div className="w-full h-2 bg-gray-200 rounded">
+                <div className="h-2 bg-black rounded" style={{ width: `${stepPercent[step]}%` }} />
+              </div>
+            </div>
+            {/* Step Content */}
             {step === 0 && <StepCategory value={categoryPreferences} onChange={handleCategory} otherValue={otherCategory} setOtherValue={setOtherCategory} />}
             {step === 1 && <StepContext value={listeningContext} onChange={setListeningContext} />}
             {step === 2 && <StepLength value={sessionLength} onChange={setSessionLength} />}
             {step === 3 && <StepTone value={preferredTone} onChange={setPreferredTone} />}
             {step === 4 && <StepExclusions value={exclusions} onChange={setExclusions} />}
-            <div className="flex justify-between mt-8">
-              <button className="text-gray-500 dark:text-gray-300" onClick={handleBack} disabled={step === 0}>Back</button>
+            {/* Navigation Buttons */}
+            <div className="flex flex-col gap-2 mt-8">
               <button
-                className="bg-black text-white dark:bg-white dark:text-black px-6 py-2 rounded-full disabled:opacity-50"
+                className="bg-black text-white px-6 py-2 rounded-full disabled:opacity-50 mb-2"
                 onClick={handleNext}
                 disabled={loading || (step === 0 && categoryPreferences.length === 0 && !otherCategory)}
               >
-                {step === steps.length - 1 ? (loading ? 'Saving...' : 'Finish') : 'Next'}
+                {step === steps.length - 1 ? (loading ? 'Saving...' : 'Continue') : 'Continue'}
               </button>
+              <button
+                className="text-black text-sm underline"
+                type="button"
+                onClick={() => setStep(s => Math.min(s + 1, steps.length - 1))}
+              >
+                Skip this step
+              </button>
+              {step > 0 && (
+                <button className="text-gray-500 text-sm mt-2" onClick={handleBack}>Back</button>
+              )}
             </div>
           </motion.div>
         </AnimatePresence>

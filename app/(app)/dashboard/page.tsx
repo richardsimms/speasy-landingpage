@@ -108,6 +108,7 @@ export default async function DashboardPage() {
       submittedUrls={submittedUrls || []}
       categories={categories || []}
       subscribedCategoryIds={subscribedCategoryIds}
+      isOnboarding={!subscribedCategoryIds || subscribedCategoryIds.length === 0}
     />
   )
 }
