@@ -50,6 +50,7 @@ export default function CategoryStep({ userId, onSelect }: CategoryStepProps) {
   }
 
   const handleContinue = async () => {
+    console.log("userId in category-step:", userId);
     const finalCategories = [...selectedCategories]
     if (showOtherInput && otherCategory.trim()) {
       finalCategories.push(otherCategory.trim())
