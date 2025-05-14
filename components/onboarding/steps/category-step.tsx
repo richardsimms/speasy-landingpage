@@ -12,20 +12,25 @@ interface CategoryStepProps {
   onSelect: (categories: string[]) => void
 }
 
+interface Category {
+  id: string
+  name: string
+}
+
 export default function CategoryStep({ userId, onSelect }: CategoryStepProps) {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [otherCategory, setOtherCategory] = useState("")
   const [showOtherInput, setShowOtherInput] = useState(false)
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
-  const [categories, setCategories] = useState<string[]>([])
+  const [categories, setCategories] = useState<Category[]>([])
 
   useEffect(() => {
     (async () => {
       const supabase = createClientComponentClient()
-      const { data, error } = await supabase.from("categories").select("name").order("name")
+      const { data, error } = await supabase.from("categories").select("id, name").order("name")
       if (data) {
-        setCategories(data.map((cat: { name: string }) => cat.name))
+        setCategories(data)
       }
       // Optionally handle error
     })()
@@ -50,7 +55,6 @@ export default function CategoryStep({ userId, onSelect }: CategoryStepProps) {
   }
 
   const handleContinue = async () => {
-    console.log("userId in category-step:", userId);
     const finalCategories = [...selectedCategories]
     if (showOtherInput && otherCategory.trim()) {
       finalCategories.push(otherCategory.trim())
@@ -62,10 +66,17 @@ export default function CategoryStep({ userId, onSelect }: CategoryStepProps) {
     setLoading(true)
     setError("")
     const supabase = createClientComponentClient()
+    // Prepare the rows to insert
+    const rows = finalCategories.map((categoryName) => {
+      const cat = categories.find(c => c.name === categoryName)
+      return {
+        user_id: userId,
+        category_id: cat?.id || categoryName // fallback for 'Other' as custom name
+      }
+    })
     const { error: dbError } = await supabase
-      .from("users")
-      .update({ categoryPreferences: finalCategories })
-      .eq("id", userId)
+      .from("user_category_subscriptions")
+      .insert(rows)
     setLoading(false)
     if (dbError) {
       setError("Failed to save categories")
@@ -83,18 +94,28 @@ export default function CategoryStep({ userId, onSelect }: CategoryStepProps) {
 
       <div className="space-y-4">
         {categories.map((category) => (
-          <div key={category} className="flex items-center space-x-3">
+          <div key={category.id} className="flex items-center space-x-3">
             <Checkbox
-              id={category}
-              checked={category === "Other" ? showOtherInput : selectedCategories.includes(category)}
-              onCheckedChange={(checked) => handleCategoryChange(category, checked as boolean)}
+              id={category.name}
+              checked={selectedCategories.includes(category.name)}
+              onCheckedChange={(checked) => handleCategoryChange(category.name, checked as boolean)}
             />
-            <Label htmlFor={category} className="text-base cursor-pointer">
-              {category}
+            <Label htmlFor={category.name} className="text-base cursor-pointer">
+              {category.name}
             </Label>
           </div>
         ))}
-
+        {/* Other option */}
+        <div className="flex items-center space-x-3">
+          <Checkbox
+            id="Other"
+            checked={showOtherInput}
+            onCheckedChange={(checked) => handleCategoryChange("Other", checked as boolean)}
+          />
+          <Label htmlFor="Other" className="text-base cursor-pointer">
+            Other
+          </Label>
+        </div>
         {showOtherInput && (
           <div className="pl-7 mt-2">
             <Input
@@ -105,7 +126,6 @@ export default function CategoryStep({ userId, onSelect }: CategoryStepProps) {
             />
           </div>
         )}
-
         {error && <p className="text-sm text-red-500">{error}</p>}
       </div>
 
