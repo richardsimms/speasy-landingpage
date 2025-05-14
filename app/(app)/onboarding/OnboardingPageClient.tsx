@@ -170,8 +170,7 @@ export default function OnboardingPageClient() {
   useEffect(() => {
     (async () => {
       const supabase = createClientComponentClient();
-      const { data: subscriptions } = await supabase
-        .from("user_category_subscriptions")
+      const { data: subscriptions } = await supabase.from("user_category_subscriptions")
         .select("category_id");
       if (subscriptions) {
         setCategoryPreferences(subscriptions.map((s: any) => s.category_id));
@@ -187,33 +186,50 @@ export default function OnboardingPageClient() {
     if (step === steps.length - 1) {
       setLoading(true);
       const supabase = createClientComponentClient();
-      // Fetch current subscriptions
+      // Get user session for user_id
+      const { data: { session } } = await supabase.auth.getSession();
+      const userId = session?.user?.id;
+      if (!userId) {
+        setLoading(false);
+        return;
+      }
+      // 1. Save all onboarding fields to the user profile first
+      await supabase.from('profiles').update({
+        category_preferences: categoryPreferences,
+        other_category: otherCategory,
+        listening_context: listeningContext,
+        session_length: sessionLength,
+        preferred_tone: preferredTone,
+        exclusions,
+      }).eq('id', userId);
+      // 2. Fetch current subscriptions
       const { data: currentSubs } = await supabase
         .from("user_category_subscriptions")
-        .select("category_id");
+        .select("category_id")
+        .eq("user_id", userId);
       const currentIds = currentSubs ? currentSubs.map((s: any) => s.category_id) : [];
-      // Add new subscriptions
+      // 3. Add new subscriptions
       for (const id of categoryPreferences) {
         if (!currentIds.includes(id)) {
-          await supabase.from("user_category_subscriptions").insert({ category_id: id });
+          await supabase.from("user_category_subscriptions").insert({ user_id: userId, category_id: id });
         }
       }
-      // Remove unselected subscriptions
+      // 4. Remove unselected subscriptions
       for (const id of currentIds) {
         if (!categoryPreferences.includes(id)) {
-          await supabase.from("user_category_subscriptions").delete().eq("category_id", id);
+          await supabase.from("user_category_subscriptions").delete().eq("user_id", userId).eq("category_id", id);
         }
       }
-      // Save other preferences as before (PATCH /api/preferences)
+      // 5. Save other preferences as before (PATCH /api/preferences)
       await fetch('/api/preferences', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          otherCategory: otherCategory || '',
           listening_context: listeningContext,
           session_length: sessionLength,
           preferred_tone: preferredTone,
           exclusions,
-          otherCategory,
         }),
       });
       setLoading(false);
