@@ -4,10 +4,15 @@ import { Button } from "@/components/ui/button"
 import { CheckCircle } from "lucide-react"
 
 interface CompletionStepProps {
-  onComplete: () => void
+  onComplete?: () => void
 }
 
 export default function CompletionStep({ onComplete }: CompletionStepProps) {
+  const handleClick = () => {
+    window.location.href = "/dashboard";
+    if (onComplete) onComplete();
+  };
+
   return (
     <div className="space-y-8 text-center">
       <div className="flex justify-center">
@@ -22,11 +27,8 @@ export default function CompletionStep({ onComplete }: CompletionStepProps) {
       </div>
 
       <div className="space-y-3">
-        <Button onClick={onComplete} className="w-full">
+        <Button onClick={handleClick} className="w-full">
           Explore your personalized feed
-        </Button>
-        <Button variant="outline" onClick={onComplete} className="w-full">
-          Listen to a welcome summary
         </Button>
       </div>
     </div>
