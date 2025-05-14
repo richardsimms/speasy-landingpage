@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { createClient } from '@/lib/supabase'
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -20,27 +21,55 @@ export default function LoginPage() {
     setLoading(true)
     setMessage(null)
 
+    // const allowedDomains = process.env.NEXT_PUBLIC_ALLOWED_EMAIL_DOMAINS?.split(',') || ['speasy.app'];
+
+    // // Validate email domain
+    // const emailDomain = email.split('@')[1];
+    // if (!allowedDomains.includes(emailDomain)) {
+    //   setMessage({
+    //     type: "error",
+    //     text: `Please use an approved email domain to login`,
+    //   })
+    //   setLoading(false)
+    //   return
+    // }
+
     try {
-      const normalizedEmail = email.toLowerCase().trim()
+      const supabase = createClient()
       
-      // Use server-side API to handle login securely
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: normalizedEmail })
-      });
+      // Check if the email exists in the users table
+      const { data: existingUsers, error: usersError } = await supabase
+        .from('users')
+        .select('email')
+        .eq('email', email)
+        .limit(1)
       
-      const data = await response.json();
-      
-      if (!response.ok) {
-        setMessage({
-          type: "error",
-          text: data.error || "An error occurred during login. Please try again."
-        });
-        return;
+      if (usersError) {
+        throw usersError
       }
       
-      // Success - magic link sent
+      // If email doesn't exist in our users table, show error
+      if (!existingUsers || existingUsers.length === 0) {
+        setMessage({
+          type: "error",
+          text: "This email is not registered. Please contact support if you believe this is an error."
+        })
+        setLoading(false)
+        return
+      }
+      
+      // Email exists, proceed with sending magic link
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
+      })
+
+      if (error) {
+        throw error
+      }
+
       setMessage({
         type: "success",
         text: "Check your email for the magic link! After clicking the link, you'll be automatically redirected to your dashboard. If you're not redirected, please contact support.",
@@ -49,7 +78,7 @@ export default function LoginPage() {
       console.error("Login error:", error)
       setMessage({
         type: "error",
-        text: "An error occurred during login. Please try again."
+        text: error.message || "An error occurred during login. Please try again.",
       })
     } finally {
       setLoading(false)
