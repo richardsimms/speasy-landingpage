@@ -21,7 +21,7 @@ export default async function OnboardingPage() {
   const prefs = userData?.categoryPreferences;
   if (prefs && prefs !== 'all' && Array.isArray(prefs) && prefs.length > 0) {
     // Already onboarded, redirect to main feed
-    if (typeof window !== 'undefined') window.location.href = '/dashboard';
+    if (typeof window !== 'undefined') window.location.href = '/';
     return null;
   }
   const preferences = await getUserPreferences(user.id);
@@ -34,7 +34,7 @@ export default async function OnboardingPage() {
     return <OnboardingPageClient />;
   } else {
     // Redirect to dashboard or main app
-    if (typeof window !== 'undefined') window.location.href = '/dashboard';
+    if (typeof window !== 'undefined') window.location.href = '/';
     return null;
   }
 } 
