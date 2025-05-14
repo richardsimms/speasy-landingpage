@@ -7,6 +7,7 @@ export async function POST(request: Request) {
     const { email } = await request.json();
     
     if (!email || typeof email !== 'string') {
+      console.log('Invalid email input:', email);
       return NextResponse.json({ error: 'Invalid email' }, { status: 400 });
     }
 
@@ -38,6 +39,7 @@ export async function POST(request: Request) {
     }
     
     // User exists, send magic link
+    console.log(`Attempting to send magic link to: ${normalizedEmail}`);
     const { error } = await supabase.auth.admin.generateLink({
       type: 'magiclink',
       email: normalizedEmail,
@@ -51,6 +53,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
     
+    console.log(`Magic link sent to: ${normalizedEmail}`);
     return NextResponse.json({ success: true });
   } catch (error: any) {
     console.error('Register subscriber error:', error);
