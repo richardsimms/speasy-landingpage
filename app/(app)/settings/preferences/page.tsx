@@ -47,20 +47,25 @@ export default function PreferencesPage() {
         setCurrentSubscriptions(ids);
       }
     });
-    // Fetch other preferences as before...
+    // Fetch preferences from profiles table
     (async () => {
       setLoading(true);
-      const res = await fetch('/api/preferences', { method: 'GET' });
-      if (res.ok) {
-        const data = await res.json();
+      const { data: { session } } = await supabase.auth.getSession();
+      const userId = session?.user?.id;
+      if (!userId) {
+        setLoading(false);
+        return;
+      }
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("listening_context, session_length, preferred_tone, exclusions")
+        .eq("id", userId)
+        .single();
+      if (!error && data) {
         setListeningContext(data.listening_context || '');
         setSessionLength(data.session_length || '');
         setPreferredTone(data.preferred_tone || '');
         setExclusions(data.exclusions || '');
-        if (data.otherCategory) {
-          setOtherCategory(data.otherCategory);
-          setOtherChecked(true);
-        }
       }
       setLoading(false);
     })();
