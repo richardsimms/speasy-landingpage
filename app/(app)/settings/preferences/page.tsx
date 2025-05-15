@@ -99,18 +99,21 @@ export default function PreferencesPage() {
           .eq("category_id", id);
       }
     }
-    // Save other preferences as before
-    await fetch('/api/preferences', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        otherCategory: otherChecked ? otherCategory : '',
+    // Save other preferences to profiles table
+    const { error: profileError } = await supabase
+      .from("profiles")
+      .update({
         listening_context: listeningContext,
         session_length: sessionLength,
         preferred_tone: preferredTone,
         exclusions,
-      }),
-    });
+      })
+      .eq("id", userId);
+    if (profileError) {
+      setLoading(false);
+      // Optionally show an error
+      return;
+    }
     setLoading(false);
     setSaved(true);
     setCurrentSubscriptions(categoryPreferences);
