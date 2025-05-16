@@ -35,12 +35,13 @@ interface ContentItem {
 interface ContentListProps {
   items: ContentItem[]
   emptyMessage?: string
+  defaultFilter?: "all" | "read" | "unread"
 }
 
-export function ContentList({ items, emptyMessage = "No content available." }: ContentListProps) {
+export function ContentList({ items, emptyMessage = "No content available.", defaultFilter = "all" }: ContentListProps) {
   const [savedItems, setSavedItems] = useState<string[]>([])
   const [readItems, setReadItems] = useState<string[]>([])
-  const [filter, setFilter] = useState<"all" | "read" | "unread">("all")
+  const [filter, setFilter] = useState<"all" | "read" | "unread">(defaultFilter)
   
   // Initialize read status from props
   useEffect(() => {
@@ -167,8 +168,8 @@ export function ContentList({ items, emptyMessage = "No content available." }: C
         >
           <TabsList className="w-full md:w-auto">
             <TabsTrigger value="all">All</TabsTrigger>
-            <TabsTrigger value="unread">Unread</TabsTrigger>
-            <TabsTrigger value="read">Read</TabsTrigger>
+            <TabsTrigger value="unread">New</TabsTrigger>
+            <TabsTrigger value="read">Listened</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>

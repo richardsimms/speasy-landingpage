@@ -28,7 +28,7 @@ export function DashboardClient({
   isOnboarding,
 }: DashboardClientProps) {
   if (isOnboarding || !subscribedCategoryIds || subscribedCategoryIds.length === 0) {
-    return <OnboardingPageClient />;
+    return <OnboardingPageClient userId={userName} />;
   }
 
   return (
@@ -47,7 +47,7 @@ export function DashboardClient({
           </TabsList>
 
           <TabsContent value="latest" className="space-y-4">
-            <ContentList items={latestContent} />
+            <ContentList items={latestContent} defaultFilter="unread" />
 
             {latestContent.length === 0 && (
               <Card>

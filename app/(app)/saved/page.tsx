@@ -41,6 +41,7 @@ export default async function SavedPage() {
         <ContentList
           items={savedContent?.map((item) => item.content) || []}
           emptyMessage="You haven't saved any content yet."
+          defaultFilter="all"
         />
       </div>
     </div>

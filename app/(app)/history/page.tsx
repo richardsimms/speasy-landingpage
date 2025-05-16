@@ -41,6 +41,7 @@ export default async function HistoryPage() {
         <ContentList
           items={readContent?.map((item) => item.content) || []}
           emptyMessage="You haven't listened to any content yet."
+          defaultFilter="all"
         />
       </div>
     </div>
