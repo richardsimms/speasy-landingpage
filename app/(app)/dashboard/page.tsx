@@ -109,6 +109,7 @@ export default async function DashboardPage() {
   return (
     <DashboardClient
       userName={session.user.email?.split("@")[0] || "User"}
+      userId={session.user.id}
       latestContent={latestContent || []}
       savedContent={savedContent?.map((item) => item.content) || []}
       submittedUrls={submittedUrls || []}

@@ -12,7 +12,11 @@ import CompletionStep from "./steps/completion-step"
 import ProgressBar from "./progress-bar"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 
-export default function OnboardingFlow() {
+interface OnboardingFlowProps {
+  userId: string
+}
+
+export default function OnboardingFlow({ userId }: OnboardingFlowProps) {
   const router = useRouter()
   const [currentStep, setCurrentStep] = useState(0)
   const [preferences, setPreferences] = useState({
@@ -24,21 +28,8 @@ export default function OnboardingFlow() {
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [userId, setUserId] = useState<string | null>(null)
 
   const totalSteps = 5
-
-  useEffect(() => {
-    (async () => {
-      const supabase = createClientComponentClient();
-      const { data: { session } } = await supabase.auth.getSession();
-      setUserId(session?.user?.id ?? null);
-    })();
-  }, []);
-
-  if (!userId) {
-    return <div>Loading...</div>;
-  }
 
   const handleCategorySelect = (categories: string[]) => {
     setPreferences((prev) => ({ ...prev, categoryPreferences: categories }))

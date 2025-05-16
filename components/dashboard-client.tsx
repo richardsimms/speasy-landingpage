@@ -10,6 +10,7 @@ import OnboardingPageClient from "@/app/(app)/onboarding/OnboardingPageClient"
 
 interface DashboardClientProps {
   userName: string
+  userId: string
   latestContent: any[]
   savedContent: any[]
   submittedUrls: any[]
@@ -20,6 +21,7 @@ interface DashboardClientProps {
 
 export function DashboardClient({
   userName,
+  userId,
   latestContent,
   savedContent,
   submittedUrls,
@@ -28,7 +30,7 @@ export function DashboardClient({
   isOnboarding,
 }: DashboardClientProps) {
   if (isOnboarding || !subscribedCategoryIds || subscribedCategoryIds.length === 0) {
-    return <OnboardingPageClient userId={userName} />;
+    return <OnboardingPageClient userId={userId} />;
   }
 
   return (
