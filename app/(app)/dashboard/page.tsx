@@ -5,12 +5,11 @@ import { DashboardClient } from "@/components/dashboard-client"
 export default async function DashboardPage() {
   const supabase = createServerComponentClient({ cookies })
 
-  // Get user profile
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
+  // Get authenticated user using the recommended getUser method
+  const { data: { user }, error: userError } = await supabase.auth.getUser()
 
-  if (!session) {
+  if (userError || !user) {
+    console.error("Authentication error:", userError)
     return null
   }
 
@@ -18,7 +17,7 @@ export default async function DashboardPage() {
   const { data: subscriptions } = await supabase
     .from("user_category_subscriptions")
     .select("category_id")
-    .eq("user_id", session.user.id)
+    .eq("user_id", user.id)
 
   const subscribedCategoryIds = subscriptions?.map((sub) => sub.category_id) || []
   
@@ -36,7 +35,7 @@ export default async function DashboardPage() {
         audio:audio_files(file_url, duration, type),
         user_content_items!left(is_read, is_favorite)
       `)
-      .eq("user_content_items.user_id", session.user.id)
+      .eq("user_content_items.user_id", user.id)
       .in("source.category_id", subscribedCategoryIds)
       .order("published_at", { ascending: false })
       .limit(10)
@@ -64,7 +63,7 @@ export default async function DashboardPage() {
         audio:audio_files(file_url, duration, type),
         user_content_items!left(is_read, is_favorite)
       `)
-      .eq("user_content_items.user_id", session.user.id)
+      .eq("user_content_items.user_id", user.id)
       .order("published_at", { ascending: false })
       .limit(10)
     
@@ -85,7 +84,7 @@ export default async function DashboardPage() {
         user_content_items!left(is_read, is_favorite)
       )
     `)
-    .eq("user_id", session.user.id)
+    .eq("user_id", user.id)
     .eq("is_favorite", true)
     .order("created_at", { ascending: false })
     .limit(10)
@@ -99,7 +98,7 @@ export default async function DashboardPage() {
       audio:audio_files(file_url, duration),
       content_item_id
     `)
-    .eq("user_id", session.user.id)
+    .eq("user_id", user.id)
     .order("created_at", { ascending: false })
     .limit(10)
 
@@ -108,8 +107,8 @@ export default async function DashboardPage() {
 
   return (
     <DashboardClient
-      userName={session.user.email?.split("@")[0] || "User"}
-      userId={session.user.id}
+      userName={user.email?.split("@")[0] || "User"}
+      userId={user.id}
       latestContent={latestContent || []}
       savedContent={savedContent?.map((item) => item.content) || []}
       submittedUrls={submittedUrls || []}

@@ -6,11 +6,10 @@ import { ContentList } from "@/components/content-list"
 export default async function HistoryPage() {
   const supabase = createServerComponentClient({ cookies })
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
+  // Use getUser for better security
+  const { data: { user }, error: userError } = await supabase.auth.getUser()
 
-  if (!session) {
+  if (userError || !user) {
     redirect("/auth/login")
   }
 
@@ -26,7 +25,7 @@ export default async function HistoryPage() {
         user_content_items!left(is_read, is_favorite)
       )
     `)
-    .eq("user_id", session.user.id)
+    .eq("user_id", user.id)
     .eq("is_read", true)
     .order("created_at", { ascending: false })
 

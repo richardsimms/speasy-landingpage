@@ -2,12 +2,14 @@
 
 import { Button } from "@/components/ui/button"
 import { CheckCircle } from "lucide-react"
+import { Loader2 } from "lucide-react"
 
 interface CompletionStepProps {
   onComplete?: () => void
+  loading?: boolean
 }
 
-export default function CompletionStep({ onComplete }: CompletionStepProps) {
+export default function CompletionStep({ onComplete, loading = false }: CompletionStepProps) {
   const handleClick = () => {
     window.location.href = "/dashboard";
     if (onComplete) onComplete();
@@ -27,8 +29,15 @@ export default function CompletionStep({ onComplete }: CompletionStepProps) {
       </div>
 
       <div className="space-y-3">
-        <Button onClick={handleClick} className="w-full">
-          Explore your personalized feed
+        <Button onClick={handleClick} className="w-full" disabled={loading}>
+          {loading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Saving preferences...
+            </>
+          ) : (
+            "Explore your personalized feed"
+          )}
         </Button>
       </div>
     </div>

@@ -31,6 +31,31 @@ export default function OnboardingFlow({ userId }: OnboardingFlowProps) {
 
   const totalSteps = 5
 
+  useEffect(() => {
+    // Log authentication information for debugging
+    const verifyUserId = async () => {
+      try {
+        const supabase = createClientComponentClient();
+        const { data, error } = await supabase.auth.getUser();
+        
+        if (error) {
+          console.error("Authentication verification error:", error);
+        } else {
+          console.log("Authenticated user ID:", data.user?.id);
+          console.log("Passed userId prop:", userId);
+          
+          if (data.user?.id !== userId) {
+            console.warn("User ID mismatch! This could cause issues with database operations.");
+          }
+        }
+      } catch (err) {
+        console.error("Failed to verify user authentication:", err);
+      }
+    };
+    
+    verifyUserId();
+  }, [userId]);
+
   const handleCategorySelect = (categories: string[]) => {
     setPreferences((prev) => ({ ...prev, categoryPreferences: categories }))
     setCurrentStep(1)
@@ -61,11 +86,26 @@ export default function OnboardingFlow({ userId }: OnboardingFlowProps) {
     setError(null)
     try {
       const supabase = createClientComponentClient();
+      
+      // Verify user authentication before updating
+      const { data: authData, error: authError } = await supabase.auth.getUser();
+      
+      if (authError || !authData.user) {
+        throw new Error("Authentication error: " + (authError?.message || "User not authenticated"));
+      }
+      
+      if (authData.user.id !== userId) {
+        console.warn("User ID mismatch. Using authenticated ID instead of passed ID.");
+        // Use the authenticated user ID instead of the passed one for security
+        userId = authData.user.id;
+      }
+      
       // Update the users table with categoryPreferences
       const { error: userError } = await supabase
         .from('users')
         .update({ categoryPreferences: preferences.categoryPreferences })
         .eq('id', userId)
+        
       if (userError) throw userError
       // Optionally, update other preferences here if you want
       router.push("/dashboard")
@@ -94,7 +134,7 @@ export default function OnboardingFlow({ userId }: OnboardingFlowProps) {
           {currentStep === 2 && <SessionLengthStep userId={userId} onSelect={handleSessionLengthSelect} />}
           {currentStep === 3 && <TonePreferenceStep userId={userId} onSelect={handleTonePreferenceSelect} />}
           {currentStep === 4 && <ExclusionsStep userId={userId} onSubmit={handleExclusionsSubmit} />}
-          {currentStep === 5 && <CompletionStep onComplete={handleComplete} />}
+          {currentStep === 5 && <CompletionStep onComplete={handleComplete} loading={loading} />}
         </motion.div>
       </AnimatePresence>
     </div>

@@ -35,6 +35,35 @@ export default function CategoryStep({ userId, onSelect }: CategoryStepProps) {
   const [loading, setLoading] = useState(false)
   const [categories, setCategories] = useState<Category[]>([])
   const [useFallback, setUseFallback] = useState(false)
+  const [verifiedUserId, setVerifiedUserId] = useState<string | null>(null)
+
+  // Verify user ID from auth
+  useEffect(() => {
+    const verifyUser = async () => {
+      try {
+        const supabase = createClientComponentClient();
+        const { data, error } = await supabase.auth.getUser();
+        
+        if (error) {
+          console.error("Auth error in CategoryStep:", error);
+          return;
+        }
+        
+        if (data.user) {
+          console.log("Verified user ID in CategoryStep:", data.user.id);
+          setVerifiedUserId(data.user.id);
+          
+          if (data.user.id !== userId) {
+            console.warn("User ID mismatch in CategoryStep! Using authenticated ID instead.");
+          }
+        }
+      } catch (err) {
+        console.error("Failed to verify user in CategoryStep:", err);
+      }
+    };
+    
+    verifyUser();
+  }, [userId]);
 
   const fetchCategories = async () => {
     setLoading(true);
@@ -102,7 +131,19 @@ export default function CategoryStep({ userId, onSelect }: CategoryStepProps) {
     
     try {
       const supabase = createClientComponentClient()
+      
+      // Verify the user ID again before saving
+      const { data: authData, error: authError } = await supabase.auth.getUser();
+      
+      if (authError) {
+        throw new Error("Authentication error: " + authError.message);
+      }
+      
+      // Use the verified user ID for database operations
+      const actualUserId = verifiedUserId || userId;
+      
       console.log("CategoryStep: Saving categories to database:", finalCategories);
+      console.log("CategoryStep: Using user ID:", actualUserId);
       
       // Get all category IDs for the selected names
       const categoriesToUse = useFallback ? FALLBACK_CATEGORIES : categories;
@@ -111,7 +152,7 @@ export default function CategoryStep({ userId, onSelect }: CategoryStepProps) {
       const rows = finalCategories.map((categoryName) => {
         const cat = categoriesToUse.find(c => c.name === categoryName)
         return {
-          user_id: userId,
+          user_id: actualUserId,
           category_id: cat?.id || categoryName // fallback for 'Other' as custom name
         }
       })
