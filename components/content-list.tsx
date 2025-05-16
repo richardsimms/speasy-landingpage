@@ -26,6 +26,10 @@ interface ContentItem {
     type: string
   }[]
   is_read?: boolean
+  user_content_items?: {
+    is_read: boolean
+    is_favorite: boolean
+  }[]
 }
 
 interface ContentListProps {
@@ -41,10 +45,32 @@ export function ContentList({ items, emptyMessage = "No content available." }: C
   // Initialize read status from props
   useEffect(() => {
     const initialReadItems = items
-      .filter(item => item.is_read)
-      .map(item => item.id)
-    setReadItems(initialReadItems)
-  }, [items])
+      .filter(item => {
+        // Check if the item is marked as read either directly or through user_content_items
+        return (
+          item.is_read === true || 
+          (item.user_content_items && 
+           item.user_content_items.length > 0 && 
+           item.user_content_items[0].is_read === true)
+        );
+      })
+      .map(item => item.id);
+    
+    setReadItems(initialReadItems);
+    
+    // Also initialize saved items
+    const initialSavedItems = items
+      .filter(item => {
+        return (
+          (item.user_content_items && 
+           item.user_content_items.length > 0 && 
+           item.user_content_items[0].is_favorite === true)
+        );
+      })
+      .map(item => item.id);
+    
+    setSavedItems(initialSavedItems);
+  }, [items]);
 
   const handleSave = async (id: string) => {
     const result = await saveContentItem(id)
@@ -112,7 +138,7 @@ export function ContentList({ items, emptyMessage = "No content available." }: C
 
   // Filter items based on the selected filter
   const filteredItems = items.filter(item => {
-    const isRead = readItems.includes(item.id) || item.is_read
+    const isRead = readItems.includes(item.id)
     
     if (filter === "read") return isRead
     if (filter === "unread") return !isRead
@@ -162,7 +188,7 @@ export function ContentList({ items, emptyMessage = "No content available." }: C
         </Card>
       ) : (
         filteredItems.map((item) => {
-          const isRead = readItems.includes(item.id) || item.is_read
+          const isRead = readItems.includes(item.id)
           
           return (
             <Card key={item.id}>

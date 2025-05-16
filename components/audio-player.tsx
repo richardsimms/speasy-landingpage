@@ -51,6 +51,7 @@ export function AudioPlayer({ contentItem, }: AudioPlayerProps) {
   const [audioLoaded, setAudioLoaded] = useState(false)
   const [audioError, setAudioError] = useState<string | null>(null)
   const [retryCount, setRetryCount] = useState(0)
+  const [isMarkedAsRead, setIsMarkedAsRead] = useState(false)
   const audioRef = useRef<HTMLAudioElement>(null)
 
   const audioUrl = contentItem?.audio?.[0]?.file_url
@@ -116,10 +117,27 @@ export function AudioPlayer({ contentItem, }: AudioPlayerProps) {
     }
   }, [audioUrl])
 
+  // Mark content as read when the component loads
   useEffect(() => {
-    // Mark as read when the player loads
-    markContentAsRead(contentItem.id)
+    const markAsRead = async () => {
+      try {
+        // Only mark as read if we have a valid content ID
+        if (contentItem && contentItem.id) {
+          const result = await markContentAsRead(contentItem.id)
+          if (result.success) {
+            setIsMarkedAsRead(true)
+            console.log("Content marked as read:", contentItem.id)
+          } else {
+            console.error("Failed to mark content as read:", result.error)
+          }
+        }
+      } catch (error) {
+        console.error("Error marking content as read:", error)
+      }
+    }
 
+    markAsRead()
+    
     // Reset player state when content changes
     setIsPlaying(false)
     setCurrentTime(0)

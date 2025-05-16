@@ -33,8 +33,10 @@ export default async function DashboardPage() {
       .select(`
         *,
         source:content_sources!inner(name, category_id),
-        audio:audio_files(file_url, duration, type)
+        audio:audio_files(file_url, duration, type),
+        user_content_items!left(is_read, is_favorite)
       `)
+      .eq("user_content_items.user_id", session.user.id)
       .in("source.category_id", subscribedCategoryIds)
       .order("published_at", { ascending: false })
       .limit(10)
@@ -59,8 +61,10 @@ export default async function DashboardPage() {
       .select(`
         *,
         source:content_sources(name, category_id),
-        audio:audio_files(file_url, duration, type)
+        audio:audio_files(file_url, duration, type),
+        user_content_items!left(is_read, is_favorite)
       `)
+      .eq("user_content_items.user_id", session.user.id)
       .order("published_at", { ascending: false })
       .limit(10)
     
@@ -77,7 +81,8 @@ export default async function DashboardPage() {
       content:content_items(
         *,
         source:content_sources(name, category_id),
-        audio:audio_files(file_url, duration, type)
+        audio:audio_files(file_url, duration, type),
+        user_content_items!left(is_read, is_favorite)
       )
     `)
     .eq("user_id", session.user.id)
@@ -91,7 +96,8 @@ export default async function DashboardPage() {
     .select(`
       id, title, url, published_at,
       source:content_sources(name),
-      audio:audio_files(file_url, duration)
+      audio:audio_files(file_url, duration),
+      content_item_id
     `)
     .eq("user_id", session.user.id)
     .order("created_at", { ascending: false })

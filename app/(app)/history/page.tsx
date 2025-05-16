@@ -22,7 +22,8 @@ export default async function HistoryPage() {
       content:content_items(
         id, title, url, published_at,
         source:content_sources(name, category_id),
-        audio:audio_files(file_url, duration, type)
+        audio:audio_files(file_url, duration, type),
+        user_content_items!left(is_read, is_favorite)
       )
     `)
     .eq("user_id", session.user.id)
