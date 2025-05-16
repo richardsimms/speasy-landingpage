@@ -6,6 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import { ReloadIcon } from "@radix-ui/react-icons"
 
 interface CategoryStepProps {
   userId: string
@@ -17,6 +18,15 @@ interface Category {
   name: string
 }
 
+// Sample categories for testing when the database fails to load
+const FALLBACK_CATEGORIES = [
+  { id: "1", name: "Technology" },
+  { id: "2", name: "Business" },
+  { id: "3", name: "Science" },
+  { id: "4", name: "Design" },
+  { id: "5", name: "Productivity" }
+];
+
 export default function CategoryStep({ userId, onSelect }: CategoryStepProps) {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [otherCategory, setOtherCategory] = useState("")
@@ -24,17 +34,41 @@ export default function CategoryStep({ userId, onSelect }: CategoryStepProps) {
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const [categories, setCategories] = useState<Category[]>([])
+  const [useFallback, setUseFallback] = useState(false)
+
+  const fetchCategories = async () => {
+    setLoading(true);
+    setError("");
+    
+    try {
+      const supabase = createClientComponentClient();
+      console.log("CategoryStep: Fetching categories from database");
+      const { data, error } = await supabase.from("categories").select("id, name").order("name");
+      
+      if (error) {
+        console.error("CategoryStep: Error fetching categories:", error);
+        setError("Failed to load categories. Please try using the fallback or refresh.");
+      }
+      
+      if (data && data.length > 0) {
+        console.log("CategoryStep: Categories fetched successfully:", data);
+        setCategories(data);
+      } else {
+        console.log("CategoryStep: No categories found in database");
+        setError("No categories found. Please use the fallback categories to continue.");
+      }
+    } catch (err) {
+      console.error("CategoryStep: Exception fetching categories:", err);
+      setError("An unexpected error occurred. Please try the fallback categories.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    (async () => {
-      const supabase = createClientComponentClient()
-      const { data, error } = await supabase.from("categories").select("id, name").order("name")
-      if (data) {
-        setCategories(data)
-      }
-      // Optionally handle error
-    })()
-  }, [])
+    console.log("CategoryStep: Initializing with userId:", userId);
+    fetchCategories();
+  }, [userId]);
 
   const handleCategoryChange = (category: string, checked: boolean) => {
     if (category === "Other") {
@@ -65,24 +99,49 @@ export default function CategoryStep({ userId, onSelect }: CategoryStepProps) {
     }
     setLoading(true)
     setError("")
-    const supabase = createClientComponentClient()
-    // Prepare the rows to insert
-    const rows = finalCategories.map((categoryName) => {
-      const cat = categories.find(c => c.name === categoryName)
-      return {
-        user_id: userId,
-        category_id: cat?.id || categoryName // fallback for 'Other' as custom name
+    
+    try {
+      const supabase = createClientComponentClient()
+      console.log("CategoryStep: Saving categories to database:", finalCategories);
+      
+      // Get all category IDs for the selected names
+      const categoriesToUse = useFallback ? FALLBACK_CATEGORIES : categories;
+      
+      // Prepare the rows to insert
+      const rows = finalCategories.map((categoryName) => {
+        const cat = categoriesToUse.find(c => c.name === categoryName)
+        return {
+          user_id: userId,
+          category_id: cat?.id || categoryName // fallback for 'Other' as custom name
+        }
+      })
+      
+      console.log("CategoryStep: Inserting user_category_subscriptions:", rows);
+      const { error: dbError } = await supabase
+        .from("user_category_subscriptions")
+        .insert(rows)
+      
+      if (dbError) {
+        console.error("CategoryStep: Error saving categories:", dbError);
+        setError("Failed to save categories: " + dbError.message)
+        return
       }
-    })
-    const { error: dbError } = await supabase
-      .from("user_category_subscriptions")
-      .insert(rows)
-    setLoading(false)
-    if (dbError) {
-      setError("Failed to save categories")
-      return
+      
+      console.log("CategoryStep: Categories saved successfully");
+      onSelect(finalCategories)
+    } catch (err) {
+      console.error("CategoryStep: Exception saving categories:", err);
+      setError("An unexpected error occurred while saving categories")
+    } finally {
+      setLoading(false)
     }
-    onSelect(finalCategories)
+  }
+
+  const handleUseFallback = () => {
+    console.log("CategoryStep: Using fallback categories");
+    setCategories(FALLBACK_CATEGORIES);
+    setUseFallback(true);
+    setError("");
   }
 
   return (
@@ -92,41 +151,44 @@ export default function CategoryStep({ userId, onSelect }: CategoryStepProps) {
         <p className="text-gray-500">Select all that interest you</p>
       </div>
 
+      {loading && <div className="text-center">Loading categories...</div>}
+      {error && (
+        <div className="p-4 border rounded-md bg-amber-50 text-amber-800">
+          <p className="mb-2">{error}</p>
+          <div className="flex gap-2 justify-center">
+            <Button onClick={fetchCategories} variant="outline" size="sm">
+              <ReloadIcon className="mr-2 h-4 w-4" />
+              Retry
+            </Button>
+            <Button onClick={handleUseFallback} variant="outline" size="sm">
+              Use Default Categories
+            </Button>
+          </div>
+        </div>
+      )}
+
       <div className="space-y-4">
+        {categories.length === 0 && !loading && !error && (
+          <div className="text-center text-amber-500">
+            <p>No categories found. Please check your database connection.</p>
+            <Button onClick={handleUseFallback} variant="outline" size="sm" className="mt-2">
+              Use Default Categories
+            </Button>
+          </div>
+        )}
+        
         {categories.map((category) => (
           <div key={category.id} className="flex items-center space-x-3">
             <Checkbox
-              id={category.name}
+              id={category.id}
               checked={selectedCategories.includes(category.name)}
               onCheckedChange={(checked) => handleCategoryChange(category.name, checked as boolean)}
             />
-            <Label htmlFor={category.name} className="text-base cursor-pointer">
+            <Label htmlFor={category.id} className="text-base cursor-pointer">
               {category.name}
             </Label>
           </div>
         ))}
-        {/* Other option 
-        <div className="flex items-center space-x-3">
-          <Checkbox
-            id="Other"
-            checked={showOtherInput}
-            onCheckedChange={(checked) => handleCategoryChange("Other", checked as boolean)}
-          />
-          <Label htmlFor="Other" className="text-base cursor-pointer">
-            Other
-          </Label>
-        </div>
-        {showOtherInput && (
-          <div className="pl-7 mt-2">
-            <Input
-              placeholder="What else interests you?"
-              value={otherCategory}
-              onChange={(e) => setOtherCategory(e.target.value)}
-              className="w-full"
-            />
-          </div>
-        )}*/}
-        {error && <p className="text-sm text-red-500">{error}</p>}
       </div>
 
       <Button onClick={handleContinue} className="w-full" disabled={loading}>
