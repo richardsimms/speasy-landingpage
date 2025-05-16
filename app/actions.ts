@@ -310,3 +310,57 @@ export async function markContentAsRead(contentId: string) {
     return { success: false, error: "An unexpected error occurred" }
   }
 }
+
+export async function markContentAsUnread(contentId: string) {
+  try {
+    const supabase = createServerActionClient({ cookies })
+
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+
+    if (!session) {
+      return { success: false, error: "Not authenticated" }
+    }
+
+    // Check if the content item exists in user_content_items
+    const { data: existingItem } = await supabase
+      .from("user_content_items")
+      .select("*")
+      .eq("user_id", session.user.id)
+      .eq("content_id", contentId)
+      .single()
+
+    if (existingItem) {
+      // Update the existing record to mark as unread
+      const { error } = await supabase.from("user_content_items").update({ is_read: false }).eq("id", existingItem.id)
+
+      if (error) {
+        console.error("Error marking content as unread:", error)
+        return { success: false, error: error.message }
+      }
+    } else {
+      // This shouldn't happen normally, but just in case, create a record marked as unread
+      const { error } = await supabase.from("user_content_items").insert({
+        id: uuidv4(),
+        user_id: session.user.id,
+        content_id: contentId,
+        is_read: false,
+        created_at: new Date().toISOString(),
+      })
+
+      if (error) {
+        console.error("Error marking content as unread:", error)
+        return { success: false, error: error.message }
+      }
+    }
+
+    revalidatePath("/dashboard")
+    revalidatePath("/history")
+
+    return { success: true }
+  } catch (error: any) {
+    console.error("Error in markContentAsUnread:", error)
+    return { success: false, error: "An unexpected error occurred" }
+  }
+}
