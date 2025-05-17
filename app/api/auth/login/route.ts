@@ -3,6 +3,12 @@ import { createAdminClient } from '@/lib/server-only';
 
 export async function POST(request: Request) {
   try {
+    // Check for required environment variables
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      console.error('Missing required Supabase environment variables');
+      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
+    }
+    
     // Get email from request
     const { email } = await request.json();
     
