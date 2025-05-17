@@ -4,7 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "prebuild": "./scripts/pre-build.sh",
     "build": "next build",
+    "clean": "rm -rf .next",
+    "clean:build": "rm -rf .next && next build",
     "start": "next start",
     "lint": "next lint"
   },

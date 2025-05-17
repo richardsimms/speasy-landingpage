@@ -1,0 +1,19 @@
+{
+  "buildCommand": "rm -rf .next && NODE_OPTIONS='--max-old-space-size=4096' pnpm run build",
+  "installCommand": "pnpm install",
+  "framework": "nextjs",
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    }
+  ],
+  "env": {
+    "NEXT_TELEMETRY_DISABLED": "1"
+  }
+} 
