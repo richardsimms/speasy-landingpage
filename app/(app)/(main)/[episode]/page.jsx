@@ -1,0 +1,125 @@
+import { cache } from 'react'
+import { notFound, redirect } from 'next/navigation'
+import Link from 'next/link'
+
+import { Container } from '@/components/Container'
+import { EpisodePlayButton } from '@/components/EpisodePlayButton'
+import { FormattedDate } from '@/components/FormattedDate'
+import { PauseIcon } from '@/components/PauseIcon'
+import { PlayIcon } from '@/components/PlayIcon'
+import { getAllEpisodes } from '@/lib/episodes'
+import { createClient } from '@/lib/supabase-server'
+
+const getEpisode = cache(async (id) => {
+  const supabase = createClient()
+  const { data: { session } } = await supabase.auth.getSession()
+  
+  let episodes
+  
+  if (session) {
+    // Check if user has completed onboarding
+    const { data: preferences } = await supabase
+      .from("user_preferences")
+      .select("*")
+      .eq("user_id", session.user.id)
+      .single()
+
+    // Also check for category subscriptions
+    const { data: categorySubscriptions } = await supabase
+      .from("user_category_subscriptions")
+      .select("*")
+      .eq("user_id", session.user.id)
+    
+    // If no preferences or no category subscriptions, redirect to onboarding
+    if (!preferences || !categorySubscriptions || categorySubscriptions.length === 0) {
+      redirect('/onboarding')
+    }
+    
+    // Get user's feed information
+    const { data: feed } = await supabase
+      .from("podcast_feeds")
+      .select("feed_url")
+      .eq("user_id", session.user.id)
+      .eq("feed_url", "default")
+      .single()
+    
+    episodes = await getAllEpisodes({
+      userId: session.user.id,
+      feedUrl: feed?.feed_url || 'default'
+    })
+  } else {
+    // If no session, use default feed
+    episodes = await getAllEpisodes({ 
+      userId: '4e2fcda9-3c5d-4687-9a41-0eb901559b9a', 
+      feedUrl: 'default' 
+    })
+  }
+  
+  let episode = episodes.find((episode) => episode.id.toString() === id)
+
+  if (!episode) {
+    notFound()
+  }
+
+  return episode
+})
+
+export async function generateMetadata({ params }) {
+  let episode = await getEpisode(params.episode)
+
+  return {
+    title: episode.title,
+  }
+}
+
+export default async function Episode({ params }) {
+  let episode = await getEpisode(params.episode)
+  let date = new Date(episode.published)
+
+  return (
+    <article className="py-16 lg:py-36">
+      <Container>
+        <header className="flex flex-col">
+          <div className="flex items-center gap-6">
+            <Link 
+              href="/"
+              className="absolute top-8 right-8 flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-500"
+              aria-label="Close"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </Link>
+            <EpisodePlayButton
+              episode={episode}
+              className="group relative flex h-18 w-18 flex-shrink-0 items-center justify-center rounded-full bg-slate-700 hover:bg-slate-900 focus:outline-none focus:ring focus:ring-slate-700 focus:ring-offset-4"
+              playing={
+                <PauseIcon className="h-9 w-9 fill-white group-active:fill-white/80" />
+              }
+              paused={
+                <PlayIcon className="h-9 w-9 fill-white group-active:fill-white/80" />
+              }
+            />
+            <div className="flex flex-col">
+              <h1 className="mt-2 text-4xl font-bold text-slate-900">
+                {episode.title}
+              </h1>
+              <FormattedDate
+                date={date}
+                className="order-first font-mono text-sm leading-7 text-slate-500"
+              />
+            </div>
+          </div>
+          <p className="ml-24 mt-3 text-lg font-medium leading-8 text-slate-700">
+            {episode.description}
+          </p>
+        </header>
+        <hr className="my-12 border-gray-200" />
+        <div
+          className="prose prose-slate mt-14 [&>h2:nth-of-type(3n)]:before:bg-violet-200 [&>h2:nth-of-type(3n+2)]:before:bg-indigo-200 [&>h2]:mt-12 [&>h2]:flex [&>h2]:items-center [&>h2]:font-mono [&>h2]:text-sm [&>h2]:font-medium [&>h2]:leading-7 [&>h2]:text-slate-900 [&>h2]:before:mr-3 [&>h2]:before:h-3 [&>h2]:before:w-1.5 [&>h2]:before:rounded-r-full [&>h2]:before:bg-cyan-200 [&>ul]:mt-6 [&>ul]:list-['\2013\20'] [&>ul]:pl-5"
+          dangerouslySetInnerHTML={{ __html: episode.content }}
+        />
+      </Container>
+    </article>
+  )
+}

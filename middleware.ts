@@ -26,18 +26,20 @@ export async function middleware(req: NextRequest) {
   // Refresh session
   const { data: { session } } = await supabase.auth.getSession()
 
-  // Protected routes
-  if (req.nextUrl.pathname.startsWith('/dashboard')) {
-    if (!session) {
-      return NextResponse.redirect(new URL('/auth/login', req.url))
-    }
+  // Check if path is inside the app directory (protected routes)
+  const isAppRoute = req.nextUrl.pathname.startsWith('/dashboard') ||
+                    req.nextUrl.pathname.includes('/(app)') ||
+                    req.nextUrl.pathname.startsWith('/settings') ||
+                    req.nextUrl.pathname.startsWith('/onboarding')
+
+  // Protect app routes - redirect to login if not authenticated
+  if (isAppRoute && !session) {
+    return NextResponse.redirect(new URL('/auth/login', req.url))
   }
 
-  // Auth routes
-  if (req.nextUrl.pathname.startsWith('/auth/login')) {
-    if (session) {
-      return NextResponse.redirect(new URL('/dashboard', req.url))
-    }
+  // Auth routes - redirect to app home if already authenticated
+  if (req.nextUrl.pathname.startsWith('/auth/login') && session) {
+    return NextResponse.redirect(new URL('/', req.url))
   }
 
   return res
@@ -46,6 +48,9 @@ export async function middleware(req: NextRequest) {
 export const config = {
   matcher: [
     '/dashboard/:path*',
+    '/settings/:path*',
+    '/onboarding/:path*',
+    '/(app)/:path*',
     '/auth/login',
     '/auth/callback',
     '/auth/error',

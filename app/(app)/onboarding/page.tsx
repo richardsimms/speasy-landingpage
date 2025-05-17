@@ -1,7 +1,17 @@
-import { cookies } from 'next/headers';
-import { supabase } from '@/utils/supabase';
-import OnboardingPageClient from './OnboardingPageClient';
+import { redirect } from 'next/navigation';
 import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
+import { cookies } from 'next/headers';
+import OnboardingPageClient from './OnboardingPageClient';
+
+async function getUserPreferences(userId: string) {
+  const supabase = createServerComponentClient({ cookies });
+  const { data } = await supabase
+    .from('user_preferences')
+    .select('*')
+    .eq('user_id', userId)
+    .single();
+  return data;
+}
 
 export default async function OnboardingPage() {
   const supabase = createServerComponentClient({ cookies });
@@ -9,29 +19,28 @@ export default async function OnboardingPage() {
   const userId = session?.user?.id;
 
   if (!userId) {
-    // Not logged in, redirect to login or show nothing
-    return null;
+    // Not logged in, redirect to login
+    redirect('/auth/login');
   }
 
-  // Fetch user and preferences
-  const { data: userData } = await supabase.from('users').select('categoryPreferences').eq('id', userId).single();
-  const prefs = userData?.categoryPreferences;
-  if (prefs && prefs !== 'all' && Array.isArray(prefs) && prefs.length > 0) {
-    // Already onboarded, redirect to main feed
-    if (typeof window !== 'undefined') window.location.href = '/';
-    return null;
+  // Check for category subscriptions
+  const { data: categorySubscriptions } = await supabase
+    .from("user_category_subscriptions")
+    .select("*")
+    .eq("user_id", userId);
+  
+  // Check for user preferences
+  const { data: preferences } = await supabase
+    .from("user_preferences")
+    .select("*")
+    .eq("user_id", userId)
+    .single();
+  
+  // If user has both preferences and category subscriptions, redirect to main app page
+  if (preferences && categorySubscriptions && categorySubscriptions.length > 0) {
+    redirect('/(app)/(main)');
   }
-  const preferences = await getUserPreferences(userId);
-  const needsOnboarding =
-    !preferences?.categoryPreferences ||
-    preferences.categoryPreferences.length === 0;
-
-  if (needsOnboarding) {
-    // Show onboarding
-    return <OnboardingPageClient userId={userId} />;
-  } else {
-    // Redirect to dashboard or main app
-    if (typeof window !== 'undefined') window.location.href = '/';
-    return null;
-  }
+  
+  // Show onboarding
+  return <OnboardingPageClient userId={userId} />;
 } 

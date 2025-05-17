@@ -108,7 +108,7 @@ export default function OnboardingFlow({ userId }: OnboardingFlowProps) {
         
       if (userError) throw userError
       // Optionally, update other preferences here if you want
-      router.push("/dashboard")
+      router.push("/(app)/(main)")
     } catch (err: any) {
       setError(err.message || 'Something went wrong. Please try again.')
     } finally {
