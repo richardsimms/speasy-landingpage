@@ -3,26 +3,52 @@ import { supabase } from '@/utils/supabase';
 
 // Helper to get user id from Supabase session (using cookies/JWT)
 async function getUserId(req: NextRequest): Promise<string | null> {
-  const token = req.headers.get('Authorization')?.replace('Bearer ', '') || req.cookies.get('sb-access-token')?.value;
-  if (!token) return null;
-  const { data, error } = await supabase.auth.getUser(token);
-  if (error || !data?.user?.id) return null;
-  return data.user.id;
+  try {
+    // Check for required environment variables
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      console.error('Missing required Supabase environment variables');
+      return null;
+    }
+    
+    const token = req.headers.get('Authorization')?.replace('Bearer ', '') || req.cookies.get('sb-access-token')?.value;
+    if (!token) return null;
+    const { data, error } = await supabase.auth.getUser(token);
+    if (error || !data?.user?.id) return null;
+    return data.user.id;
+  } catch (error) {
+    console.error('Error getting user ID:', error);
+    return null;
+  }
 }
 
 export async function GET(req: NextRequest) {
   try {
+    // Check for required environment variables
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
+    }
+    
     const userId = await getUserId(req);
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    
     // Fetch category subscriptions and join with categories to get names
-    const { data: categoryRows } = await supabase
+    const { data: categoryRows, error: categoryError } = await supabase
       .from('user_category_subscriptions')
       .select('category_id, categories(name)')
       .eq('user_id', userId);
 
-    const categoryPreferences = categoryRows?.map(row => row.categories.name) || [];
+    if (categoryError) {
+      console.error('Error fetching categories:', categoryError);
+      return NextResponse.json({ error: 'Error fetching categories' }, { status: 500 });
+    }
+
+    // Safe access to nested properties
+    const categoryPreferences = categoryRows?.map(row => {
+      const categories = row.categories as any;
+      return categories?.name || '';
+    }).filter(Boolean) || [];
 
     // Fetch preferences from users and user_onboarding_metadata
     const { data: user, error: userError } = await supabase
@@ -55,6 +81,11 @@ export async function GET(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   try {
+    // Check for required environment variables
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
+    }
+    
     const userId = await getUserId(req);
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
