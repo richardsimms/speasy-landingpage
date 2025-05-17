@@ -6,13 +6,22 @@ import { Stripe } from 'stripe';
 let stripePromise: Promise<StripeClient | null>;
 export const getStripe = () => {
   if (!stripePromise) {
-    stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+    const key = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+    if (!key) {
+      throw new Error('Missing environment variable: NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY');
+    }
+    stripePromise = loadStripe(key);
   }
   return stripePromise;
 };
 
 // For server-side operations
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+if (!stripeSecretKey) {
+  throw new Error('Missing environment variable: STRIPE_SECRET_KEY');
+}
+
+const stripe = new Stripe(stripeSecretKey, {
   apiVersion: '2025-04-30.basil',  // Latest API version
 });
 export { stripe }; 
