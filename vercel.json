@@ -1,5 +1,5 @@
 {
-  "buildCommand": "pnpm add critters && rm -rf .next && NODE_OPTIONS='--max-old-space-size=4096' pnpm run build",
+  "buildCommand": "pnpm add critters && rm -rf .next && NODE_OPTIONS='--max-old-space-size=4096' pnpm run build && node scripts/fix-paths.js",
   "installCommand": "pnpm install",
   "framework": "nextjs",
   "headers": [
