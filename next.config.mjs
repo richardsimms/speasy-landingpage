@@ -11,9 +11,10 @@ const nextConfig = {
   },
   output: 'standalone',
   experimental: {
-    // This helps with nested routes in app router
-    serverComponentsExternalPackages: [],
-    optimizeCss: true
+    // Fix: renamed serverComponentsExternalPackages to serverExternalPackages
+    serverExternalPackages: [],
+    // Removing optimizeCss since critters is missing
+    optimizeCss: false
   }
 }
 

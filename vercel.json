@@ -1,5 +1,5 @@
 {
-  "buildCommand": "rm -rf .next && NODE_OPTIONS='--max-old-space-size=4096' pnpm run build",
+  "buildCommand": "pnpm add critters && rm -rf .next && NODE_OPTIONS='--max-old-space-size=4096' pnpm run build",
   "installCommand": "pnpm install",
   "framework": "nextjs",
   "headers": [
