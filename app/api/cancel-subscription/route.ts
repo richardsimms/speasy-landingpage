@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { stripe } from '@/lib/stripe';
+import { getServerStripe } from '@/lib/stripe';
 import { createAdminClient } from '@/lib/server-only';
 import { cookies } from 'next/headers';
 
@@ -18,6 +18,7 @@ export async function POST(request: Request) {
     }
     
     const supabase = createAdminClient();
+    const stripe = getServerStripe();
     const cookieStore = await cookies();
     const {
       data: { user },

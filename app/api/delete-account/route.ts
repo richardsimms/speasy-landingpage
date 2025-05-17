@@ -45,7 +45,7 @@ export async function POST(request: Request) {
         // Cancel the subscription if found
         if (subscriptions.data.length > 0) {
           const subscriptionId = subscriptions.data[0].id;
-          await stripe.subscriptions.del(subscriptionId);
+          await stripe.subscriptions.cancel(subscriptionId);
           console.log(`Canceled subscription ${subscriptionId} for user ${userId}`);
         }
         // Delete the Stripe customer

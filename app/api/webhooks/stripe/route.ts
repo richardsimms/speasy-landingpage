@@ -16,6 +16,14 @@ export async function POST(request: Request) {
     );
   }
 
+  if (!process.env.STRIPE_WEBHOOK_SECRET) {
+    console.error('Missing STRIPE_WEBHOOK_SECRET environment variable');
+    return NextResponse.json(
+      { error: 'Server configuration error' },
+      { status: 500 }
+    );
+  }
+
   let event;
 
   try {
@@ -23,7 +31,7 @@ export async function POST(request: Request) {
     event = stripe.webhooks.constructEvent(
       body,
       signatureHeader,
-      process.env.STRIPE_WEBHOOK_SECRET!
+      process.env.STRIPE_WEBHOOK_SECRET
     );
   } catch (error: any) {
     console.error(`Webhook signature verification failed: ${error.message}`);
@@ -125,6 +133,12 @@ async function handleSubscriptionUpdated(subscription: any, supabase: any) {
   try {
     const customerId = subscription.customer;
     const status = subscription.status;
+
+    // We know the customerId is a string at this point, assert it as such
+    if (typeof customerId !== 'string') {
+      console.error('Invalid customer ID in subscription object');
+      return;
+    }
 
     // Get customer details to get email
     const customer = await stripe.customers.retrieve(customerId);

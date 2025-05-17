@@ -15,13 +15,29 @@ export const getStripe = () => {
   return stripePromise;
 };
 
-// For server-side operations
-const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
-if (!stripeSecretKey) {
-  throw new Error('Missing environment variable: STRIPE_SECRET_KEY');
+// Lazy initialization for server-side Stripe
+let stripeInstance: Stripe | null = null;
+
+export function getServerStripe(): Stripe {
+  if (!stripeInstance) {
+    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+    if (!stripeSecretKey) {
+      throw new Error('Missing environment variable: STRIPE_SECRET_KEY');
+    }
+    
+    stripeInstance = new Stripe(stripeSecretKey, {
+      apiVersion: '2025-04-30.basil',  // Latest API version
+    });
+  }
+  
+  return stripeInstance;
 }
 
-const stripe = new Stripe(stripeSecretKey, {
-  apiVersion: '2025-04-30.basil',  // Latest API version
-});
-export { stripe }; 
+// For backward compatibility - proxy that lazily initializes Stripe
+export const stripe = new Proxy({} as Stripe, {
+  get: (target, prop) => {
+    // This will lazily initialize Stripe only when a property is accessed
+    const stripe = getServerStripe();
+    return (stripe as any)[prop];
+  }
+}); 
