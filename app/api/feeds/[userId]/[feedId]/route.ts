@@ -6,9 +6,7 @@ export async function GET(
   request: NextRequest,
   context: { params: Record<string, string> }
 ) {
-  const userId = context.params.userId
-  const feedId = context.params.feedId
-
+  const { userId, feedId } = context.params
 
   console.log("userId", userId)
   try {
