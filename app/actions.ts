@@ -55,7 +55,8 @@ export async function subscribeToEarlyAccess(data: SubscribeData) {
 
 export async function submitUrl(url: string) {
   try {
-    const supabase = createServerActionClient({ cookies })
+    const cookieStore = cookies()
+    const supabase = createServerActionClient({ cookies: () => cookieStore })
 
     const {
       data: { session },
@@ -121,7 +122,8 @@ export async function submitUrl(url: string) {
 
 export async function subscribeToCategory(categoryId: string) {
   try {
-    const supabase = createServerActionClient({ cookies })
+    const cookieStore = cookies()
+    const supabase = createServerActionClient({ cookies: () => cookieStore })
 
     const {
       data: { session },
@@ -168,7 +170,8 @@ export async function subscribeToCategory(categoryId: string) {
 
 export async function unsubscribeFromCategory(categoryId: string) {
   try {
-    const supabase = createServerActionClient({ cookies })
+    const cookieStore = cookies()
+    const supabase = createServerActionClient({ cookies: () => cookieStore })
 
     const {
       data: { session },
@@ -202,7 +205,8 @@ export async function unsubscribeFromCategory(categoryId: string) {
 
 export async function saveContentItem(contentId: string) {
   try {
-    const supabase = createServerActionClient({ cookies })
+    const cookieStore = cookies()
+    const supabase = createServerActionClient({ cookies: () => cookieStore })
 
     const {
       data: { session },
@@ -259,7 +263,8 @@ export async function saveContentItem(contentId: string) {
 
 export async function markContentAsRead(contentId: string) {
   try {
-    const supabase = createServerActionClient({ cookies })
+    const cookieStore = cookies()
+    const supabase = createServerActionClient({ cookies: () => cookieStore })
 
     const {
       data: { session },
@@ -313,7 +318,8 @@ export async function markContentAsRead(contentId: string) {
 
 export async function markContentAsUnread(contentId: string) {
   try {
-    const supabase = createServerActionClient({ cookies })
+    const cookieStore = cookies()
+    const supabase = createServerActionClient({ cookies: () => cookieStore })
 
     const {
       data: { session },

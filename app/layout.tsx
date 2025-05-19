@@ -36,7 +36,16 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${GeistSans.variable} ${GeistMono.variable} font-sans antialiased`}>
+      <head>
+        <script dangerouslySetInnerHTML={{
+          __html: `
+            // Hydration error helper
+            window.__NEXT_HYDRATION_ERROR_INFO = window.__NEXT_HYDRATION_ERROR_INFO || {};
+            window.__NEXT_HYDRATION_ERROR_INFO.timestamp = new Date().getTime();
+          `
+        }} />
+      </head>
+      <body className={`${GeistSans.variable} ${GeistMono.variable} font-sans antialiased`} suppressHydrationWarning>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           {children}
         </ThemeProvider>

@@ -5,7 +5,8 @@ import { CategoryList } from "@/components/category-list"
 import CancelAndDeleteActions from "@/components/CancelAndDeleteActions"
 
 export default async function SubscriptionsPage() {
-  const supabase = createServerComponentClient({ cookies })
+  const cookieStore = cookies()
+  const supabase = createServerComponentClient({ cookies: () => cookieStore })
 
   const {
     data: { user },

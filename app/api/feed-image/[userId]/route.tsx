@@ -9,7 +9,8 @@ export async function GET(request: NextRequest, { params }: { params: { userId: 
   const { userId } = params
 
   try {
-    const supabase = createRouteHandlerClient({ cookies })
+    const cookieStore = cookies()
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
 
     // Get user profile
     const { data: profile } = await supabase.from("profiles").select("*").eq("id", userId).single()

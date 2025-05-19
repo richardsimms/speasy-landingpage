@@ -11,7 +11,8 @@ export default async function AppLayout({
 }: {
   children: React.ReactNode
 }) {
-  const supabase = createServerComponentClient({ cookies })
+  const cookieStore = cookies()
+  const supabase = createServerComponentClient({ cookies: () => cookieStore })
 
   const {
     data: { session },
@@ -27,11 +28,11 @@ export default async function AppLayout({
     (typeof children === 'object' && (children as any)?.props?.isOnboarding);
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col bg-background">
       <AppHeader />
       <div className="flex flex-1">
-        {!isOnboarding && <AppSidebar />}
-        <main className="flex-1 overflow-y-auto bg-muted/40 pb-16 md:pb-0">{children}</main>
+        {/* {!isOnboarding && <AppSidebar />} */}
+        <main className="container items-center">{children}</main>
       </div>
       <Analytics />
     </div>

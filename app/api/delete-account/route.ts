@@ -3,11 +3,12 @@ import { createAdminClient } from '@/lib/server-only';
 import { cookies } from 'next/headers';
 import { stripe } from '@/lib/stripe';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { NextRequest } from 'next/server';
 
-export async function POST(request: Request) {
+export async function POST(req: NextRequest) {
   try {
-    // Use both auth clients for different purposes
-    const authClient = createRouteHandlerClient({ cookies });
+    const cookieStore = cookies()
+    const authClient = createRouteHandlerClient({ cookies: () => cookieStore });
     const adminClient = createAdminClient();
     
     // Fetch authenticated user

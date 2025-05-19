@@ -4,7 +4,8 @@ import { redirect } from "next/navigation"
 import { ContentList } from "@/components/content-list"
 
 export default async function SavedPage() {
-  const supabase = createServerComponentClient({ cookies })
+  const cookieStore = cookies()
+  const supabase = createServerComponentClient({ cookies: () => cookieStore })
 
   // Use getUser for better security
   const { data: { user }, error: userError } = await supabase.auth.getUser()

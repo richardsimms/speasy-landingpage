@@ -10,7 +10,8 @@ interface PlayerPageProps {
 }
 
 export default async function PlayerPage({ searchParams }: PlayerPageProps) {
-  const supabase = createServerComponentClient({ cookies })
+  const cookieStore = cookies()
+  const supabase = createServerComponentClient({ cookies: () => cookieStore })
 
   const {
     data: { session },
@@ -20,8 +21,11 @@ export default async function PlayerPage({ searchParams }: PlayerPageProps) {
     redirect("/auth/login")
   }
 
+  // Extract the ID from searchParams
+  const contentId = searchParams.id
+
   // If no ID is provided, get the latest content item with audio
-  if (!searchParams.id) {
+  if (!contentId) {
     const { data: latestContent } = await supabase
       .from("content_items")
       .select(`
@@ -45,25 +49,25 @@ export default async function PlayerPage({ searchParams }: PlayerPageProps) {
       source:content_sources(name, category_id),
       audio:audio_files(file_url, duration, type)
     `)
-    .eq("id", searchParams.id)
+    .eq("id", contentId)
     .single()
 
   if (!contentItem) {
     redirect("/dashboard")
   }
 
-  // Get related content items
-/*   const { data: relatedContent } = await supabase
+  // Get related content
+  const { data: relatedContent = [] } = await supabase
     .from("content_items")
     .select(`
-      *,
+      id, title, url, description, published_at,
       source:content_sources(name),
-      audio:audio_files(file_url, duration, type)
+      audio:audio_files(file_url, duration)
     `)
     .eq("source.category_id", contentItem.source?.category_id)
-    .neq("id", contentItem.id)
+    .neq("id", contentId)
     .order("published_at", { ascending: false })
-    .limit(5) */
+    .limit(5)
 
   // Process audio files for playback - using public URLs
   if (contentItem?.audio && contentItem.audio.length > 0) {
@@ -105,8 +109,8 @@ export default async function PlayerPage({ searchParams }: PlayerPageProps) {
   }
 
   return (
-    <div className="container py-6 md:py-10">
-      <AudioPlayer contentItem={contentItem} relatedContent={[]} />
+    <div className="container mx-auto p-4 max-w-4xl">
+      <AudioPlayer contentItem={contentItem} relatedContent={relatedContent || []} />
     </div>
   )
 }
