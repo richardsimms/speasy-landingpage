@@ -76,7 +76,7 @@
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",
     "unfluff": "^3.2.0",
-    "uuid": "^9.0.1",
+    "uuid": "^11.1.0",
     "valibot": "^1.1.0",
     "vaul": "^0.9.9",
     "zod": "^3.24.4"
