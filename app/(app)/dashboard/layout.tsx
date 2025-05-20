@@ -205,10 +205,11 @@ export default function DashboardLayout({ children }: LayoutProps) {
             </div>
           </div>
         </footer>
-
-        {/* Audio player */}
-        <div className="fixed inset-x-0 bottom-0 z-20">
-          <AudioPlayer />
+        {/* Audio player - sticky at bottom, always aligned with main content */}
+        <div className="fixed bottom-0 left-0 right-0 z-20 flex justify-center pointer-events-none">
+          <div className="mx-auto px-4 sm:px-6 md:max-w-2xl md:px-4 lg:max-w-4xl w-full pointer-events-auto">
+            <AudioPlayer />
+          </div>
         </div>
       </div>
     </AudioProvider>

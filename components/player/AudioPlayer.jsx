@@ -41,7 +41,7 @@ export function AudioPlayer() {
   }
 
   return (
-    <div className="flex items-center gap-6 bg-white/90 px-4 py-4 shadow shadow-slate-200/80 ring-1 ring-slate-900/5 backdrop-blur-sm md:px-6" suppressHydrationWarning>
+    <div className="flex items-center justify-center gap-6 bg-background/80 px-4 py-4 shadow shadow-slate-200/80 ring-1 ring-slate-900/5 backdrop-blur-sm ">
       <div className="hidden md:block">
         <PlayButton player={player} />
       </div>
@@ -53,42 +53,35 @@ export function AudioPlayer() {
         >
           {player.episode.title}
         </Link>
-        <div className="flex justify-between gap-6">
-          <div className="flex items-center md:hidden">
-            <MuteButton player={player} />
+        <div className="flex flex-col md:flex-row justify-center items-center gap-6 w-full">
+          <div className="order-1 md:order-none w-full md:flex-1 flex items-center">
+            <Slider
+              label="Current time"
+              maxValue={player.duration}
+              step={1}
+              value={[currentTime ?? player.currentTime]}
+              onChange={([value]) => setCurrentTime(value)}
+              onChangeEnd={([value]) => {
+                player.seek(value)
+                if (wasPlayingRef.current) {
+                  player.play()
+                }
+              }}
+              onChangeStart={() => {
+                wasPlayingRef.current = player.playing
+                player.pause()
+              }}
+              numberFormatter={{ format: formatHumanTime }}
+            />
           </div>
-          <div className="flex flex-none items-center gap-4">
+          <div className="flex flex-none items-center gap-4 order-3 md:order-none w-full md:w-auto justify-between md:justify-normal">
+            <MuteButton player={player} />
             <RewindButton player={player} />
             <div className="md:hidden">
               <PlayButton player={player} />
             </div>
             <ForwardButton player={player} />
-          </div>
-          <Slider
-            label="Current time"
-            maxValue={player.duration}
-            step={1}
-            value={[currentTime ?? player.currentTime]}
-            onChange={([value]) => setCurrentTime(value)}
-            onChangeEnd={([value]) => {
-              player.seek(value)
-              if (wasPlayingRef.current) {
-                player.play()
-              }
-            }}
-            numberFormatter={{ format: formatHumanTime }}
-            onChangeStart={() => {
-              wasPlayingRef.current = player.playing
-              player.pause()
-            }}
-          />
-          <div className="flex items-center gap-4">
-            <div className="flex items-center">
-              <PlaybackRateButton player={player} />
-            </div>
-            <div className="hidden items-center md:flex">
-              <MuteButton player={player} />
-            </div>
+            <PlaybackRateButton player={player} />
           </div>
         </div>
       </div>

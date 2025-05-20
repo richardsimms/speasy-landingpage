@@ -24,3 +24,9 @@ export function formatDuration(seconds: number): string {
 
   return `${minutes.toString().padStart(2, "0")}:${remainingSeconds.toString().padStart(2, "0")}`
 }
+
+export function truncate(str: string, maxLength = 250, ellipsis = "… ") {
+  if (!str) return '';
+  if (str.length <= maxLength) return str;
+  return str.slice(0, maxLength) + ellipsis;
+}

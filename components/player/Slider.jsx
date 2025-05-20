@@ -55,7 +55,7 @@ function Thumb(props) {
           'h-4 rounded-full',
           isFocusVisible || state.isThumbDragging(index)
             ? 'w-1.5 bg-slate-900'
-            : 'w-1 bg-slate-700',
+            : 'w-1 bg-primary',
         )}
       >
         <VisuallyHidden>
@@ -82,7 +82,7 @@ export function Slider(props) {
   return (
     <div
       {...groupProps}
-      className="absolute inset-x-0 bottom-full flex flex-auto touch-none items-center gap-6 md:relative"
+      className="relative w-full flex flex-auto touch-none items-center gap-6"
     >
       {props.label && (
         <label className="sr-only" {...labelProps}>
@@ -100,14 +100,14 @@ export function Slider(props) {
           props.onChangeStart?.()
         }}
         ref={trackRef}
-        className="relative w-full bg-slate-100 md:rounded-full"
+        className="relative w-full bg-muted md:rounded-full"
       >
         <div
           className={clsx(
             'h-2 md:rounded-l-xl md:rounded-r-md',
             isFocusVisible || state.isThumbDragging(0)
               ? 'bg-slate-900'
-              : 'bg-slate-700',
+              : 'bg-primary',
           )}
           style={{
             width:
@@ -143,12 +143,12 @@ export function Slider(props) {
         >
           {formatTime(currentTime, totalTime)}
         </output>
-        <span className="text-sm leading-6 text-slate-300" aria-hidden="true">
+        <span className="text-sm leading-6 text-muted-foreground" aria-hidden="true">
           /
         </span>
         <span
           className={clsx(
-            'hidden rounded-md px-1 py-0.5 font-mono text-sm leading-6 text-slate-500 md:block',
+            'hidden rounded-md px-1 py-0.5 font-mono text-sm leading-6 text-muted-foreground md:block',
             state.getThumbMaxValue(0) === 0 && 'opacity-0',
           )}
         >

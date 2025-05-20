@@ -6,6 +6,7 @@ import { Container } from '@/components/Container'
 import { EpisodePlayButton } from '@/components/EpisodePlayButton'
 import { FormattedDate } from '@/components/FormattedDate'
 import { DashboardClient } from "@/components/dashboard-client"
+import { truncate } from "@/lib/utils"
 
 interface IconProps extends React.SVGProps<SVGSVGElement> {}
 
@@ -63,7 +64,7 @@ function ContentEntry({ content }: { content: ContentItem }) {
             className="order-first font-mono text-sm leading-7 text-muted-foreground"
           />
           <p className="mt-1 text-base leading-7 text-muted-foreground">
-            {content.description || content.summary}
+            {truncate(content.description || content.summary || "")}
           </p>
           <div className="mt-4 flex items-center gap-4">
             {content.audio && content.audio.length > 0 && (

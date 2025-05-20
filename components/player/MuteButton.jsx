@@ -39,7 +39,8 @@ export function MuteButton({ player }) {
       <div className="absolute -inset-4 md:hidden" />
       <MuteIcon
         muted={player.muted}
-        className="h-6 w-6 fill-slate-500 stroke-slate-500 group-hover:fill-slate-700 group-hover:stroke-slate-700"
+        className="h-6 w-6 md:h-7 md:w-7"
+        style={{ fill: 'hsl(var(--foreground))' }}
       />
     </button>
   )

@@ -108,7 +108,10 @@ export function PlaybackRateButton({ player }) {
       aria-label="Playback rate"
     >
       <div className="absolute -inset-4 md:hidden" />
-      <playbackRate.icon className="h-4 w-4" />
+      <playbackRate.icon 
+        className="h-5 w-5 md:h-7 md:w-7"
+        style={{ fill: 'hsl(var(--foreground))' }}
+      />
     </button>
   )
 }

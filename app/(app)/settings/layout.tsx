@@ -24,10 +24,14 @@ export default function SettingsLayout({ children }: SettingsLayoutProps) {
         <div className="flex flex-col md:flex-row gap-8">
           <div className="md:w-1/4">
             <nav className="flex flex-col gap-2">
+              <SettingsNavLink href="/dashboard">Dashboard</SettingsNavLink>
+              <Separator />
               <SettingsNavLink href="/settings/profile">Profile</SettingsNavLink>
-              <SettingsNavLink href="/settings/subscriptions">Subscriptions</SettingsNavLink>
+              <SettingsNavLink href="/settings/subscriptions">Account subscriptions</SettingsNavLink>
               <SettingsNavLink href="/settings/podcast">Podcast Settings</SettingsNavLink>
               <SettingsNavLink href="/settings/preferences">Preferences</SettingsNavLink>
+              <Separator />
+              <SettingsNavLink href="/settings/logout">Logout</SettingsNavLink>
             </nav>
           </div>
 
