@@ -7,7 +7,10 @@ Welcome to the Speasy documentation! This documentation will guide you through s
 - [Setup Guide](./setup-guide.md) - Overview of the setup process
 - [Stripe Integration](./stripe-integration.md) - Setting up Stripe for subscription payments
 - [Supabase Authentication](./supabase-auth.md) - Setting up Supabase for user authentication
+- [Database Schema](./database-schema.md) - Database schema and structure
+- [Repository Structure](./repository-structure.md) - Repository organization and key files
 - [Podcast Feed](./podcast-feed.md) - Setting up the podcast feed functionality
+- [Codebase Overview](./codebase-overview.md) - High-level architecture and components
 - [Edge Functions](./edge-functions.md) - Setting up Supabase Edge Functions
 
 ## Quick Start
@@ -26,4 +29,4 @@ For detailed configuration instructions, refer to the [Setup Guide](./setup-guid
 - Node.js 18.x or later
 - npm 9.x or later
 - A Supabase account
-- A Stripe account 
+- A Stripe account  
