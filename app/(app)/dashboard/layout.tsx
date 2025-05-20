@@ -1,6 +1,8 @@
 import { Fragment, ReactNode } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { cookies } from 'next/headers'
+import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
 
 import { AboutSection } from '@/components/AboutSection'
 import { AudioProvider } from '@/components/AudioProvider'
@@ -63,8 +65,31 @@ interface LayoutProps {
   children: ReactNode
 }
 
-export default function DashboardLayout({ children }: LayoutProps) {
+export default async function DashboardLayout({ children }: LayoutProps) {
   const hosts = ['Speasy']
+
+  // Fetch user's private feed URL
+  const cookieStore = cookies()
+  const supabase = createServerComponentClient({ cookies: () => cookieStore })
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+
+  let feedUrl: string | null = null
+  if (session) {
+    const { data: feed } = await supabase
+      .from('podcast_feeds')
+      .select('feed_url')
+      .eq('user_id', session.user.id)
+      .eq('is_default', true)
+      .single()
+    if (feed && feed.feed_url) {
+      feedUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://speasy.app'}/api/feeds/${session.user.id}/${feed.feed_url}`
+    }
+  }
+  const overcastDeeplink = feedUrl
+    ? `overcast://x-callback-url/add?url=${encodeURIComponent(feedUrl)}`
+    : '/'
 
   return (
     <AudioProvider>
@@ -73,7 +98,7 @@ export default function DashboardLayout({ children }: LayoutProps) {
         <header className="bg-background lg:sticky lg:top-0 lg:h-screen lg:w-80 lg:flex-shrink-0 border-b lg:border-b-0 lg:border-r border-border">
           {/* Mobile header bar with logo only */}
           <div className="flex items-center justify-center lg:hidden border-b border-border py-4">
-            <Link href="/" className="block w-32 overflow-hidden" aria-label="Homepage">
+            <Link href="/" className="block w-32 rounded-lg overflow-hidden" aria-label="Homepage">
               <Image
                 className="w-full"
                 src={posterImage}
@@ -87,15 +112,15 @@ export default function DashboardLayout({ children }: LayoutProps) {
           {/* Mobile controls for collapsible header */}
           <div className="flex items-center justify-center py-2 lg:hidden">
             <div className="flex gap-8 text-foreground">
-              {[
-                ['Spotify', SpotifyIcon] as [string, React.ComponentType<IconProps>],
-                ['Apple Podcast', ApplePodcastIcon] as [string, React.ComponentType<IconProps>],
-                ['Overcast', OvercastIcon] as [string, React.ComponentType<IconProps>],
-                ['RSS Feed', RSSIcon] as [string, React.ComponentType<IconProps>],
-              ].map(([label, Icon]) => (
+              {([
+                ['Spotify', SpotifyIcon, '/'],
+                ['Apple Podcast', ApplePodcastIcon, '/'],
+                ['Overcast', OvercastIcon, overcastDeeplink],
+                ['RSS Feed', RSSIcon, feedUrl || '/'],
+              ] as [string, React.ComponentType<IconProps>, string][]).map(([label, Icon, href]) => (
                 <Link
                   key={label}
-                  href="/"
+                  href={href}
                   className="group flex items-center"
                   aria-label={label}
                 >
@@ -152,15 +177,15 @@ export default function DashboardLayout({ children }: LayoutProps) {
                 role="list"
                 className="mt-4 flex flex-col gap-3 text-base font-medium leading-7 text-muted-foreground"
               >
-                {[
-                  ['Spotify', SpotifyIcon] as [string, React.ComponentType<IconProps>],
-                  ['Apple Podcast', ApplePodcastIcon] as [string, React.ComponentType<IconProps>],
-                  ['Overcast', OvercastIcon] as [string, React.ComponentType<IconProps>],
-                  ['RSS Feed', RSSIcon] as [string, React.ComponentType<IconProps>],
-                ].map(([label, Icon]) => (
+                {([
+                  ['Spotify', SpotifyIcon, '/'],
+                  ['Apple Podcast', ApplePodcastIcon, '/'],
+                  ['Overcast', OvercastIcon, overcastDeeplink],
+                  ['RSS Feed', RSSIcon, feedUrl || '/'],
+                ] as [string, React.ComponentType<IconProps>, string][]).map(([label, Icon, href]) => (
                   <li key={label} className="flex">
                     <Link
-                      href="/"
+                      href={href}
                       className="group flex items-center"
                       aria-label={label}
                     >

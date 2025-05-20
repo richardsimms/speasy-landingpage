@@ -214,7 +214,7 @@ export default async function DashboardPage() {
   // Either use the DashboardClient component or render content directly
   if (subscribedCategoryIds && subscribedCategoryIds.length > 0) {
     return (
-      <div className="pb-12 sm:pb-4 lg:pt-12">
+      <div className="pb-12 sm:pb-4 sm:pt-16 lg:pt-16">
         <Container className="pt-16">
           <h1 className="text-2xl font-bold leading-7 text-foreground">
             Your Content
