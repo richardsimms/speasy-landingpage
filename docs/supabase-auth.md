@@ -180,20 +180,70 @@ export const config = {
 
 ## Auth Flow Diagram
 
+```mermaid
+sequenceDiagram
+    participant User
+    participant Stripe
+    participant Success Page
+    participant Supabase Auth
+    participant Middleware
+    participant Dashboard
+
+    User->>Stripe: Complete payment
+    Stripe->>Success Page: Redirect with email
+    Success Page->>Supabase Auth: Send magic link
+    Supabase Auth->>User: Email magic link
+    User->>Supabase Auth: Click magic link
+    Supabase Auth->>Dashboard: Redirect with session
+    Dashboard->>Middleware: Request protected route
+    Middleware->>Supabase Auth: Verify session
+    Supabase Auth->>Middleware: Session valid
+    Middleware->>Dashboard: Allow access
 ```
-User completes Stripe payment
-    ↓
-Redirects to success page
-    ↓
-Success page sends magic link
-    ↓
-User receives email
-    ↓
-User clicks magic link
-    ↓
-Redirects to dashboard
-    ↓
-User is authenticated
+
+## Middleware Implementation
+
+```typescript
+export async function middleware(req: NextRequest) {
+  const res = NextResponse.next()
+  const supabase = createMiddlewareClient({ req, res })
+
+  // Handle auth error parameters in the URL hash
+  const url = new URL(req.url)
+  if (url.hash && url.hash.includes('error=')) {
+    const errorParams = new URLSearchParams(url.hash.substring(1))
+    const error = errorParams.get('error')
+    const errorCode = errorParams.get('error_code')
+    const errorDescription = errorParams.get('error_description')
+
+    if (error || errorCode || errorDescription) {
+      const errorUrl = new URL('/auth/error', req.url)
+      errorUrl.searchParams.set('error', error || '')
+      errorUrl.searchParams.set('error_code', errorCode || '')
+      errorUrl.searchParams.set('error_description', errorDescription || '')
+      return NextResponse.redirect(errorUrl)
+    }
+  }
+
+  // Refresh session
+  const { data: { session } } = await supabase.auth.getSession()
+
+  // Protected routes
+  if (req.nextUrl.pathname.startsWith('/dashboard')) {
+    if (!session) {
+      return NextResponse.redirect(new URL('/auth/login', req.url))
+    }
+  }
+
+  // Auth routes
+  if (req.nextUrl.pathname.startsWith('/auth/login')) {
+    if (session) {
+      return NextResponse.redirect(new URL('/dashboard', req.url))
+    }
+  }
+
+  return res
+}
 ```
 
 ## Troubleshooting
@@ -228,4 +278,4 @@ User is authenticated
 - [Supabase Authentication Documentation](https://supabase.com/docs/guides/auth)
 - [Magic Link Authentication Guide](https://supabase.com/docs/guides/auth/passwordless-login/auth-magic-link)
 - [Row Level Security Guide](https://supabase.com/docs/guides/auth/row-level-security)
-- [Next.js Authentication Documentation](https://nextjs.org/docs/authentication)  
+- [Next.js Authentication Documentation](https://nextjs.org/docs/authentication)    

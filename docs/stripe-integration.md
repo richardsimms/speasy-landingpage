@@ -146,24 +146,138 @@ When deploying to production:
 2. Update the webhook endpoint URL in your Stripe dashboard to point to your production URL.
 3. Verify the integration by making a test purchase.
 
-## Flow Diagram
+## Webhook Handler Implementation
 
+```typescript
+export async function POST(request: Request) {
+  const body = await request.text();
+  const signatureHeader = request.headers.get('stripe-signature');
+  const supabase = createAdminClient();
+  
+  if (!signatureHeader) {
+    return NextResponse.json(
+      { error: 'No stripe-signature header found' },
+      { status: 400 }
+    );
+  }
+
+  let event;
+
+  try {
+    // Verify webhook signature
+    event = stripe.webhooks.constructEvent(
+      body,
+      signatureHeader,
+      process.env.STRIPE_WEBHOOK_SECRET!
+    );
+  } catch (error: any) {
+    console.error(`Webhook signature verification failed: ${error.message}`);
+    return NextResponse.json({ error: error.message }, { status: 400 });
+  }
+
+  // Handle the event based on its type
+  switch (event.type) {
+    case 'checkout.session.completed':
+      const session = event.data.object;
+      await handleCheckoutSessionCompleted(session, supabase);
+      break;
+    case 'customer.subscription.created':
+    case 'customer.subscription.updated':
+      const subscription = event.data.object;
+      await handleSubscriptionUpdated(subscription, supabase);
+      break;
+    default:
+      console.log(`Unhandled event type: ${event.type}`);
+  }
+
+  return NextResponse.json({ received: true });
+}
 ```
-User clicks "Start listening" 
-    ↓
-Redirects to Stripe Checkout
-    ↓
-User completes payment
-    ↓
-Redirects to success page
-    ↓
-Stripe sends webhook event
-    ↓
-Webhook handler updates Supabase
-    ↓
-Success page sends magic link
-    ↓
-User clicks link to access account
+
+### Checkout Session Completed Handler
+
+```typescript
+async function handleCheckoutSessionCompleted(session: any, supabase: any) {
+  try {
+    const { customer_email } = session;
+    
+    if (customer_email) {
+      // First ensure user exists in Supabase Auth
+      await ensureUserInAuth(customer_email, supabase);
+      
+      // Save user to Supabase or update existing user
+      const { data, error } = await supabase
+        .from('users')
+        .upsert(
+          { 
+            email: customer_email,
+            stripe_customer_id: session.customer,
+            subscription_status: 'active'
+          },
+          { onConflict: 'email' }
+        );
+
+      if (error) {
+        console.error('Error saving user to Supabase:', error);
+      }
+    }
+  } catch (error) {
+    console.error('Error handling checkout session:', error);
+  }
+}
+```
+
+### Subscription Update Handler
+
+```typescript
+async function handleSubscriptionUpdated(subscription: any, supabase: any) {
+  try {
+    const customerId = subscription.customer;
+    const status = subscription.status;
+
+    // Get customer details to get email
+    const customer = await stripe.customers.retrieve(customerId);
+    
+    if ('email' in customer) {
+      const customerEmail = customer.email;
+      
+      // Ensure user exists in auth
+      await ensureUserInAuth(customerEmail, supabase);
+      
+      // Update subscription status in Supabase
+      const { error } = await supabase
+        .from('users')
+        .update({ subscription_status: status })
+        .eq('stripe_customer_id', customerId);
+
+      if (error) {
+        console.error('Error updating subscription status:', error);
+      }
+    }
+  } catch (error) {
+    console.error('Error handling subscription update:', error);
+  }
+}
+```
+
+## Payment Flow Diagram
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Landing Page
+    participant Stripe Checkout
+    participant Stripe Webhook
+    participant Supabase Database
+    participant Success Page
+
+    User->>Landing Page: Click "Start listening"
+    Landing Page->>Stripe Checkout: Redirect to checkout
+    User->>Stripe Checkout: Enter payment details
+    Stripe Checkout->>Success Page: Redirect after payment
+    Stripe Checkout->>Stripe Webhook: Send checkout.session.completed event
+    Stripe Webhook->>Supabase Database: Update user subscription status
+    Success Page->>User: Prompt for email (magic link)
 ```
 
 ## Troubleshooting
@@ -197,4 +311,4 @@ User clicks link to access account
 
 - [Stripe Documentation](https://stripe.com/docs)
 - [Supabase Documentation](https://supabase.io/docs)
-- [Next.js API Routes Documentation](https://nextjs.org/docs/api-routes/introduction) 
+- [Next.js API Routes Documentation](https://nextjs.org/docs/api-routes/introduction)  
