@@ -117,7 +117,6 @@ const podcastDeeplink = feedUrl
           <div className="flex items-center justify-center py-2 lg:hidden">
             <div className="flex gap-8 text-foreground">
               {([
-                ['Spotify', SpotifyIcon, '/'],
                 ['Apple Podcast', ApplePodcastIcon, '/'],
                 ['Overcast', OvercastIcon, overcastDeeplink],
                 ['RSS Feed', RSSIcon, feedUrl || '/'],
@@ -161,7 +160,7 @@ const podcastDeeplink = feedUrl
                 <Link href="/">Speasy</Link>
               </p>
               <p className="mt-2 text-base font-medium leading-7 text-muted-foreground">
-                Turning newsletters into Podcast. - Listen, don't read.
+                Turning newsletters into Podcast —– Listen, don't read.
               </p>
             </div>
             
@@ -182,7 +181,6 @@ const podcastDeeplink = feedUrl
                 className="mt-4 flex flex-col gap-3 text-base font-medium leading-7 text-muted-foreground"
               >
                 {([
-                  ['Spotify', SpotifyIcon, '/'],
                   ['Apple Podcast', ApplePodcastIcon, podcastDeeplink],
                   ['Overcast', OvercastIcon, overcastDeeplink],
                   ['RSS Feed', RSSIcon, feedUrl || '/'],

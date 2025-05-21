@@ -84,7 +84,7 @@ export default function HeroSection() {
               transition={{ duration: 0.5 }}
             >
               <h1 className="text-4xl font-bold tracking-tight sm:text-6xl xl:text-7xl/none">
-              Turn newsletters into <span className="text-primary">Podcast.</span> - Listen, don't read.
+              Turn newsletters into <span className="text-primary">Podcast</span> — Listen, don't read.
               </h1>
               <p className="max-w-[600px] text-muted-foreground text-xl">
               Speasy instantly converts your favourite newsletters into short, high-quality audio summaries. No setup, no clutter-just subscribe, press play, and catch up on the go.
