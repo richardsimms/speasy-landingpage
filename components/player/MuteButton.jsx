@@ -6,6 +6,8 @@ function MuteIcon({ muted, ...props }) {
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
+      stroke="currentColor"
+
       {...props}
     >
       {muted ? (
@@ -40,7 +42,6 @@ export function MuteButton({ player }) {
       <MuteIcon
         muted={player.muted}
         className="h-6 w-6 md:h-7 md:w-7"
-        style={{ fill: 'hsl(var(--foreground))' }}
       />
     </button>
   )

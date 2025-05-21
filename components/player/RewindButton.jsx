@@ -4,6 +4,7 @@ function RewindIcon(props) {
       aria-hidden="true"
       viewBox="0 0 24 24"
       fill="none"
+      stroke="currentColor"
       strokeWidth="1.5"
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -26,7 +27,6 @@ export function RewindButton({ player, amount = 10 }) {
       <div className="absolute -inset-4 -right-2 md:hidden" />
       <RewindIcon 
         className="h-6 w-6"
-        style={{ fill: 'hsl(var(--foreground))' }}
       />
     </button>
   )

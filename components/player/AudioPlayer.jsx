@@ -41,7 +41,7 @@ export function AudioPlayer() {
   }
 
   return (
-    <div className="flex items-center justify-center gap-6 bg-background/80 px-4 py-4 shadow shadow-slate-200/80 ring-1 ring-slate-900/5 backdrop-blur-sm ">
+    <div className="flex items-center justify-centre gap-6 bg-background/90 px-4 py-4 ring-2 ring-border rounded-lg backdrop-blur-lg ">
       <div className="hidden md:block">
         <PlayButton player={player} />
       </div>

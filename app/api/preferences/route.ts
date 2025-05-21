@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/utils/supabase';
+import { cookies } from 'next/headers';
 
 // Helper to get user id from Supabase session (using cookies/JWT)
 async function getUserId(req: NextRequest): Promise<string | null> {
-  const token = req.headers.get('Authorization')?.replace('Bearer ', '') || req.cookies.get('sb-access-token')?.value;
+  const cookieStore = cookies();
+  const token = req.headers.get('Authorization')?.replace('Bearer ', '') || cookieStore.get('sb-access-token')?.value;
   if (!token) return null;
   const { data, error } = await supabase.auth.getUser(token);
   if (error || !data?.user?.id) return null;
