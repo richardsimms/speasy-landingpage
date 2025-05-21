@@ -91,6 +91,10 @@ export default async function DashboardLayout({ children }: LayoutProps) {
     ? `overcast://x-callback-url/add?url=${encodeURIComponent(feedUrl)}`
     : '/'
 
+const podcastDeeplink = feedUrl
+    ? `podcast://x-callback-url/add?url=${encodeURIComponent(feedUrl)}`
+    : '/'
+
   return (
     <AudioProvider>
       <div className="flex min-h-screen w-fill flex-col lg:flex-row">
@@ -179,7 +183,7 @@ export default async function DashboardLayout({ children }: LayoutProps) {
               >
                 {([
                   ['Spotify', SpotifyIcon, '/'],
-                  ['Apple Podcast', ApplePodcastIcon, '/'],
+                  ['Apple Podcast', ApplePodcastIcon, podcastDeeplink],
                   ['Overcast', OvercastIcon, overcastDeeplink],
                   ['RSS Feed', RSSIcon, feedUrl || '/'],
                 ] as [string, React.ComponentType<IconProps>, string][]).map(([label, Icon, href]) => (
